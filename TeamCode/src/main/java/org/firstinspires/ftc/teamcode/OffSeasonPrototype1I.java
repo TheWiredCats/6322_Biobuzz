@@ -27,6 +27,13 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.LLStatus;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+
+import java.util.List;
 
 /**
  * This file contains a minimal example of an iterative (Non-Linear) "OpMode". An OpMode is a
@@ -50,6 +57,8 @@ public class OffSeasonPrototype1I extends OpMode {
     private DcMotor FRMotor = null;
     private DcMotor BRMotor = null;
 
+    private Limelight3A limelight = null;
+
     private IMU imu = null;
 
     @Override
@@ -57,6 +66,8 @@ public class OffSeasonPrototype1I extends OpMode {
         Intake = hardwareMap.dcMotor.get("intake");
 
         imu = hardwareMap.get(IMU.class, "imu");
+
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         FLMotor = hardwareMap.dcMotor.get("FL");
         BLMotor = hardwareMap.dcMotor.get("BL");
@@ -67,6 +78,8 @@ public class OffSeasonPrototype1I extends OpMode {
        // FLMotor.setDirection(DcMotorSimple.Direction.REVERSE);
        // BRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         //FRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        limelight.pipelineSwitch(0);
 
         imu.initialize(
             new IMU.Parameters(
@@ -90,6 +103,7 @@ public class OffSeasonPrototype1I extends OpMode {
     @Override
     public void start() {
         imu.resetYaw();
+        limelight.start();
     }
 
     /*
@@ -107,6 +121,32 @@ public class OffSeasonPrototype1I extends OpMode {
         double ly = -gamepad1.left_stick_y;
         double lx = gamepad1.left_stick_x * 1.1;
         double rx = gamepad1.right_stick_x; //controls turning
+
+        LLResult result = limelight.getLatestResult(); //april tag code
+        if (result.isValid()) {
+            double captureLatency = result.getCaptureLatency();
+            double targetingLatency = result.getTargetingLatency();
+            double parseLatency = result.getParseLatency();
+            telemetry.addData("LL Latency", captureLatency + targetingLatency);
+            telemetry.addData("Parse Latency", parseLatency);
+            telemetry.addData("PythonOutput", java.util.Arrays.toString(result.getPythonOutput()));
+
+            telemetry.addData("tx", result.getTx());
+            telemetry.addData("txnc", result.getTxNC());
+            telemetry.addData("ty", result.getTy());
+            telemetry.addData("tync", result.getTyNC());
+
+            List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+            for (LLResultTypes.FiducialResult fr : fiducialResults) {
+                telemetry.addData("Fiducial", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());
+
+                if (fr.getFiducialId() == 9 && gamepad1.a)  {
+                    rx = fr.getTargetPoseRobotSpace().getOrientation().getYaw() / 35;
+                }
+            }
+        } else {
+            telemetry.addData("Limelight", "No data available");
+        }
 
         double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
         double y = ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw);
@@ -127,5 +167,10 @@ public class OffSeasonPrototype1I extends OpMode {
 
         telemetry.addData("SpeedMult", speedmultiplier);
         telemetry.addData("Yaw", roboYaw);
+        LLStatus status = limelight.getStatus();
+        telemetry.addData("Name", "%s", status.getName());
+        telemetry.addData("LL", "Temp: %.1fC, CPU: %.1f%%, FPS: %d", status.getTemp(), status.getCpu(),(int)status.getFps());
+        telemetry.addData("Pipeline", "Index: %d, Type: %s", status.getPipelineIndex(), status.getPipelineType());
+        telemetry.update();
     }
 }
