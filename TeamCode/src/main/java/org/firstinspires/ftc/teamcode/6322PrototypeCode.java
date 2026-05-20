@@ -98,11 +98,7 @@ public class OffSeasonPrototype1I extends OpMode {
         boolean slowspeed = false;
         double speedmult = 1;
 
-        if (gamepad1.a){
-            Intake.setPower(1);
-        } else {
-            Intake.setPower(0);
-        }
+        Intake.setPower(gamepad1.a?-1:0);
 
 
         if (gamepad1.rightStickButtonWasReleased() && slowspeed == false) {
@@ -111,13 +107,7 @@ public class OffSeasonPrototype1I extends OpMode {
             slowspeed = false;
         }
 
-        if (slowspeed){
-             speedmult = 0.5;
-         } else {
-             speedmult = 1 - gamepad1.left_trigger;
-             if (1 - gamepad1.left_trigger <= 0.5)
-                 speedmult = 0.5;
-         }
+        speedmult=(slowspeed)?0.5:((1-gamepad1.left_trigger<=0.5)?0.5:(1-gamepad1.left_trigger));
 
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
