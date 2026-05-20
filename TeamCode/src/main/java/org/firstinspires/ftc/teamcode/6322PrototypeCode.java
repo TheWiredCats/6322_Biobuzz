@@ -18,6 +18,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 package org.firstinspires.ftc.teamcode;
 
+import androidx.core.math.MathUtils;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -95,27 +97,22 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void loop() {
-        boolean slowspeed = false;
+        boolean buttonDown = false;
         double speedmult = 1;
 
         Intake.setPower(gamepad1.a?-1:0);
 
 
-        if (gamepad1.rightStickButtonWasReleased() && slowspeed == false) {
-            slowspeed = true;
-        } else if(gamepad1.rightStickButtonWasReleased() && slowspeed == true) {
-            slowspeed = false;
-        }
+        speedmult= MathUtils.clamp(((1-gamepad1.left_trigger)/2)+((1-gamepad1.right_trigger)/2),0.25,1);
 
-        speedmult=(slowspeed)?0.5:((1-gamepad1.left_trigger<=0.5)?0.5:(1-gamepad1.left_trigger));
 
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
         double lx = gamepad1.left_stick_x * 1.1;
         double rx = gamepad1.right_stick_x; //controls turning
 
-        double x = lx * Math.cos(roboYaw) - ly * Math.sin(-roboYaw);
-        double y = lx * Math.sin(-roboYaw) + ly * Math.cos(roboYaw);
+        double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
+        double y = ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw);
 
         double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
@@ -129,10 +126,8 @@ public class OffSeasonPrototype1I extends OpMode {
         BLMotor.setPower(BLMotorPower);
         BRMotor.setPower(BRMotorPower);
 
-        if (gamepad1.right_stick_button)
-            imu.resetYaw();
+        if (gamepad1.right_stick_button)imu.resetYaw();
 
-        telemetry.addData("Slowmode", slowspeed);
         telemetry.addData("SpeedMult", speedmult);
         telemetry.addData("Yaw", roboYaw);
     }

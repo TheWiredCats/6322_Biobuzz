@@ -142,9 +142,9 @@ public class Decode2 extends OpMode {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
-        Intake.setPower(gamepad1.a?(reversemode?1:-1):0);
-
         reversemode=gamepad1.b;
+
+        Intake.setPower(gamepad1.a?(reversemode?1:-1):0);
 
         Stark(gamepad1.x,reversemode);
 
@@ -178,7 +178,7 @@ public class Decode2 extends OpMode {
         }
 
         double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
-        double y = lx * Math.sin(-roboYaw) + ly * Math.cos(roboYaw);
+        double y = ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw);
 
         double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
