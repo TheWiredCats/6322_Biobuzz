@@ -40,7 +40,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
  */
 @TeleOp
 
-public class OffSeasonPrototype1I extends OpMode {
+class OffSeasonPrototype1I extends OpMode {
 
     /* Declare OpMode members. */
 

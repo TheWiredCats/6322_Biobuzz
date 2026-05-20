@@ -48,7 +48,7 @@ import java.util.List;
  */
 @TeleOp
 
-public class Decode2 extends OpMode {
+class Decode2 extends OpMode {
     boolean buttonDown=false;
 
     double dBearing = 0;
