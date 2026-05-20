@@ -33,7 +33,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
  * 'program' that runs in either the autonomous or the TeleOp period of an FTC match. The names
  * of OpModes appear on the menu of the FTC Driver Station. When an selection is made from the
  * menu, the corresponding OpMode class is instantiated on the Robot Controller and executed.
- *
  * Remove the @Disabled annotation on the next line or two (if present) to add this OpMode to the
  * Driver Station OpMode list, or add a @Disabled annotation to prevent this OpMode from being
  * added to the Driver Station.
@@ -90,6 +89,7 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void start() {
+        imu.resetYaw();
     }
 
     /*
@@ -97,13 +97,10 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void loop() {
-        boolean buttonDown = false;
-        double speedmult = 1;
-
         Intake.setPower(gamepad1.a?-1:0);
 
 
-        speedmult= MathUtils.clamp(((1-gamepad1.left_trigger)/2)+((1-gamepad1.right_trigger)/2),0.25,1);
+        double speedmultiplier = MathUtils.clamp(((1-gamepad1.left_trigger)/2)+((1-gamepad1.right_trigger)/2),0.25,1);
 
 
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
@@ -116,10 +113,10 @@ public class OffSeasonPrototype1I extends OpMode {
 
         double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
-        double FLMotorPower = ((y + x + rx) / stickTotal) * speedmult;
-        double FRMotorPower = ((y - x - rx) / stickTotal) * speedmult;
-        double BLMotorPower = ((y - x + rx) / stickTotal) * speedmult;
-        double BRMotorPower = ((y + x - rx) / stickTotal) * speedmult;
+        double FLMotorPower = ((y + x + rx) / stickTotal) * speedmultiplier;
+        double FRMotorPower = ((y - x - rx) / stickTotal) * speedmultiplier;
+        double BLMotorPower = ((y - x + rx) / stickTotal) * speedmultiplier;
+        double BRMotorPower = ((y + x - rx) / stickTotal) * speedmultiplier;
 
         FLMotor.setPower(FLMotorPower);
         FRMotor.setPower(FRMotorPower);
@@ -128,7 +125,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
         if (gamepad1.right_stick_button)imu.resetYaw();
 
-        telemetry.addData("SpeedMult", speedmult);
+        telemetry.addData("SpeedMult", speedmultiplier);
         telemetry.addData("Yaw", roboYaw);
     }
 }
