@@ -47,7 +47,6 @@ import java.util.List;
 @TeleOp
 
 public class OffSeasonPrototype1I extends OpMode {
-
     /* Declare OpMode members. */
 
     private DcMotor Intake = null;
@@ -116,7 +115,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
         double speedmultiplier = MathUtils.clamp(((1-gamepad1.left_trigger)/2)+((1-gamepad1.right_trigger)/2),0.25,1);
 
-
+        boolean following = false;
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
         double lx = gamepad1.left_stick_x * 1.1;
@@ -127,6 +126,7 @@ public class OffSeasonPrototype1I extends OpMode {
             double captureLatency = result.getCaptureLatency();
             double targetingLatency = result.getTargetingLatency();
             double parseLatency = result.getParseLatency();
+            telemetry.addLine("Limelight Found!");
             telemetry.addData("LL Latency", captureLatency + targetingLatency);
             telemetry.addData("Parse Latency", parseLatency);
             telemetry.addData("PythonOutput", java.util.Arrays.toString(result.getPythonOutput()));
@@ -160,7 +160,7 @@ public class OffSeasonPrototype1I extends OpMode {
                 }
             }
         } else {
-            telemetry.addData("Limelight", "No data available");
+            telemetry.addLine("No Limelight Detected :C");
         }
 
         double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
