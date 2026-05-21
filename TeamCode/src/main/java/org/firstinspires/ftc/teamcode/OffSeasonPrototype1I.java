@@ -115,7 +115,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
         double speedmultiplier = MathUtils.clamp(((1-gamepad1.left_trigger)/2)+((1-gamepad1.right_trigger)/2),0.25,1);
 
-        boolean following = false;
+        boolean following = true;
         boolean buttonDown = false;
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
@@ -162,7 +162,7 @@ public class OffSeasonPrototype1I extends OpMode {
                     rx = headingError * Kp;
 
                     // Optional: Cap rx so it doesn't spin violently
-                    rx = Math.max(-0.5, Math.min(0.5, rx));
+                    rx = MathUtils.clamp(rx,-0.5,0.5);
                 }
             }
         } else {
