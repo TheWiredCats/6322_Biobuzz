@@ -21,6 +21,8 @@ package org.firstinspires.ftc.teamcode;
 import androidx.core.math.MathUtils;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -32,6 +34,9 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
+import com.qualcomm.hardware.dfrobot.HuskyLens;
+import java.util.concurrent.TimeUnit;
 
 import java.util.List;
 
@@ -55,10 +60,13 @@ public class OffSeasonPrototype1I extends OpMode {
     private DcMotor BLMotor = null;
     private DcMotor FRMotor = null;
     private DcMotor BRMotor = null;
+    private HuskyLens huskyLens = null;
 
     private Limelight3A limelight = null;
 
     private IMU imu = null;
+
+    private Deadline rateLimit = null;
 
     @Override
     public void init() {
@@ -67,6 +75,8 @@ public class OffSeasonPrototype1I extends OpMode {
         imu = hardwareMap.get(IMU.class, "imu");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
+
+        huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
 
         FLMotor = hardwareMap.dcMotor.get("FL");
         BLMotor = hardwareMap.dcMotor.get("BL");
@@ -79,6 +89,13 @@ public class OffSeasonPrototype1I extends OpMode {
         //FRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         limelight.pipelineSwitch(0);
+        Deadline rateLimit = new Deadline(1, TimeUnit.SECONDS);
+        rateLimit.expire();
+
+        if (!huskyLens.knock()) {
+            telemetry.addData(">>", "Problem communicating with " + huskyLens.getDeviceName());
+        }
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
 
         imu.initialize(
             new IMU.Parameters(
@@ -110,6 +127,7 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void loop() {
+        rateLimit.reset();
         Intake.setPower(gamepad1.a?-1:0);
 
 
@@ -122,8 +140,8 @@ public class OffSeasonPrototype1I extends OpMode {
         double lx = gamepad1.left_stick_x * 1.1;
         double rx = gamepad1.right_stick_x; //controls turning
 
-        if(gamepad1.a)buttonDown=false;
-        if(!buttonDown&&!gamepad1.a) {
+        if(gamepad1.b)buttonDown=false;
+        if(!buttonDown&&!gamepad1.b) {
             buttonDown = true;
             following = !following;
         }
@@ -167,6 +185,21 @@ public class OffSeasonPrototype1I extends OpMode {
             }
         } else {
             telemetry.addLine("No Limelight Detected :C");
+        }
+
+        HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
+        telemetry.addData("Block count", blocks.length);
+        for (int i = 0; i < blocks.length; i++) {
+            telemetry.addData("Block", blocks[i].toString());
+            /*
+             * Here inside the FOR loop, you could save or evaluate specific info for the currently recognized Bounding Box:
+             * - blocks[i].width and blocks[i].height   (size of box, in pixels)
+             * - blocks[i].left and blocks[i].top       (edges of box)
+             * - blocks[i].x and blocks[i].y            (center location)
+             * - blocks[i].id                           (Color ID)
+             *
+             * These values have Java type int (integer).
+             */
         }
 
         double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
