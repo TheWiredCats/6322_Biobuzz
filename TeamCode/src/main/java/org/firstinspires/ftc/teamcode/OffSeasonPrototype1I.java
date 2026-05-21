@@ -141,7 +141,22 @@ public class OffSeasonPrototype1I extends OpMode {
                 telemetry.addData("Fiducial", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());
 
                 if (fr.getFiducialId() == 9 && gamepad1.a)  {
-                    rx = fr.getTargetPoseRobotSpace().getOrientation().getYaw() / 35;
+                   // rx = fr.getTargetPoseRobotSpace().getOrientation().getYaw() / 35; it wasn't one line of code
+
+                    // If Limelight is mounted forward, tx IS your error.
+                    // You might need to flip the sign depending on your motor configuration.
+                    double headingError = result.getTx();
+
+                    // Normalize error (just in case)
+                    while (headingError > 180) headingError -= 360;
+                    while (headingError < -180) headingError += 360;
+
+                    // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
+                    double Kp = 0.04;
+                    rx = headingError * Kp;
+
+                    // Optional: Cap rx so it doesn't spin violently
+                    rx = Math.max(-0.5, Math.min(0.5, rx));
                 }
             }
         } else {
