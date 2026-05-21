@@ -116,11 +116,17 @@ public class OffSeasonPrototype1I extends OpMode {
         double speedmultiplier = MathUtils.clamp(((1-gamepad1.left_trigger)/2)+((1-gamepad1.right_trigger)/2),0.25,1);
 
         boolean following = false;
+        boolean buttonDown = false;
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
         double lx = gamepad1.left_stick_x * 1.1;
         double rx = gamepad1.right_stick_x; //controls turning
 
+        if(gamepad1.a)buttonDown=false;
+        if(!buttonDown&&!gamepad1.a) {
+            buttonDown = true;
+            following = !following;
+        }
         LLResult result = limelight.getLatestResult(); //april tag code
         if (result.isValid()) {
             double captureLatency = result.getCaptureLatency();
@@ -140,7 +146,7 @@ public class OffSeasonPrototype1I extends OpMode {
             for (LLResultTypes.FiducialResult fr : fiducialResults) {
                 telemetry.addData("Fiducial", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());
 
-                if (fr.getFiducialId() == 9 && gamepad1.a)  {
+                if (fr.getFiducialId() == 9 && following)  {
                    // rx = fr.getTargetPoseRobotSpace().getOrientation().getYaw() / 35; it wasn't one line of code
 
                     // If Limelight is mounted forward, tx IS your error.
