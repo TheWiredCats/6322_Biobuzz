@@ -89,8 +89,8 @@ public class OffSeasonPrototype1I extends OpMode {
         //FRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         limelight.pipelineSwitch(0);
-        Deadline rateLimit = new Deadline(1, TimeUnit.SECONDS);
-        rateLimit.expire();
+        //Deadline rateLimit = new Deadline(1, TimeUnit.SECONDS);
+        //rateLimit.expire();
 
         if (!huskyLens.knock()) {
             telemetry.addData(">>", "Problem communicating with " + huskyLens.getDeviceName());
@@ -127,7 +127,7 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void loop() {
-        rateLimit.reset();
+        //rateLimit.reset();
         Intake.setPower(gamepad1.a?-1:0);
 
 
