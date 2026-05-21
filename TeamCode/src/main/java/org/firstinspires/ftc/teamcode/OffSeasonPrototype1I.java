@@ -66,7 +66,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
     private IMU imu = null;
 
-    private Deadline rateLimit = null;
+    //private Deadline rateLimit = null;
 
     @Override
     public void init() {
@@ -93,7 +93,7 @@ public class OffSeasonPrototype1I extends OpMode {
         //rateLimit.expire();
 
         if (!huskyLens.knock()) {
-            telemetry.addData(">>", "Problem communicating with " + huskyLens.getDeviceName());
+            telemetry.addData("HL:", "Problem communicating with " + huskyLens.getDeviceName());
         }
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
 
@@ -150,19 +150,11 @@ public class OffSeasonPrototype1I extends OpMode {
             double captureLatency = result.getCaptureLatency();
             double targetingLatency = result.getTargetingLatency();
             double parseLatency = result.getParseLatency();
-            telemetry.addLine("Limelight Found!");
             telemetry.addData("LL Latency", captureLatency + targetingLatency);
-            telemetry.addData("Parse Latency", parseLatency);
-            telemetry.addData("PythonOutput", java.util.Arrays.toString(result.getPythonOutput()));
-
-            telemetry.addData("tx", result.getTx());
-            telemetry.addData("txnc", result.getTxNC());
-            telemetry.addData("ty", result.getTy());
-            telemetry.addData("tync", result.getTyNC());
 
             List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults) {
-                telemetry.addData("Fiducial", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());
+                telemetry.addData("LL: April tag", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());
 
                 if (fr.getFiducialId() == 9 && following)  {
                    // rx = fr.getTargetPoseRobotSpace().getOrientation().getYaw() / 35; it wasn't one line of code
@@ -184,13 +176,13 @@ public class OffSeasonPrototype1I extends OpMode {
                 }
             }
         } else {
-            telemetry.addLine("No Limelight Detected :C");
+            telemetry.addLine("LL: No Detections");
         }
 
         HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
-        telemetry.addData("Block count", blocks.length);
+        telemetry.addData("HL Block Count", blocks.length);
         for (int i = 0; i < blocks.length; i++) {
-            telemetry.addData("Block", blocks[i].toString());
+            telemetry.addData("HL:", blocks[i].toString());
             /*
              * Here inside the FOR loop, you could save or evaluate specific info for the currently recognized Bounding Box:
              * - blocks[i].width and blocks[i].height   (size of box, in pixels)
@@ -222,9 +214,8 @@ public class OffSeasonPrototype1I extends OpMode {
         telemetry.addData("SpeedMult", speedmultiplier);
         telemetry.addData("Yaw", roboYaw);
         LLStatus status = limelight.getStatus();
-        telemetry.addData("Name", "%s", status.getName());
-        telemetry.addData("LL", "Temp: %.1fC, CPU: %.1f%%, FPS: %d", status.getTemp(), status.getCpu(),(int)status.getFps());
-        telemetry.addData("Pipeline", "Index: %d, Type: %s", status.getPipelineIndex(), status.getPipelineType());
+        telemetry.addData("LL STATS", "Temp: %.1fC, CPU: %.1f%%, FPS: %d", status.getTemp(), status.getCpu(),(int)status.getFps());
+        telemetry.addData("LL Pipeline", "Index: %d, Type: %s", status.getPipelineIndex(), status.getPipelineType());
         telemetry.update();
     }
 }
