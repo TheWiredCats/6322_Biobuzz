@@ -55,7 +55,7 @@ public class OffSeasonPrototype1I extends OpMode {
     /* Declare OpMode members. */
 
     private DcMotor Intake = null;
-
+    private DcMotor Transfer = null;
     private DcMotor FLMotor = null;
     private DcMotor BLMotor = null;
     private DcMotor FRMotor = null;
@@ -71,6 +71,7 @@ public class OffSeasonPrototype1I extends OpMode {
     @Override
     public void init() {
         Intake = hardwareMap.dcMotor.get("intake");
+        Transfer = hardwareMap.dcMotor.get("transfer");
 
         imu = hardwareMap.get(IMU.class, "imu");
 
@@ -129,6 +130,7 @@ public class OffSeasonPrototype1I extends OpMode {
     public void loop() {
         //rateLimit.reset();
         Intake.setPower(gamepad1.a?-1:0);
+        Transfer.setPower(gamepad1.y?1:0);
 
 
         double speedmultiplier = MathUtils.clamp(((1-gamepad1.left_trigger)/2)+((1-gamepad1.right_trigger)/2),0.25,1);
@@ -139,6 +141,11 @@ public class OffSeasonPrototype1I extends OpMode {
         double ly = -gamepad1.left_stick_y;
         double lx = gamepad1.left_stick_x * 1.1;
         double rx = gamepad1.right_stick_x; //controls turning
+
+        double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
+        double y = ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw);
+
+        double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
         if(gamepad1.b)buttonDown=false;
         if(!buttonDown&&!gamepad1.b) {
@@ -169,6 +176,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
                     // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
                     double Kp = 0.04;
+
                     rx = headingError * Kp;
 
                     // Optional: Cap rx so it doesn't spin violently
@@ -181,59 +189,58 @@ public class OffSeasonPrototype1I extends OpMode {
 
         HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
         telemetry.addData("HL Block Count", blocks.length);
-        for (int i = 0; i < blocks.length; i++) {
-            telemetry.addData("HL:", blocks[i].toString());
 
-            // HuskyLens Constants
-            final double SCREEN_CENTER_X = 160.0;
-            final double HALF_HORIZONTAL_FOV_RAD = Math.toRadians(27.5); // 55 degrees / 2
+        if (gamepad1.x) {
+            for (int i = 0; i < blocks.length; i++) {
+                telemetry.addData("HL:", blocks[i].toString());
 
-            // 1. Get your 2D data from HuskyLens
-            int blockX = blocks[i].x;
+                // HuskyLens Constants
+                final double SCREEN_CENTER_X = 160.0;
+                final double HALF_HORIZONTAL_FOV_RAD = Math.toRadians(27.5); // 55 degrees / 2
 
-            // 2. Calculate your 3D Z-distance first (from previous step)
-            double distanceZ = (2.9 * 4.6) / blocks[i].width;
+                // 1. Get your 2D data from HuskyLens
+                int blockX = blocks[i].x;
 
-            // 3. Calculate pixel offset from screen center
-            double pixelOffset = blockX - SCREEN_CENTER_X;
+                // 2. Calculate your 3D Z-distance first (from previous step)
+                double distanceZ = (2.9 * 4.6) / blocks[i].width;
 
-            // 4. Normalize the offset (-1.0 to 1.0) and convert to radians
-            double angleX = (pixelOffset / SCREEN_CENTER_X) * HALF_HORIZONTAL_FOV_RAD;
+                // 3. Calculate pixel offset from screen center
+                double pixelOffset = blockX - SCREEN_CENTER_X;
 
-            // 5. Calculate final physical X position (in inches or cm depending on your Z unit)
-            double positionX = distanceZ * Math.tan(angleX);
+                // 4. Normalize the offset (-1.0 to 1.0) and convert to radians
+                double angleX = (pixelOffset / SCREEN_CENTER_X) * HALF_HORIZONTAL_FOV_RAD;
 
-            double headingError = positionX;
+                // 5. Calculate final physical X position (in inches or cm depending on your Z unit)
+                double positionX = distanceZ * Math.tan(angleX);
 
-            // Normalize error (just in case)
-            while (headingError > 180) headingError -= 360;
-            while (headingError < -180) headingError += 360;
+                double headingError = positionX;
 
-            // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
-            double Kp = 0.04;
-            rx = headingError * Kp;
+                // Normalize error (just in case)
+                //while (headingError > 180) headingError -= 360;
+                //while (headingError < -180) headingError += 360;
 
-            // Optional: Cap rx so it doesn't spin violently
-            rx = MathUtils.clamp(rx,-0.5,0.5);
+                // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
+                double Kp = 0.04;
+                //rx = headingError * Kp;
+                rx = headingError * 1.5;
 
-            telemetry.addData("HL 3D Z (Distance)", distanceZ);
-            telemetry.addData("HL 3D X (Lateral)", positionX);
+                // Optional: Cap rx so it doesn't spin violently
+                rx = MathUtils.clamp(rx,-0.5,0.5);
 
-            /*
-             * Here inside the FOR loop, you could save or evaluate specific info for the currently recognized Bounding Box:
-             * - blocks[i].width and blocks[i].height   (size of box, in pixels)
-             * - blocks[i].left and blocks[i].top       (edges of box)
-             * - blocks[i].x and blocks[i].y            (center location)
-             * - blocks[i].id                           (Color ID)
-             *
-             * These values have Java type int (integer).
-             */
+                telemetry.addData("HL 3D Z (Distance)", distanceZ);
+                telemetry.addData("HL 3D X (Lateral)", positionX);
+
+                /*
+                 * Here inside the FOR loop, you could save or evaluate specific info for the currently recognized Bounding Box:
+                 * - blocks[i].width and blocks[i].height   (size of box, in pixels)
+                 * - blocks[i].left and blocks[i].top       (edges of box)
+                 * - blocks[i].x and blocks[i].y            (center location)
+                 * - blocks[i].id                           (Color ID)
+                 *
+                 * These values have Java type int (integer).
+                 */
+            }
         }
-
-        double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
-        double y = ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw);
-
-        double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
         double FLMotorPower = ((y + x + rx) / stickTotal) * speedmultiplier;
         double FRMotorPower = ((y - x - rx) / stickTotal) * speedmultiplier;
@@ -247,6 +254,8 @@ public class OffSeasonPrototype1I extends OpMode {
 
         if (gamepad1.right_stick_button)imu.resetYaw();
 
+        telemetry.addData("stickleftX", x);
+        telemetry.addData("stickright", rx);
         telemetry.addData("SpeedMult", speedmultiplier);
         telemetry.addData("Yaw", roboYaw);
         LLStatus status = limelight.getStatus();
