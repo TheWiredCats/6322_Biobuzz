@@ -24,6 +24,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -53,6 +54,7 @@ import java.util.List;
 
 public class OffSeasonPrototype1I extends OpMode {
     /* Declare OpMode members. */
+    //as soon as teleop selected
 
     private DcMotor Intake = null;
     private DcMotor Transfer = null;
@@ -70,6 +72,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
     @Override
     public void init() {
+        //runs once as soon as "init" is pressed
         Intake = hardwareMap.dcMotor.get("intake");
         Transfer = hardwareMap.dcMotor.get("transfer");
 
@@ -137,6 +140,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
         boolean following = true;
         boolean buttonDown = false;
+        //drive variables
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
         double lx = gamepad1.left_stick_x * 1.1;
