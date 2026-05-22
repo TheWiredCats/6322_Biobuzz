@@ -189,10 +189,10 @@ public class OffSeasonPrototype1I extends OpMode {
             final double HALF_HORIZONTAL_FOV_RAD = Math.toRadians(27.5); // 55 degrees / 2
 
             // 1. Get your 2D data from HuskyLens
-            int blockX = block.x;
+            int blockX = blocks[i].x;
 
             // 2. Calculate your 3D Z-distance first (from previous step)
-            double distanceZ = (REAL_OBJECT_WIDTH * FOCAL_LENGTH) / block.width;
+            double distanceZ = (2.9 * 4.6) / blocks[i].width;
 
             // 3. Calculate pixel offset from screen center
             double pixelOffset = blockX - SCREEN_CENTER_X;
