@@ -183,6 +183,42 @@ public class OffSeasonPrototype1I extends OpMode {
         telemetry.addData("HL Block Count", blocks.length);
         for (int i = 0; i < blocks.length; i++) {
             telemetry.addData("HL:", blocks[i].toString());
+
+            // HuskyLens Constants
+            final double SCREEN_CENTER_X = 160.0;
+            final double HALF_HORIZONTAL_FOV_RAD = Math.toRadians(27.5); // 55 degrees / 2
+
+            // 1. Get your 2D data from HuskyLens
+            int blockX = block.x;
+
+            // 2. Calculate your 3D Z-distance first (from previous step)
+            double distanceZ = (REAL_OBJECT_WIDTH * FOCAL_LENGTH) / block.width;
+
+            // 3. Calculate pixel offset from screen center
+            double pixelOffset = blockX - SCREEN_CENTER_X;
+
+            // 4. Normalize the offset (-1.0 to 1.0) and convert to radians
+            double angleX = (pixelOffset / SCREEN_CENTER_X) * HALF_HORIZONTAL_FOV_RAD;
+
+            // 5. Calculate final physical X position (in inches or cm depending on your Z unit)
+            double positionX = distanceZ * Math.tan(angleX);
+
+            double headingError = positionX;
+
+            // Normalize error (just in case)
+            while (headingError > 180) headingError -= 360;
+            while (headingError < -180) headingError += 360;
+
+            // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
+            double Kp = 0.04;
+            rx = headingError * Kp;
+
+            // Optional: Cap rx so it doesn't spin violently
+            rx = MathUtils.clamp(rx,-0.5,0.5);
+
+            telemetry.addData("HL 3D Z (Distance)", distanceZ);
+            telemetry.addData("HL 3D X (Lateral)", positionX);
+
             /*
              * Here inside the FOR loop, you could save or evaluate specific info for the currently recognized Bounding Box:
              * - blocks[i].width and blocks[i].height   (size of box, in pixels)
