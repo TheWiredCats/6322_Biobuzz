@@ -21,7 +21,10 @@ package org.firstinspires.ftc.teamcode;
 import androidx.core.math.MathUtils;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -32,6 +35,9 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
+import com.qualcomm.hardware.dfrobot.HuskyLens;
+import java.util.concurrent.TimeUnit;
 
 import java.util.List;
 
@@ -47,27 +53,34 @@ import java.util.List;
 @TeleOp
 
 public class OffSeasonPrototype1I extends OpMode {
-
     /* Declare OpMode members. */
+    //as soon as teleop selected
 
     private DcMotor Intake = null;
-
+    private DcMotor Transfer = null;
     private DcMotor FLMotor = null;
     private DcMotor BLMotor = null;
     private DcMotor FRMotor = null;
     private DcMotor BRMotor = null;
+    private HuskyLens huskyLens = null;
 
     private Limelight3A limelight = null;
 
     private IMU imu = null;
 
+    //private Deadline rateLimit = null;
+
     @Override
     public void init() {
+        //runs once as soon as "init" is pressed
         Intake = hardwareMap.dcMotor.get("intake");
+        Transfer = hardwareMap.dcMotor.get("transfer");
 
         imu = hardwareMap.get(IMU.class, "imu");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
+
+        huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
 
         FLMotor = hardwareMap.dcMotor.get("FL");
         BLMotor = hardwareMap.dcMotor.get("BL");
@@ -80,6 +93,13 @@ public class OffSeasonPrototype1I extends OpMode {
         //FRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         limelight.pipelineSwitch(0);
+        //Deadline rateLimit = new Deadline(1, TimeUnit.SECONDS);
+        //rateLimit.expire();
+
+        if (!huskyLens.knock()) {
+            telemetry.addData("HL:", "Problem communicating with " + huskyLens.getDeviceName());
+        }
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
 
         imu.initialize(
             new IMU.Parameters(
@@ -111,47 +131,120 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void loop() {
+        //rateLimit.reset();
         Intake.setPower(gamepad1.a?-1:0);
+        Transfer.setPower(gamepad1.y?1:0);
 
 
         double speedmultiplier = MathUtils.clamp(((1-gamepad1.left_trigger)/2)+((1-gamepad1.right_trigger)/2),0.25,1);
 
-
+        boolean following = true;
+        boolean buttonDown = false;
+        //drive variables
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
         double lx = gamepad1.left_stick_x * 1.1;
         double rx = gamepad1.right_stick_x; //controls turning
 
+        double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
+        double y = ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw);
+
+        double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
+
+        if(gamepad1.b)buttonDown=false;
+        if(!buttonDown&&!gamepad1.b) {
+            buttonDown = true;
+            following = !following;
+        }
         LLResult result = limelight.getLatestResult(); //april tag code
         if (result.isValid()) {
             double captureLatency = result.getCaptureLatency();
             double targetingLatency = result.getTargetingLatency();
             double parseLatency = result.getParseLatency();
             telemetry.addData("LL Latency", captureLatency + targetingLatency);
-            telemetry.addData("Parse Latency", parseLatency);
-            telemetry.addData("PythonOutput", java.util.Arrays.toString(result.getPythonOutput()));
-
-            telemetry.addData("tx", result.getTx());
-            telemetry.addData("txnc", result.getTxNC());
-            telemetry.addData("ty", result.getTy());
-            telemetry.addData("tync", result.getTyNC());
 
             List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults) {
-                telemetry.addData("Fiducial", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());
+                telemetry.addData("LL: April tag", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());
 
-                if (fr.getFiducialId() == 9 && gamepad1.a)  {
-                    rx = fr.getTargetPoseRobotSpace().getOrientation().getYaw() / 35;
+                if (fr.getFiducialId() == 9 && following)  {
+                   // rx = fr.getTargetPoseRobotSpace().getOrientation().getYaw() / 35; it wasn't one line of code
+
+                    // If Limelight is mounted forward, tx IS your error.
+                    // You might need to flip the sign depending on your motor configuration.
+                    double headingError = result.getTx();
+
+                    // Normalize error (just in case)
+                    while (headingError > 180) headingError -= 360;
+                    while (headingError < -180) headingError += 360;
+
+                    // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
+                    double Kp = 0.04;
+
+                    rx = headingError * Kp;
+
+                    // Optional: Cap rx so it doesn't spin violently
+                    rx = MathUtils.clamp(rx,-0.5,0.5);
                 }
             }
         } else {
-            telemetry.addData("Limelight", "No data available");
+            telemetry.addLine("LL: No Detections");
         }
 
-        double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
-        double y = ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw);
+        HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
+        telemetry.addData("HL Block Count", blocks.length);
 
-        double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
+        if (gamepad1.x) {
+            for (int i = 0; i < blocks.length; i++) {
+                telemetry.addData("HL:", blocks[i].toString());
+
+                // HuskyLens Constants
+                final double SCREEN_CENTER_X = 160.0;
+                final double HALF_HORIZONTAL_FOV_RAD = Math.toRadians(27.5); // 55 degrees / 2
+
+                // 1. Get your 2D data from HuskyLens
+                int blockX = blocks[i].x;
+
+                // 2. Calculate your 3D Z-distance first (from previous step)
+                double distanceZ = (2.9 * 4.6) / blocks[i].width;
+
+                // 3. Calculate pixel offset from screen center
+                double pixelOffset = blockX - SCREEN_CENTER_X;
+
+                // 4. Normalize the offset (-1.0 to 1.0) and convert to radians
+                double angleX = (pixelOffset / SCREEN_CENTER_X) * HALF_HORIZONTAL_FOV_RAD;
+
+                // 5. Calculate final physical X position (in inches or cm depending on your Z unit)
+                double positionX = distanceZ * Math.tan(angleX);
+
+                double headingError = positionX;
+
+                // Normalize error (just in case)
+                //while (headingError > 180) headingError -= 360;
+                //while (headingError < -180) headingError += 360;
+
+                // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
+                double Kp = 0.04;
+                //rx = headingError * Kp;
+                rx = headingError * 1.5;
+
+                // Optional: Cap rx so it doesn't spin violently
+                rx = MathUtils.clamp(rx,-0.5,0.5);
+
+                telemetry.addData("HL 3D Z (Distance)", distanceZ);
+                telemetry.addData("HL 3D X (Lateral)", positionX);
+
+                /*
+                 * Here inside the FOR loop, you could save or evaluate specific info for the currently recognized Bounding Box:
+                 * - blocks[i].width and blocks[i].height   (size of box, in pixels)
+                 * - blocks[i].left and blocks[i].top       (edges of box)
+                 * - blocks[i].x and blocks[i].y            (center location)
+                 * - blocks[i].id                           (Color ID)
+                 *
+                 * These values have Java type int (integer).
+                 */
+            }
+        }
 
         double FLMotorPower = ((y + x + rx) / stickTotal) * speedmultiplier;
         double FRMotorPower = ((y - x - rx) / stickTotal) * speedmultiplier;
@@ -165,12 +258,13 @@ public class OffSeasonPrototype1I extends OpMode {
 
         if (gamepad1.right_stick_button)imu.resetYaw();
 
+        telemetry.addData("stickleftX", x);
+        telemetry.addData("stickright", rx);
         telemetry.addData("SpeedMult", speedmultiplier);
         telemetry.addData("Yaw", roboYaw);
         LLStatus status = limelight.getStatus();
-        telemetry.addData("Name", "%s", status.getName());
-        telemetry.addData("LL", "Temp: %.1fC, CPU: %.1f%%, FPS: %d", status.getTemp(), status.getCpu(),(int)status.getFps());
-        telemetry.addData("Pipeline", "Index: %d, Type: %s", status.getPipelineIndex(), status.getPipelineType());
+        telemetry.addData("LL STATS", "Temp: %.1fC, CPU: %.1f%%, FPS: %d", status.getTemp(), status.getCpu(),(int)status.getFps());
+        telemetry.addData("LL Pipeline", "Index: %d, Type: %s", status.getPipelineIndex(), status.getPipelineType());
         telemetry.update();
     }
 }
