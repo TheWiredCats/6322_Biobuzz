@@ -84,6 +84,8 @@ public class MTYCTWD9110 extends OpMode {
         cannonOne.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         cannonTwo.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        imu = hardwareMap.get(IMU.class, "imu");
+
         //Setting variables for the servos
         launchOne = hardwareMap.get(CRServo.class, "launchOne");
         launchTwo = hardwareMap.get(CRServo.class, "launchTwo");
@@ -195,11 +197,24 @@ public class MTYCTWD9110 extends OpMode {
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
         double lx = gamepad1.left_stick_x * 1.1;
-        double rx = -gamepad1.right_stick_x;
+        double rx = gamepad1.right_stick_x;
 
-        if (gamepad1.left_bumper) {
-            for (AprilTagDetection detection : currentDetections) if (detection.metadata != null)dBearing = detection.ftcPose.bearing;
-            rx = dBearing / 35;
+        if (currentDetections.isEmpty()) {
+            telemetry.addLine("No AprilTags visible!");
+        } else {
+
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection.ftcPose != null) {
+                    telemetry.addData("TagID", detection.id);
+                    telemetry.addData("Bearing: ", detection.ftcPose.bearing);
+                    telemetry.addData("Range: ", detection.ftcPose.range);
+                    if (gamepad1.left_bumper) {
+                        rx = dBearing / 35;
+                    }
+                } else {
+                    telemetry.addLine("Tag detected, but pose estimate is null.");
+                }
+            }
         }
 
         double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
@@ -208,9 +223,9 @@ public class MTYCTWD9110 extends OpMode {
         double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
         double FLMotorPower = ((y + x + rx) / stickTotal) * speedmult;
-        double FRMotorPower = ((y + x - rx) / stickTotal) * speedmult;
+        double FRMotorPower = ((y - x - rx) / stickTotal) * speedmult;
         double BLMotorPower = ((y - x + rx) / stickTotal) * speedmult;
-        double BRMotorPower = ((y - x - rx) / stickTotal) * speedmult;
+        double BRMotorPower = ((y + x - rx) / stickTotal) * speedmult;
 
         frontLeftMotor.setPower(FLMotorPower);
         frontRightMotor.setPower(FRMotorPower);
@@ -220,13 +235,7 @@ public class MTYCTWD9110 extends OpMode {
         if (gamepad1.right_stick_button)
             imu.resetYaw();
 
-        for (AprilTagDetection detection : currentDetections) {
-            if (detection.metadata != null) {
-                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                telemetry.addData("Bearing: ", detection.ftcPose.bearing);
-                telemetry.addData("Range: ", detection.ftcPose.range);
-            }
-        }
+        telemetry.update();
     }
 
     //private void setLauncherRPM(double topSpeedTarget, double bottomSpeedTarget){
@@ -259,7 +268,7 @@ public class MTYCTWD9110 extends OpMode {
 
         // Adjust Image Decimation to trade-off detection-range for detection-rate.
         // Note: Decimation can be changed on-the-fly to adapt during a match.
-        aprilTag.setDecimation(3);
+        aprilTag.setDecimation(1);
 
         // Create the vision portal by using a builder.
         VisionPortal.Builder builder = new VisionPortal.Builder();
@@ -271,5 +280,5 @@ public class MTYCTWD9110 extends OpMode {
         // Build the Vision Portal.
         visionPortal = builder.build();
 
-    }   // end method initAprilTag()
+    }
 }
