@@ -21,6 +21,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -33,6 +34,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
 import java.util.List;
 
@@ -71,6 +75,9 @@ public class MTYCTWD9110 extends OpMode {
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
 
+    public static double power=0.8;
+    public static double powerReverse=-0.8;
+
     @Override
     public void init() {
         frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
@@ -95,6 +102,7 @@ public class MTYCTWD9110 extends OpMode {
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         imu.initialize(
                 new IMU.Parameters(
@@ -129,8 +137,6 @@ public class MTYCTWD9110 extends OpMode {
         boolean slowspeed = false;
         double speedmult = 1;
 
-        double power=0.8;
-        double powerReverse=-0.8;
         double powerOff=0;
 
 
@@ -208,6 +214,7 @@ public class MTYCTWD9110 extends OpMode {
                     telemetry.addData("TagID", detection.id);
                     telemetry.addData("Bearing: ", detection.ftcPose.bearing);
                     telemetry.addData("Range: ", detection.ftcPose.range);
+                    dBearing = detection.ftcPose.bearing;
                     if (gamepad1.left_bumper) {
                         rx = dBearing / 35;
                     }
@@ -235,6 +242,8 @@ public class MTYCTWD9110 extends OpMode {
         if (gamepad1.right_stick_button)
             imu.resetYaw();
 
+        telemetry.addData("ATBP", gamepad1.left_bumper);
+        telemetry.addData("RX", rx);
         telemetry.update();
     }
 
@@ -254,14 +263,20 @@ public class MTYCTWD9110 extends OpMode {
     //}
 
     private void initAprilTag() {
+        AprilTagLibrary.Builder myTagLibraryBuilder = new AprilTagLibrary.Builder();
 
-        // Create the AprilTag processor.
+
+        myTagLibraryBuilder.addTag(1, "EpicTestingTag", 6.5, DistanceUnit.INCH);
+
+        AprilTagLibrary myCustomLibrary = myTagLibraryBuilder.build();
+
         aprilTag = new AprilTagProcessor.Builder()
 
                 .setDrawAxes(true)
                 .setDrawCubeProjection(true)
                 .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-                .setTagLibrary(AprilTagGameDatabase.getDecodeTagLibrary())
+                .setTagLibrary(myCustomLibrary)
+                //.setTagLibrary(AprilTagGameDatabase.getDecodeTagLibrary())
                 .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
 
                 .build();
