@@ -135,8 +135,19 @@ public class OffSeasonPrototype1I extends OpMode {
         Intake.setPower(gamepad1.a?-1:0);
         Transfer.setPower(gamepad1.y?1:0);
 
+        //how low/high the Speed can go with both triggers down/up respectully
+        double Minimum = 0.25;
+        //maximum must be less than or equal to 1
+        double Maximum = 1;
 
-        double speedmultiplier = MathUtils.clamp(((1-gamepad1.left_trigger)/2)+((1-gamepad1.right_trigger)/2),0.25,1);
+        //Calculates how far the minimum is from the middle of the 2
+        // (to know how much each should affect)
+        double Difference=(Maximum-Minimum)/2;
+
+        //Readability of code
+        double TotalTrigger=gamepad1.right_trigger+gamepad1.left_trigger;
+
+        double speedMultiplier =(Maximum-Difference*TotalTrigger);
 
         boolean following = true;
         boolean buttonDown = false;
@@ -194,8 +205,7 @@ public class OffSeasonPrototype1I extends OpMode {
         HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
         telemetry.addData("HL Block Count", blocks.length);
 
-        if (gamepad1.x) {
-            for (int i = 0; i < blocks.length; i++) {
+        if (gamepad1.x) for (int i = 0; i < blocks.length; i++) {
                 telemetry.addData("HL:", blocks[i].toString());
 
                 // HuskyLens Constants
@@ -243,13 +253,12 @@ public class OffSeasonPrototype1I extends OpMode {
                  *
                  * These values have Java type int (integer).
                  */
-            }
         }
 
-        double FLMotorPower = ((y + x + rx) / stickTotal) * speedmultiplier;
-        double FRMotorPower = ((y - x - rx) / stickTotal) * speedmultiplier;
-        double BLMotorPower = ((y - x + rx) / stickTotal) * speedmultiplier;
-        double BRMotorPower = ((y + x - rx) / stickTotal) * speedmultiplier;
+        double FLMotorPower = ((y + x + rx) / stickTotal) * speedMultiplier;
+        double FRMotorPower = ((y - x - rx) / stickTotal) * speedMultiplier;
+        double BLMotorPower = ((y - x + rx) / stickTotal) * speedMultiplier;
+        double BRMotorPower = ((y + x - rx) / stickTotal) * speedMultiplier;
 
         FLMotor.setPower(FLMotorPower);
         FRMotor.setPower(FRMotorPower);
@@ -260,7 +269,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
         telemetry.addData("stickleftX", x);
         telemetry.addData("stickright", rx);
-        telemetry.addData("SpeedMult", speedmultiplier);
+        telemetry.addData("SpeedMult", speedMultiplier);
         telemetry.addData("Yaw", roboYaw);
         LLStatus status = limelight.getStatus();
         telemetry.addData("LL STATS", "Temp: %.1fC, CPU: %.1f%%, FPS: %d", status.getTemp(), status.getCpu(),(int)status.getFps());
