@@ -185,7 +185,7 @@ public class OffSeasonPrototype1I extends OpMode {
                     // You might need to flip the sign depending on your motor configuration.
 
 
-                    double headingError = (((result.getTx() % 180) == 0) && ((result.getTx() % 360) != 0)) ?
+                    double headingError = (result.getTx() % 360) == 180 ?
                     /*
                     So like its easier to think of this as a signed computer with a store count of
                     360, so it can only store the numbers -180 to 179 (like how a signed 16 bit can
@@ -196,7 +196,7 @@ public class OffSeasonPrototype1I extends OpMode {
                             ((result.getTx() > 0) ? 180 : -180)
                     /*
                     When it isn't then we can just add 180 to change the bounds to 0-360 (cuz if it
-                    was 180 then its already been taken care of) and can then find its mod 360, then
+                    was 180 then its already been taken care of) and can then find it's mod 360, then
                     subtract 180 to change the bounds back to normal
                     */
                             : (((result.getTx() + 180) % 360) - 180);
@@ -208,13 +208,11 @@ public class OffSeasonPrototype1I extends OpMode {
                     // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
                     double Kp = 0.04;
 
-                    rx = headingError * Kp;
-
                     // Optional: Cap rx so it doesn't spin violently
-                    rx = MathUtils.clamp(rx,-0.5,0.5);
+                    rx = headingError * Kp; rx = MathUtils.clamp(headingError*Kp,-0.5,0.5);
                 }
             }
-        } else {
+        } else if(following){
             telemetry.addLine("LL: No Detections");
         }
 
@@ -282,7 +280,8 @@ public class OffSeasonPrototype1I extends OpMode {
         if (gamepad1.right_stick_button)imu.resetYaw();
 
         telemetry.addData("stickleftX", x);
-        telemetry.addData("stickright", rx);
+        telemetry.addData("turn speed", rx);
+        //after the camera code rx might have been altered
         telemetry.addData("SpeedMult", speedMultiplier);
         telemetry.addData("Yaw", roboYaw);
         LLStatus status = limelight.getStatus();
