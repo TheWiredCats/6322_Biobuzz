@@ -185,25 +185,17 @@ public class OffSeasonPrototype1I extends OpMode {
                     // You might need to flip the sign depending on your motor configuration.
 
 
-                    double headingError = (result.getTx() % 360) == 180 ?
-                    /*
-                    So like its easier to think of this as a signed computer with a store count of
-                    360, so it can only store the numbers -180 to 179 (like how a signed 16 bit can
-                    only go between -32,768 to 32,767), so if it is a multiple of 180 but not 360
-                    (cuz that's just 0) then we have to make sure if the Tx was positive, then the
-                    heading error has to also be.
-                    */
-                            ((result.getTx() > 0) ? 180 : -180)
-                    /*
-                    When it isn't then we can just add 180 to change the bounds to 0-360 (cuz if it
-                    was 180 then its already been taken care of) and can then find it's mod 360, then
-                    subtract 180 to change the bounds back to normal
-                    */
-                            : (((result.getTx() + 180) % 360) - 180);
+                    //Makes sure that the heading error is between -180 and 180 so the robot doesn't spin violently
+                    double headingError;
+                    if(result.getTx()%360==180){
+                        double sign = Math.signum(result.getTx());
+                        headingError = sign * 180;
+                    }else{
+                        double adjustedError=result.getTx()+180;
+                        double fixedAdjustedError=adjustedError%360;
+                        headingError=fixedAdjustedError-180;
+                    }
 
-                    // Normalize error (just in case)
-                    //while (headingError > 180) headingError -= 360;
-                    //while (headingError < -180) headingError += 360;
 
                     // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
                     double Kp = 0.04;
