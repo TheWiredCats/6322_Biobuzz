@@ -20,9 +20,11 @@ package org.firstinspires.ftc.teamcode;
 
 import androidx.core.math.MathUtils;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -34,6 +36,8 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
@@ -56,6 +60,11 @@ public class OffSeasonPrototype1I extends OpMode {
     /* Declare OpMode members. */
     //as soon as teleop selected
 
+    private void addPinpointTelemetry(){
+        telemetry.addData("X position", pinpoint.getPosX(DistanceUnit.MM));
+        telemetry.addData("Y position", pinpoint.getPosY(DistanceUnit.MM));
+        telemetry.addData("2D Position", pinpoint.getPosition());
+    }
     private DcMotor Intake = null;
     private DcMotor Transfer = null;
     private DcMotor FLMotor = null;
@@ -68,6 +77,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
     private IMU imu = null;
 
+    private GoBildaPinpointDriver pinpoint;
     //private Deadline rateLimit = null;
 
     @Override
@@ -77,6 +87,7 @@ public class OffSeasonPrototype1I extends OpMode {
         Transfer = hardwareMap.dcMotor.get("transfer");
 
         imu = hardwareMap.get(IMU.class, "imu");
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
@@ -150,7 +161,8 @@ public class OffSeasonPrototype1I extends OpMode {
         double speedMultiplier =(Maximum-Difference*TotalTrigger);
 
         boolean following = true;
-        boolean buttonDown = false;
+        boolean buttonDownCamera = false;
+        boolean buttonDownPinpoint = false;
         //drive variables
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
@@ -162,10 +174,17 @@ public class OffSeasonPrototype1I extends OpMode {
 
         double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
-        if(gamepad1.b)buttonDown=false;
-        if(!buttonDown&&!gamepad1.b) {
-            buttonDown = true;
+        if(gamepad1.b)buttonDownCamera=false;
+        if(!buttonDownCamera&&!gamepad1.b) {
+            buttonDownCamera = true;
             following = !following;
+        }
+        if(gamepad1.right_bumper)buttonDownPinpoint=false;
+        if(!buttonDownPinpoint&&!gamepad1.b){
+            buttonDownPinpoint=true;
+            pinpoint.update();
+            addPinpointTelemetry();
+            telemetry.update();
         }
         LLResult result = limelight.getLatestResult(); //april tag code
         if (result.isValid()) {
