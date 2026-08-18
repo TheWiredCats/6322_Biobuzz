@@ -54,7 +54,7 @@ import java.util.List;
  * Driver Station OpMode list, or add a @Disabled annotation to prevent this OpMode from being
  * added to the Driver Station.
  */
-@TeleOp
+@TeleOp(name = "OffSeason Prototype 1I")
 
 public class OffSeasonPrototype1I extends OpMode {
     /* Declare OpMode members. */
@@ -161,8 +161,9 @@ public class OffSeasonPrototype1I extends OpMode {
         double speedMultiplier =(Maximum-Difference*TotalTrigger);
 
         boolean following = true;
-        boolean buttonDownCamera = false;
-        boolean buttonDownPinpoint = false;
+        boolean buttonDownCamera = true;
+        boolean buttonDownPinpoint = true;
+        boolean addingPinpoint = false;
         //drive variables
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
@@ -180,8 +181,11 @@ public class OffSeasonPrototype1I extends OpMode {
             following = !following;
         }
         if(gamepad1.right_bumper)buttonDownPinpoint=false;
-        if(!buttonDownPinpoint&&!gamepad1.b){
+        if(!buttonDownPinpoint&&!gamepad1.right_bumper){
             buttonDownPinpoint=true;
+            addingPinpoint=!true;
+        }
+        if(addingPinpoint){
             pinpoint.update();
             addPinpointTelemetry();
             telemetry.update();
