@@ -27,7 +27,7 @@ import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.IMU;
+//import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -76,7 +76,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
     private Limelight3A limelight = null;
 
-    private IMU imu = null;
+//    private IMU imu = null;
 
     private GoBildaPinpointDriver pinpoint;
     //private Deadline rateLimit = null;
@@ -91,7 +91,7 @@ public class OffSeasonPrototype1I extends OpMode {
         Intake = hardwareMap.dcMotor.get("intake");
         Transfer = hardwareMap.dcMotor.get("transfer");
 
-        imu = hardwareMap.get(IMU.class, "imu");
+//        imu = hardwareMap.get(IMU.class, "imu");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -116,7 +116,7 @@ public class OffSeasonPrototype1I extends OpMode {
             telemetry.addData("HL:", "Problem communicating with " + huskyLens.getDeviceName());
         }
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
-
+        /*
         imu.initialize(
             new IMU.Parameters(
                 new RevHubOrientationOnRobot(
@@ -125,9 +125,10 @@ public class OffSeasonPrototype1I extends OpMode {
                 )
             )
         );
+        */
     }
     /*
-     * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
+    *Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
      */
     @Override
     public void init_loop() {
@@ -138,7 +139,8 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void start() {
-        imu.resetYaw();
+        pinpoint.resetPosAndIMU();
+        //imu.resetYaw();
         limelight.start();
     }
 
@@ -167,7 +169,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
 
         //drive variables
-        double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        double roboYaw = pinpoint.getHeading(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
         double lx = gamepad1.left_stick_x * 1.1;
         double rx = gamepad1.right_stick_x; //controls turning
@@ -188,6 +190,8 @@ public class OffSeasonPrototype1I extends OpMode {
             addingPinpoint=!addingPinpoint;
         }
         if(addingPinpoint)addPinpointTelemetry();
+            else telemetry.addLine("Not showing position right now");
+
         LLResult result = limelight.getLatestResult(); //april tag code
         if (result.isValid()) {
             double captureLatency = result.getCaptureLatency();
@@ -290,13 +294,13 @@ public class OffSeasonPrototype1I extends OpMode {
         BLMotor.setPower(BLMotorPower);
         BRMotor.setPower(BRMotorPower);
 
-        if (gamepad1.right_stick_button)imu.resetYaw();
+        if (gamepad1.right_stick_button)pinpoint.setHeading(0,AngleUnit.RADIANS);
 
         telemetry.addData("stickleftX", x);
         telemetry.addData("turn speed", rx);
         //after the camera code rx might have been altered
         telemetry.addData("SpeedMult", speedMultiplier);
-        telemetry.addData("Yaw", roboYaw);
+        telemetry.addData("Yaw/Heading", roboYaw);
         LLStatus status = limelight.getStatus();
         telemetry.addData("LL STATS", "Temp: %.1fC, CPU: %.1f%%, FPS: %d", status.getTemp(), status.getCpu(),(int)status.getFps());
         telemetry.addData("LL Pipeline", "Index: %d, Type: %s", status.getPipelineIndex(), status.getPipelineType());
