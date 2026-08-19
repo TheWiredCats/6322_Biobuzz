@@ -139,7 +139,10 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void start() {
+        //move to start of auto in start() when have it
         pinpoint.resetPosAndIMU();
+        //keep here
+        pinpoint.recalibrateIMU();
         //imu.resetYaw();
         limelight.start();
     }
@@ -220,7 +223,6 @@ public class OffSeasonPrototype1I extends OpMode {
                         double fixedAdjustedError=adjustedError%360;
                         headingError=fixedAdjustedError-180;
                     }
-
 
                     // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
                     double Kp = 0.04;
