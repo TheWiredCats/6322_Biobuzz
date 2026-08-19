@@ -61,6 +61,7 @@ public class OffSeasonPrototype1I extends OpMode {
     //as soon as teleop selected
 
     private void addPinpointTelemetry(){
+        pinpoint.update();
         telemetry.addData("X position", pinpoint.getPosX(DistanceUnit.MM));
         telemetry.addData("Y position", pinpoint.getPosY(DistanceUnit.MM));
         telemetry.addData("2D Position", pinpoint.getPosition());
@@ -79,6 +80,10 @@ public class OffSeasonPrototype1I extends OpMode {
 
     private GoBildaPinpointDriver pinpoint;
     //private Deadline rateLimit = null;
+    boolean following = true;
+    boolean buttonDownCamera = true;
+    boolean buttonDownPinpoint = true;
+    boolean addingPinpoint = false;
 
     @Override
     public void init() {
@@ -160,10 +165,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
         double speedMultiplier =(Maximum-Difference*TotalTrigger);
 
-        boolean following = true;
-        boolean buttonDownCamera = true;
-        boolean buttonDownPinpoint = true;
-        boolean addingPinpoint = false;
+
         //drive variables
         double roboYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
@@ -183,13 +185,9 @@ public class OffSeasonPrototype1I extends OpMode {
         if(gamepad1.right_bumper)buttonDownPinpoint=false;
         if(!buttonDownPinpoint&&!gamepad1.right_bumper){
             buttonDownPinpoint=true;
-            addingPinpoint=!true;
+            addingPinpoint=!addingPinpoint;
         }
-        if(addingPinpoint){
-            pinpoint.update();
-            addPinpointTelemetry();
-            telemetry.update();
-        }
+        if(addingPinpoint)addPinpointTelemetry();
         LLResult result = limelight.getLatestResult(); //april tag code
         if (result.isValid()) {
             double captureLatency = result.getCaptureLatency();
