@@ -80,7 +80,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
     private GoBildaPinpointDriver pinpoint;
     //private Deadline rateLimit = null;
-    boolean following = true;
+    boolean following = false;
     boolean buttonDownCamera = true;
     boolean buttonDownPinpoint = true;
     boolean addingPinpoint = false;
@@ -153,6 +153,8 @@ public class OffSeasonPrototype1I extends OpMode {
     @Override
     public void loop() {
         //rateLimit.reset();
+        if (gamepad1.right_stick_button)pinpoint.setHeading(0,AngleUnit.RADIANS);
+
         Intake.setPower(gamepad1.a?-1:0);
         Transfer.setPower(gamepad1.y?1:0);
 
@@ -296,7 +298,7 @@ public class OffSeasonPrototype1I extends OpMode {
         BLMotor.setPower(BLMotorPower);
         BRMotor.setPower(BRMotorPower);
 
-        if (gamepad1.right_stick_button)pinpoint.setHeading(0,AngleUnit.RADIANS);
+
 
         telemetry.addData("stickleftX", x);
         telemetry.addData("turn speed", rx);
