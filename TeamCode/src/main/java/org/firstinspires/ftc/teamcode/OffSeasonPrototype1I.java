@@ -38,6 +38,7 @@ import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
@@ -80,10 +81,26 @@ public class OffSeasonPrototype1I extends OpMode {
 
     private GoBildaPinpointDriver pinpoint;
     //private Deadline rateLimit = null;
+    double currentY=0;
+    double currentX=0;
     boolean following = false;
     boolean buttonDownCamera = true;
     boolean buttonDownPinpoint = true;
     boolean addingPinpoint = false;
+    //replace with the height of the center of this year's apriltags
+    double ApriltagHeight = 476.25;
+    //replace with center of camera height once we have it
+    double CameraHeight = 330.2;
+    //Fill with position of apriltags on field after kickoff
+    //Should be in the format x cord, y cord, facing direction (0 for +x,1 for -x,2 for +y, 3 for-y)
+    //first array should be empty so u could use fiducial
+    double[][] AprilTagPositions = {{},
+            {67,67,0},
+            {}
+    };
+
+
+
 
     @Override
     public void init() {
@@ -145,6 +162,7 @@ public class OffSeasonPrototype1I extends OpMode {
         pinpoint.recalibrateIMU();
         //imu.resetYaw();
         limelight.start();
+
     }
 
     /*
@@ -207,8 +225,9 @@ public class OffSeasonPrototype1I extends OpMode {
             List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults) {
                 telemetry.addData("LL: April tag", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());
-
-                if (fr.getFiducialId() == 9 && following)  {
+                //                Delete after kickoff
+                //                        V
+                if (fr.getFiducialId() == 21 && following)  {
                    // rx = fr.getTargetPoseRobotSpace().getOrientation().getYaw() / 35; it wasn't one line of code
 
                     // If Limelight is mounted forward, tx IS your error.
@@ -230,11 +249,39 @@ public class OffSeasonPrototype1I extends OpMode {
                     double Kp = 0.04;
 
                     // Optional: Cap rx so it doesn't spin violently
-                    rx = headingError * Kp; rx = MathUtils.clamp(headingError*Kp,-0.5,0.5);
+                    //rx = headingError * Kp; rx = MathUtils.clamp(headingError*Kp,-0.5,0.5);
+                    //               Replace with fr.getFidcuialID() after kickoff
+                    //                                  V
+                    double apriltagX = AprilTagPositions[1][0];
+                    double apriltagY = AprilTagPositions[1][1];
+                    double ZDifference = ApriltagHeight/Math.tan(-result.getTy()*(Math.PI/180));
+                    double LRDifference = ZDifference*Math.tan(-result.getTx()*(Math.PI/180));
+                    switch ((int)AprilTagPositions[1][2]){
+                        case(0):
+                            currentX=apriltagX+ZDifference;
+                            currentY=apriltagY-LRDifference;
+                            break;
+                        case(1):
+                            currentX=apriltagX-ZDifference;
+                            currentY=apriltagY+LRDifference;
+                            break;
+                        case(2):
+                            currentX=apriltagX+LRDifference;
+                            currentY=apriltagY+ZDifference;
+                            break;
+                        case(3):
+                            currentX=apriltagX-LRDifference;
+                            currentY=apriltagY-ZDifference;
+                            break;
+                    }
+                    pinpoint.setPosition(new Pose2D(DistanceUnit.MM,currentX,currentY,AngleUnit.RADIANS,pinpoint.getHeading(AngleUnit.RADIANS)));
+
                 }
             }
         } else if(following){
             telemetry.addLine("LL: No Detections");
+        }else{
+            telemetry.addLine("Not following");
         }
 
         HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
@@ -269,9 +316,9 @@ public class OffSeasonPrototype1I extends OpMode {
                 //while (headingError < -180) headingError += 360;
 
                 // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
-                double Kp = 0.04;
+                double Kp = 1.5;
                 //rx = headingError * Kp;
-                rx = MathUtils.clamp(headingError * 1.5,-0.5,0.5);
+                rx = MathUtils.clamp(headingError * Kp,-0.5,0.5);
 
 
                 telemetry.addData("HL 3D Z (Distance)", distanceZ);
