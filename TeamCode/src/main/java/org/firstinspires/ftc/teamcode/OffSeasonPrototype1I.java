@@ -83,18 +83,22 @@ public class OffSeasonPrototype1I extends OpMode {
     //private Deadline rateLimit = null;
     double currentY=0;
     double currentX=0;
+    double cameraXOffset=0;
+    double cameraYOffset=0;
     boolean buttonDownPinpoint = true;
     boolean addingPinpoint = false;
-    //replace with the height of the center of this year's apriltags
-    double ApriltagHeight = 476.25;
     //replace with center of camera height once we have it
     double CameraHeight = 330.2;
-    //Fill with position of apriltags on field after kickoff
-    //Should be in the format x cord, y cord, facing direction (0 for +x,1 for -x,2 for +y, 3 for-y)
-    //first array should be empty so u could use fiducial
+    //replace with the height of the center of this year's apriltags
+    double ApriltagHeight = 476.25-CameraHeight;
+
+    //get freshies to fill with position and direction of apriltags on field after kickoff
+    //Should be in the format {x cord, y cord, facing direction} (0 for +x,1 for -x,2 for +y, 3 for-y)
+    //first array should be empty so u could use fiducial id directly
     double[][] AprilTagPositions = {{},
+            {0,0,0},
             {67,67,0},
-            {}
+            {100,100,0}
     };
 
 
@@ -245,14 +249,17 @@ public class OffSeasonPrototype1I extends OpMode {
                 */
                 //          remove after kick off
                 //                      V
-                if(fr.getFiducialId()==21) {
-                    //               Replace with fr.getFidcuialID() after kickoff
-                    //                                  V
-                    double apriltagX = AprilTagPositions[1][0];
-                    double apriltagY = AprilTagPositions[1][1];
+                int id = fr.getFiducialId();
+                if(id>=21&&id<=23) {
+                    //                     Replace with id after kickoff
+                    //                                   V
+                    double apriltagX = AprilTagPositions[id-20][0];
+                    double apriltagY = AprilTagPositions[id-20][1];
+                    //how far away the april tag is
                     double ZDifference = ApriltagHeight / Math.tan(-result.getTy() * (Math.PI / 180));
+                    //how far left or right it is, negative is left and right is positive
                     double LRDifference = ZDifference * Math.tan(-result.getTx() * (Math.PI / 180));
-                    switch ((int) AprilTagPositions[1][2]) {
+                    switch ((int) AprilTagPositions[id-20][2]) {
                         case (0):
                             currentX = apriltagX + ZDifference;
                             currentY = apriltagY - LRDifference;
@@ -270,7 +277,7 @@ public class OffSeasonPrototype1I extends OpMode {
                             currentY = apriltagY - ZDifference;
                             break;
                     }
-                    pinpoint.setPosition(new Pose2D(DistanceUnit.MM, currentX, currentY, AngleUnit.RADIANS, pinpoint.getHeading(AngleUnit.RADIANS)));
+                    pinpoint.setPosition(new Pose2D(DistanceUnit.MM, currentX+cameraXOffset, currentY+cameraYOffset, AngleUnit.RADIANS, pinpoint.getHeading(AngleUnit.RADIANS)));
                 }
             }
         }
