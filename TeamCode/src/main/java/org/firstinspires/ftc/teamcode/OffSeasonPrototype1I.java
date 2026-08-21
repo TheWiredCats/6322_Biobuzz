@@ -136,6 +136,7 @@ public class OffSeasonPrototype1I extends OpMode {
             telemetry.addData("HL:", "Problem communicating with " + huskyLens.getDeviceName());
         }
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
+        pinpoint.recalibrateIMU();
         /*
         imu.initialize(
             new IMU.Parameters(
@@ -161,8 +162,6 @@ public class OffSeasonPrototype1I extends OpMode {
     public void start() {
         //move to start of auto in start() when have it
         pinpoint.resetPosAndIMU();
-        //keep here
-        pinpoint.recalibrateIMU();
         //imu.resetYaw();
         limelight.start();
 
@@ -174,7 +173,6 @@ public class OffSeasonPrototype1I extends OpMode {
     @Override
     public void loop() {
         //rateLimit.reset();
-        if (gamepad1.right_stick_button)pinpoint.setHeading(0,AngleUnit.RADIANS);
 
         Intake.setPower(gamepad1.a?-1:0);
         Transfer.setPower(gamepad1.y?1:0);
@@ -191,9 +189,9 @@ public class OffSeasonPrototype1I extends OpMode {
         //Readability of code
         double TotalTrigger=gamepad1.right_trigger+gamepad1.left_trigger;
 
-        double speedMultiplier =(Maximum-Difference*TotalTrigger);
+        double speedMultiplier = (Maximum-(Difference*TotalTrigger));
 
-
+        if (gamepad1.start)pinpoint.setHeading(0,AngleUnit.RADIANS);
         //drive variables
         double roboYaw = pinpoint.getHeading(AngleUnit.RADIANS);
         double ly = -gamepad1.left_stick_y;
