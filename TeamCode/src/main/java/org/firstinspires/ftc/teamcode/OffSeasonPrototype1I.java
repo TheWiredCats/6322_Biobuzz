@@ -83,19 +83,19 @@ public class OffSeasonPrototype1I extends OpMode {
     //private Deadline rateLimit = null;
     double currentY=0;
     double currentX=0;
-    double cameraXOffset=0;
-    double cameraYOffset=0;
+    final double cameraXOffset=0;
+    final double cameraYOffset=0;
     boolean buttonDownPinpoint = true;
     boolean addingPinpoint = false;
     //replace with center of camera height once we have it
-    double CameraHeight = 330.2;
+    final double CameraHeight = 330.2;
     //replace with the height of the center of this year's apriltags
-    double ApriltagHeight = 476.25-CameraHeight;
+    final double ApriltagHeight = 476.25-CameraHeight;
 
     //get freshies to fill with position and direction of apriltags on field after kickoff
     //Should be in the format {x cord, y cord, facing direction} (0 for +x,1 for -x,2 for +y, 3 for-y)
     //first array should be empty so u could use fiducial id directly
-    double[][] AprilTagPositions = {{},
+    final double[][] AprilTagPositions = {{},
             {0,0,0},
             {67,67,0},
             {100,100,0}
@@ -178,9 +178,9 @@ public class OffSeasonPrototype1I extends OpMode {
         Transfer.setPower(gamepad1.y?1:0);
 
         //how low/high the Speed can go with both triggers down/up respectully
-        double Minimum = 0.25;
+        final double Minimum = 0.25;
         //maximum must be less than or equal to 1
-        double Maximum = 1;
+        final double Maximum = 1;
 
         //Calculates how far the minimum is from the middle of the 2
         // (to know how much each should affect)
@@ -245,18 +245,18 @@ public class OffSeasonPrototype1I extends OpMode {
                  Optional: Cap rx so it doesn't spin violently
                 rx = headingError * Kp; rx = MathUtils.clamp(headingError*Kp,-0.5,0.5);
                 */
-                //          remove after kick off
-                //                      V
                 int id = fr.getFiducialId();
+                // remove after kick off
+                //        V
                 if(id>=21&&id<=23) {
-                    //                     Replace with id after kickoff
+                    //                    Replace with just id after kickoff
                     //                                   V
                     double apriltagX = AprilTagPositions[id-20][0];
                     double apriltagY = AprilTagPositions[id-20][1];
                     //how far away the april tag is
-                    double ZDifference = ApriltagHeight / Math.tan(-result.getTy() * (Math.PI / 180));
+                    double ZDifference = ApriltagHeight / Math.tan(Math.toRadians(-result.getTy()));
                     //how far left or right it is, negative is left and right is positive
-                    double LRDifference = ZDifference * Math.tan(-result.getTx() * (Math.PI / 180));
+                    double LRDifference = ZDifference * Math.tan(Math.toRadians(-result.getTx()));
                     switch ((int) AprilTagPositions[id-20][2]) {
                         case (0):
                             currentX = apriltagX + ZDifference;
@@ -312,7 +312,7 @@ public class OffSeasonPrototype1I extends OpMode {
                 //while (headingError < -180) headingError += 360;
 
                 // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
-                double Kp = 1.5;
+                final double Kp = 1.5;
                 //rx = headingError * Kp;
                 rx = MathUtils.clamp(headingError * Kp,-0.5,0.5);
 
