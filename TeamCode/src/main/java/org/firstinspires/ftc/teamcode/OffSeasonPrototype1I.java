@@ -63,7 +63,7 @@ public class OffSeasonPrototype1I extends OpMode {
         double yVel=pinpoint.getVelY(DistanceUnit.MM);
         telemetry.addData("Direction",
                 ((xVel==0)?(yVel==0?"Not moving":""):xVel>0?"Forward":"Backwards")
-                        +((xVel==0&yVel==0)?"":" and ")
+                        +((xVel==0&&yVel==0)?"":" and ")
                         +(yVel==0?"":yVel<0?"Right":"Left"));
         telemetry.addData("Heading", pinpoint.getHeading(AngleUnit.RADIANS));
         telemetry.addData("X position", pinpoint.getPosX(DistanceUnit.MM));
@@ -96,7 +96,7 @@ public class OffSeasonPrototype1I extends OpMode {
     final double APRIL_TAG_HEIGHT = 476.25- CAMERA_HEIGHT;
     boolean codeMissing;
     int brokenId;
-    double fieldCentricHeading=0;
+    double FRCHeading=0;
     //get freshies to fill with position and direction of apriltags on field after kickoff
     //Should be in the format {x cord, y cord, facing direction} (0 for +x,1 for -x,2 for +y, 3 for-y)
     //first array should be empty so u could use fiducial id directly
@@ -198,9 +198,9 @@ public class OffSeasonPrototype1I extends OpMode {
 
         double speedMultiplier = (MAXIMUM-(Difference*TotalTrigger));
 
-        if (gamepad1.start)pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);fieldCentricHeading=pinpoint.getHeading(AngleUnit.RADIANS);
+        if (gamepad1.start)pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);FRCHeading=pinpoint.getHeading(AngleUnit.RADIANS);
         //drive variables
-        double roboYaw = fieldCentricHeading;
+        double roboYaw = FRCHeading;
         double ly = -gamepad1.left_stick_y;
         double lx = gamepad1.left_stick_x * 1.1;
         double rx = gamepad1.right_stick_x; //controls turning
