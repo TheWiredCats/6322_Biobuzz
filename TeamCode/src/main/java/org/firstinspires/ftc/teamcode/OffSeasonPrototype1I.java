@@ -20,13 +20,10 @@ package org.firstinspires.ftc.teamcode;
 
 import androidx.core.math.MathUtils;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 //import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -39,10 +36,6 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.internal.system.Deadline;
-import com.qualcomm.hardware.dfrobot.HuskyLens;
-import java.util.concurrent.TimeUnit;
 
 import java.util.List;
 
@@ -63,6 +56,13 @@ public class OffSeasonPrototype1I extends OpMode {
 
     private void addPinpointTelemetry(){
         pinpoint.update();
+        double xVel=pinpoint.getVelX(DistanceUnit.MM);
+        double yVel=pinpoint.getVelY(DistanceUnit.MM);
+        telemetry.addData("Direction",
+                ((xVel==0)?(yVel==0?"Not moving":""):xVel>0?"Forward":"Backwards")
+                        +((xVel==0&yVel==0)?"":" and ")
+                        +(yVel==0?"":yVel<0?"Right":"Left"));
+        telemetry.addData("Heading", pinpoint.getHeading(AngleUnit.RADIANS));
         telemetry.addData("X position", pinpoint.getPosX(DistanceUnit.MM));
         telemetry.addData("Y position", pinpoint.getPosY(DistanceUnit.MM));
         telemetry.addData("2D Position", pinpoint.getPosition());
@@ -83,19 +83,21 @@ public class OffSeasonPrototype1I extends OpMode {
     //private Deadline rateLimit = null;
     double currentY=0;
     double currentX=0;
-    final double cameraXOffset=0;
-    final double cameraYOffset=0;
+    final double CAMERA_X_OFFSET =0;
+    final double CAMERA_Y_OFFSET =0;
     boolean buttonDownPinpoint = true;
     boolean addingPinpoint = false;
     //replace with center of camera height once we have it
-    final double CameraHeight = 330.2;
+    final double CAMERA_HEIGHT = 330.2;
     //replace with the height of the center of this year's apriltags
-    final double ApriltagHeight = 476.25-CameraHeight;
-
+    final double APRIL_TAG_HEIGHT = 476.25- CAMERA_HEIGHT;
+    boolean codeMissing;
+    int brokenId;
+    double fieldCentricHeading=0;
     //get freshies to fill with position and direction of apriltags on field after kickoff
     //Should be in the format {x cord, y cord, facing direction} (0 for +x,1 for -x,2 for +y, 3 for-y)
     //first array should be empty so u could use fiducial id directly
-    final double[][] AprilTagPositions = {{},
+    final double[][] APRIL_TAG_POSITIONS = {{0,0,-1},
             {0,0,0},
             {67,67,0},
             {100,100,0}
@@ -113,6 +115,7 @@ public class OffSeasonPrototype1I extends OpMode {
 //        imu = hardwareMap.get(IMU.class, "imu");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
@@ -160,6 +163,7 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void start() {
+        codeMissing=false;
         //move to start of auto in start() when have it
         pinpoint.resetPosAndIMU();
         //imu.resetYaw();
@@ -178,22 +182,22 @@ public class OffSeasonPrototype1I extends OpMode {
         Transfer.setPower(gamepad1.y?1:0);
 
         //how low/high the Speed can go with both triggers down/up respectully
-        final double Minimum = 0.25;
+        final double MINIMUM = 0.25;
         //maximum must be less than or equal to 1
-        final double Maximum = 1;
+        final double MAXIMUM = 1;
 
         //Calculates how far the minimum is from the middle of the 2
         // (to know how much each should affect)
-        double Difference=(Maximum-Minimum)/2;
+        double Difference=(MAXIMUM-MINIMUM)/2;
 
         //Readability of code
         double TotalTrigger=gamepad1.right_trigger+gamepad1.left_trigger;
 
-        double speedMultiplier = (Maximum-(Difference*TotalTrigger));
+        double speedMultiplier = (MAXIMUM-(Difference*TotalTrigger));
 
-        if (gamepad1.start)pinpoint.setHeading(0,AngleUnit.RADIANS);
+        if (gamepad1.start)pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);fieldCentricHeading=pinpoint.getHeading(AngleUnit.RADIANS);
         //drive variables
-        double roboYaw = pinpoint.getHeading(AngleUnit.RADIANS);
+        double roboYaw = fieldCentricHeading;
         double ly = -gamepad1.left_stick_y;
         double lx = gamepad1.left_stick_x * 1.1;
         double rx = gamepad1.right_stick_x; //controls turning
@@ -251,13 +255,13 @@ public class OffSeasonPrototype1I extends OpMode {
                 if(id>=21&&id<=23) {
                     //                    Replace with just id after kickoff
                     //                                   V
-                    double apriltagX = AprilTagPositions[id-20][0];
-                    double apriltagY = AprilTagPositions[id-20][1];
+                    double apriltagX = APRIL_TAG_POSITIONS[id-20][0];
+                    double apriltagY = APRIL_TAG_POSITIONS[id-20][1];
                     //how far away the april tag is
-                    double ZDifference = ApriltagHeight / Math.tan(Math.toRadians(-result.getTy()));
+                    double ZDifference = APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(-result.getTy()));
                     //how far left or right it is, negative is left and right is positive
                     double LRDifference = ZDifference * Math.tan(Math.toRadians(-result.getTx()));
-                    switch ((int) AprilTagPositions[id-20][2]) {
+                    switch ((int) APRIL_TAG_POSITIONS[id-20][2]) {
                         case (0):
                             currentX = apriltagX + ZDifference;
                             currentY = apriltagY - LRDifference;
@@ -274,8 +278,15 @@ public class OffSeasonPrototype1I extends OpMode {
                             currentX = apriltagX - LRDifference;
                             currentY = apriltagY - ZDifference;
                             break;
+                        default:
+                            codeMissing=true;
+                            brokenId =id;
+                            currentX=pinpoint.getPosX(DistanceUnit.MM)- CAMERA_X_OFFSET;
+                            currentY=pinpoint.getPosY(DistanceUnit.MM)- CAMERA_Y_OFFSET;
+                            break;
                     }
-                    pinpoint.setPosition(new Pose2D(DistanceUnit.MM, currentX+cameraXOffset, currentY+cameraYOffset, AngleUnit.RADIANS, pinpoint.getHeading(AngleUnit.RADIANS)));
+                    if(!codeMissing)telemetry.addLine("Code Working!");
+                    pinpoint.setPosition(new Pose2D(DistanceUnit.MM, currentX+ CAMERA_X_OFFSET, currentY+ CAMERA_Y_OFFSET, AngleUnit.RADIANS, pinpoint.getHeading(AngleUnit.RADIANS)));
                 }
             }
         }
@@ -342,12 +353,12 @@ public class OffSeasonPrototype1I extends OpMode {
         BRMotor.setPower(BRMotorPower);
 
 
-
+        if(codeMissing)telemetry.addLine("CODE MISSING for "+ brokenId + "!!!!!!!");
         telemetry.addData("stickleftX", x);
         telemetry.addData("turn speed", rx);
         //after the camera code rx might have been altered
         telemetry.addData("SpeedMult", speedMultiplier);
-        telemetry.addData("Yaw/Heading", roboYaw);
+        telemetry.addData("Robot Yaw", roboYaw);
         LLStatus status = limelight.getStatus();
         telemetry.addData("LL STATS", "Temp: %.1fC, CPU: %.1f%%, FPS: %d", status.getTemp(), status.getCpu(),(int)status.getFps());
         telemetry.addData("LL Pipeline", "Index: %d, Type: %s", status.getPipelineIndex(), status.getPipelineType());
