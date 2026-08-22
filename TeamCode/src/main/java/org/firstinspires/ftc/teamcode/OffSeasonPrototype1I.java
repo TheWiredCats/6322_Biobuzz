@@ -19,11 +19,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 package org.firstinspires.ftc.teamcode;
 
 import androidx.core.math.MathUtils;
-
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 //import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -36,6 +37,8 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
+import java.util.concurrent.TimeUnit;
 
 import java.util.List;
 
@@ -129,7 +132,7 @@ public class OffSeasonPrototype1I extends OpMode {
         BLMotor.setDirection(DcMotorSimple.Direction.REVERSE);
        // FLMotor.setDirection(DcMotorSimple.Direction.REVERSE);
        // BRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        //FRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+       // FRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         limelight.pipelineSwitch(0);
         //Deadline rateLimit = new Deadline(1, TimeUnit.SECONDS);
@@ -212,14 +215,13 @@ public class OffSeasonPrototype1I extends OpMode {
             buttonDownPinpoint=true;
             addingPinpoint=!addingPinpoint;
         }
-        if(addingPinpoint)addPinpointTelemetry();
-            else telemetry.addLine("Not showing position right now");
+
 
         LLResult result = limelight.getLatestResult(); //april tag code
         if (result.isValid()) {
             double captureLatency = result.getCaptureLatency();
             double targetingLatency = result.getTargetingLatency();
-            double parseLatency = result.getParseLatency();
+            //double parseLatency = result.getParseLatency();
             telemetry.addData("LL Latency", captureLatency + targetingLatency);
 
             List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
@@ -294,52 +296,46 @@ public class OffSeasonPrototype1I extends OpMode {
         HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
         telemetry.addData("HL Block Count", blocks.length);
 
-        if (gamepad1.x) for (int i = 0; i < blocks.length; i++) {
-                telemetry.addData("HL:", blocks[i].toString());
+        if (gamepad1.x) for (HuskyLens.Block block : blocks) {
+            telemetry.addData("HL:", block.toString());
 
-                // HuskyLens Constants
-                final double SCREEN_CENTER_X = 160.0;
-                final double HALF_HORIZONTAL_FOV_RAD = Math.toRadians(27.5); // 55 degrees / 2
+            // HuskyLens Constants
+            final double SCREEN_CENTER_X = 160.0;
+            final double HALF_HORIZONTAL_FOV_RAD = Math.toRadians(27.5); // 55 degrees / 2
 
-                // 1. Get your 2D data from HuskyLens
-                int blockX = blocks[i].x;
+            // 1. Get your 2D data from HuskyLens
+            int blockX = block.x;
 
-                // 2. Calculate your 3D Z-distance first (from previous step)
-                double distanceZ = (2.9 * 4.6) / blocks[i].width;
+            // 2. Calculate your 3D Z-distance first (from previous step)
+            double distanceZ = (2.9 * 4.6) / block.width;
 
-                // 3. Calculate pixel offset from screen center
-                double pixelOffset = blockX - SCREEN_CENTER_X;
+            // 3. Calculate pixel offset from screen center
+            double pixelOffset = blockX - SCREEN_CENTER_X;
 
-                // 4. Normalize the offset (-1.0 to 1.0) and convert to radians
-                double angleX = (pixelOffset / SCREEN_CENTER_X) * HALF_HORIZONTAL_FOV_RAD;
+            // 4. Normalize the offset (-1.0 to 1.0) and convert to radians
+            double angleX = (pixelOffset / SCREEN_CENTER_X) * HALF_HORIZONTAL_FOV_RAD;
 
-                // 5. Calculate final physical X position (in inches or cm depending on your Z unit)
-                double positionX = distanceZ * Math.tan(angleX);
+            // 5. Calculate final physical X position (in inches or cm depending on your Z unit)
+            double positionX = distanceZ * Math.tan(angleX);
 
-                double headingError = positionX;
-
-                // Normalize error (just in case)
-                //while (headingError > 180) headingError -= 360;
-                //while (headingError < -180) headingError += 360;
-
-                // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
-                final double Kp = 1.5;
-                //rx = headingError * Kp;
-                rx = MathUtils.clamp(headingError * Kp,-0.5,0.5);
+            // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
+            final double Kp = 1.5;
+            //rx = headingError * Kp;
+            rx = MathUtils.clamp(positionX * Kp, -0.5, 0.5);
 
 
-                telemetry.addData("HL 3D Z (Distance)", distanceZ);
-                telemetry.addData("HL 3D X (Lateral)", positionX);
+            telemetry.addData("HL 3D Z (Distance)", distanceZ);
+            telemetry.addData("HL 3D X (Lateral)", positionX);
 
-                /*
-                 * Here inside the FOR loop, you could save or evaluate specific info for the currently recognized Bounding Box:
-                 * - blocks[i].width and blocks[i].height   (size of box, in pixels)
-                 * - blocks[i].left and blocks[i].top       (edges of box)
-                 * - blocks[i].x and blocks[i].y            (center location)
-                 * - blocks[i].id                           (Color ID)
-                 *
-                 * These values have Java type int (integer).
-                 */
+            /*
+             * Here inside the FOR loop, you could save or evaluate specific info for the currently recognized Bounding Box:
+             * - blocks[i].width and blocks[i].height   (size of box, in pixels)
+             * - blocks[i].left and blocks[i].top       (edges of box)
+             * - blocks[i].x and blocks[i].y            (center location)
+             * - blocks[i].id                           (Color ID)
+             *
+             * These values have Java type int (integer).
+             */
         }
 
         double FLMotorPower = ((y + x + rx) / stickTotal) * speedMultiplier;
@@ -354,6 +350,8 @@ public class OffSeasonPrototype1I extends OpMode {
 
 
         if(codeMissing)telemetry.addLine("CODE MISSING for "+ brokenId + "!!!!!!!");
+        if(addingPinpoint)addPinpointTelemetry();
+            else telemetry.addLine("Not showing position right now");
         telemetry.addData("stickleftX", x);
         telemetry.addData("turn speed", rx);
         //after the camera code rx might have been altered
