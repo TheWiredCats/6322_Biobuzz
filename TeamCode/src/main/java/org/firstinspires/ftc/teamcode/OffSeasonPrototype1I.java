@@ -96,6 +96,7 @@ public class OffSeasonPrototype1I extends OpMode {
     final double APRIL_TAG_HEIGHT = 476.25- CAMERA_HEIGHT;
     boolean codeMissing;
     int brokenId;
+    int lastConfirmation;
     double FRCHeading=0;
     //get freshies to fill with position and direction of apriltags on field after kickoff
     //Should be in the format {x cord, y cord, facing direction} (0 for +x,1 for -x,2 for +y, 3 for-y)
@@ -252,43 +253,50 @@ public class OffSeasonPrototype1I extends OpMode {
                 rx = headingError * Kp; rx = MathUtils.clamp(headingError*Kp,-0.5,0.5);
                 */
                 int id = fr.getFiducialId();
+                double tx=-result.getTx();
+                double ty=-result.getTy();
                 // remove after kick off
                 //        V
-                if(id>=21&&id<=23) {
-                    //                    Replace with just id after kickoff
-                    //                                   V
-                    double apriltagX = APRIL_TAG_POSITIONS[id-20][0];
-                    double apriltagY = APRIL_TAG_POSITIONS[id-20][1];
-                    //how far away the april tag is
-                    double ZDifference = APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(-result.getTy()));
-                    //how far left or right it is, negative is left and right is positive
-                    double LRDifference = ZDifference * Math.tan(Math.toRadians(-result.getTx()));
-                    switch ((int) APRIL_TAG_POSITIONS[id-20][2]) {
-                        case (0):
-                            currentX = apriltagX + ZDifference;
-                            currentY = apriltagY - LRDifference;
-                            break;
-                        case (1):
-                            currentX = apriltagX - ZDifference;
-                            currentY = apriltagY + LRDifference;
-                            break;
-                        case (2):
-                            currentX = apriltagX + LRDifference;
-                            currentY = apriltagY + ZDifference;
-                            break;
-                        case (3):
-                            currentX = apriltagX - LRDifference;
-                            currentY = apriltagY - ZDifference;
-                            break;
-                        default:
-                            codeMissing=true;
-                            brokenId =id;
-                            currentX=pinpoint.getPosX(DistanceUnit.MM)- CAMERA_X_OFFSET;
-                            currentY=pinpoint.getPosY(DistanceUnit.MM)- CAMERA_Y_OFFSET;
-                            break;
+                if(id>=20&&id<=23) {
+                    if(APRIL_TAG_POSITIONS[id-20][2]>=0&&APRIL_TAG_POSITIONS[id-20][2]<=3){
+                        lastConfirmation=(int)(System.currentTimeMillis()/1000);
                     }
-                    if(!codeMissing)telemetry.addLine("Code Working!");
-                    pinpoint.setPosition(new Pose2D(DistanceUnit.MM, currentX+ CAMERA_X_OFFSET, currentY+ CAMERA_Y_OFFSET, AngleUnit.RADIANS, pinpoint.getHeading(AngleUnit.RADIANS)));
+                    if (Math.abs(tx)<60&&Math.abs(ty)<60) {
+                        //                    Replace with just id after kickoff
+                        //                                   V
+                        double apriltagX = APRIL_TAG_POSITIONS[id - 20][0];
+                        double apriltagY = APRIL_TAG_POSITIONS[id - 20][1];
+                        //how far away the april tag is
+                        double ZDifference = APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(ty));
+                        //how far left or right it is, negative is left and right is positive
+                        double LRDifference = ZDifference * Math.tan(Math.toRadians(tx));
+                        switch ((int) APRIL_TAG_POSITIONS[id - 20][2]) {
+                            case (0):
+                                currentX = apriltagX + ZDifference;
+                                currentY = apriltagY - LRDifference;
+                                break;
+                            case (1):
+                                currentX = apriltagX - ZDifference;
+                                currentY = apriltagY + LRDifference;
+                                break;
+                            case (2):
+                                currentX = apriltagX + LRDifference;
+                                currentY = apriltagY + ZDifference;
+                                break;
+                            case (3):
+                                currentX = apriltagX - LRDifference;
+                                currentY = apriltagY - ZDifference;
+                                break;
+                            default:
+                                codeMissing = true;
+                                brokenId = id;
+                                currentX = pinpoint.getPosX(DistanceUnit.MM) - CAMERA_X_OFFSET;
+                                currentY = pinpoint.getPosY(DistanceUnit.MM) - CAMERA_Y_OFFSET;
+                                break;
+                        }
+                        if (!codeMissing) telemetry.addLine("Code Working!");
+                        pinpoint.setPosition(new Pose2D(DistanceUnit.MM, currentX + CAMERA_X_OFFSET, currentY + CAMERA_Y_OFFSET, AngleUnit.RADIANS, pinpoint.getHeading(AngleUnit.RADIANS)));
+                    }
                 }
             }
         }
@@ -348,8 +356,12 @@ public class OffSeasonPrototype1I extends OpMode {
         BLMotor.setPower(BLMotorPower);
         BRMotor.setPower(BRMotorPower);
 
-
+        int secs=((int)(System.currentTimeMillis()/1000))-lastConfirmation;
+        int mins=secs/60;
         if(codeMissing)telemetry.addLine("CODE MISSING for "+ brokenId + "!!!!!!!");
+        if(result.isValid())telemetry.addLine("Conforming Odometry :D");
+            else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+secs+" Secs Ago");
+            else telemetry.addLine("Not yet confirmed");
         if(addingPinpoint)addPinpointTelemetry();
             else telemetry.addLine("Not showing position right now");
         telemetry.addData("stickleftX", x);
