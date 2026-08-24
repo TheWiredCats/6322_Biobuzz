@@ -86,14 +86,14 @@ public class OffSeasonPrototype1I extends OpMode {
     //private Deadline rateLimit = null;
     double currentY=0;
     double currentX=0;
-    final double CAMERA_X_OFFSET =0;
-    final double CAMERA_Y_OFFSET =0;
+    final double CAMERA_X_OFFSET =-127;
+    final double CAMERA_Y_OFFSET =-152.4;
     boolean buttonDownPinpoint = true;
     boolean addingPinpoint = false;
     //replace with center of camera height once we have it
-    final double CAMERA_HEIGHT = 330.2;
+    final double CAMERA_HEIGHT = 263.525;
     //replace with the height of the center of this year's apriltags
-    final double APRIL_TAG_HEIGHT = 476.25- CAMERA_HEIGHT;
+    final double APRIL_TAG_HEIGHT = 465.1375- CAMERA_HEIGHT;
     boolean codeMissing;
     int brokenId;
     int lastConfirmation;
@@ -118,7 +118,8 @@ public class OffSeasonPrototype1I extends OpMode {
 
 //        imu = hardwareMap.get(IMU.class, "imu");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        //swapped reversed and forward directions -Noah randall 8/24 2:15pm
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -199,7 +200,12 @@ public class OffSeasonPrototype1I extends OpMode {
 
         double speedMultiplier = (MAXIMUM-(Difference*TotalTrigger));
 
-        if (gamepad1.start)pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);FRCHeading=pinpoint.getHeading(AngleUnit.RADIANS);
+        double lastHeading=pinpoint.getHeading(AngleUnit.RADIANS);
+        pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);
+        double headingChange=pinpoint.getHeading(AngleUnit.RADIANS)-lastHeading;
+        FRCHeading+=headingChange;
+        if(gamepad1.start)FRCHeading=0;
+
         //drive variables
         double roboYaw = FRCHeading;
         double ly = -gamepad1.left_stick_y;
@@ -210,12 +216,6 @@ public class OffSeasonPrototype1I extends OpMode {
         double y = ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw);
 
         double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
-
-        if(gamepad1.right_bumper)buttonDownPinpoint=false;
-        if(!buttonDownPinpoint&&!gamepad1.right_bumper){
-            buttonDownPinpoint=true;
-            addingPinpoint=!addingPinpoint;
-        }
 
 
         LLResult result = limelight.getLatestResult(); //april tag code
@@ -362,8 +362,7 @@ public class OffSeasonPrototype1I extends OpMode {
         if(result.isValid())telemetry.addLine("Conforming Odometry :D");
             else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+secs+" Secs Ago");
             else telemetry.addLine("Not yet confirmed");
-        if(addingPinpoint)addPinpointTelemetry();
-            else telemetry.addLine("Not showing position right now");
+        addPinpointTelemetry();
         telemetry.addData("stickleftX", x);
         telemetry.addData("turn speed", rx);
         //after the camera code rx might have been altered
