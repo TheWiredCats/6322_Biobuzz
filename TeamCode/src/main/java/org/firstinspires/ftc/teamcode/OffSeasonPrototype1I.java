@@ -75,9 +75,10 @@ public class OffSeasonPrototype1I extends OpMode {
     private GoBildaPinpointDriver pinpoint;
     //private Deadline rateLimit = null;
     double currentY=0;
+
     double currentX=0;
-    final double CAMERA_X_OFFSET =-5;
-    final double CAMERA_Y_OFFSET =-6;
+    final double CAMERA_X_OFFSET =5;
+    final double CAMERA_Y_OFFSET =6;
     //replace with center of camera height once we have it
     final double CAMERA_HEIGHT = 10.375;
     //replace with the height of the center of this year's apriltags
@@ -275,20 +276,20 @@ public class OffSeasonPrototype1I extends OpMode {
                     LRDifference = ZDifference * Math.tan(Math.toRadians(tx));
                     switch ((int) APRIL_TAG_POSITIONS[id][2]) {
                         case (0):
-                            currentX = apriltagX + ZDifference;
+                            currentX = apriltagX - ZDifference;
                             currentY = apriltagY - LRDifference;
                             break;
                         case (1):
-                            currentX = apriltagX - ZDifference;
+                            currentX = apriltagX + ZDifference;
                             currentY = apriltagY + LRDifference;
                             break;
                         case (2):
                             currentX = apriltagX + LRDifference;
-                            currentY = apriltagY + ZDifference;
+                            currentY = apriltagY - ZDifference;
                             break;
                         case (3):
                             currentX = apriltagX - LRDifference;
-                            currentY = apriltagY - ZDifference;
+                            currentY = apriltagY + ZDifference;
                             break;
                         default:
                             codeMissing = true;
@@ -366,7 +367,7 @@ public class OffSeasonPrototype1I extends OpMode {
             telemetry.addLine("Conforming Odometry :D");
             telemetry.addData("Tag Data","Looking at Tag: %d, X Position: %.2f, Y Position: %.2f, Facing: %s",id,APRIL_TAG_POSITIONS[id][0],APRIL_TAG_POSITIONS[id][1],
                     (Facing>=2?(Facing==2?"+Y":"-Y"):(Facing==0?"+X":"-X")));
-        }else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+secs+" Secs Ago");
+        }else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+(secs%60)+" Secs Ago");
             else telemetry.addLine("Not yet confirmed");
         addPinpointTelemetry();
         telemetry.addData("stickleftX", x);
