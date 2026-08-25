@@ -39,6 +39,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
+
+import java.text.Normalizer;
 import java.util.concurrent.TimeUnit;
 
 import java.util.List;
@@ -100,7 +102,7 @@ public class OffSeasonPrototype1I extends OpMode {
     private void addPinpointTelemetry(){
         lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
         pinpoint.update();
-        FRCHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading;
+        FRCHeading+= pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading;
         double xVel=pinpoint.getVelX(DistanceUnit.INCH);
         double yVel=pinpoint.getVelY(DistanceUnit.INCH);
         telemetry.addData("Direction",
