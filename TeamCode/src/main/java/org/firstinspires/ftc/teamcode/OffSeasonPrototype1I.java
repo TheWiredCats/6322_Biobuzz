@@ -37,6 +37,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.TimeUnit;
 
@@ -57,19 +58,6 @@ public class OffSeasonPrototype1I extends OpMode {
     /* Declare OpMode members. */
     //as soon as teleop selected
 
-    private void addPinpointTelemetry(){
-        pinpoint.update();
-        double xVel=pinpoint.getVelX(DistanceUnit.MM);
-        double yVel=pinpoint.getVelY(DistanceUnit.MM);
-        telemetry.addData("Direction",
-                ((xVel==0)?(yVel==0?"Not moving":""):xVel>0?"Forward":"Backwards")
-                        +((xVel==0&&yVel==0)?"":" and ")
-                        +(yVel==0?"":yVel<0?"Right":"Left"));
-        telemetry.addData("Heading", pinpoint.getHeading(AngleUnit.RADIANS));
-        telemetry.addData("X position", pinpoint.getPosX(DistanceUnit.MM));
-        telemetry.addData("Y position", pinpoint.getPosY(DistanceUnit.MM));
-        telemetry.addData("2D Position", pinpoint.getPosition());
-    }
     private DcMotor Intake = null;
     private DcMotor Transfer = null;
     private DcMotor FLMotor = null;
@@ -86,29 +74,44 @@ public class OffSeasonPrototype1I extends OpMode {
     //private Deadline rateLimit = null;
     double currentY=0;
     double currentX=0;
-    final double CAMERA_X_OFFSET =-127;
-    final double CAMERA_Y_OFFSET =-152.4;
+    final double CAMERA_X_OFFSET =-5;
+    final double CAMERA_Y_OFFSET =-6;
     boolean buttonDownPinpoint = true;
     boolean addingPinpoint = false;
     //replace with center of camera height once we have it
-    final double CAMERA_HEIGHT = 263.525;
+    final double CAMERA_HEIGHT = 10.375;
     //replace with the height of the center of this year's apriltags
-    final double APRIL_TAG_HEIGHT = 465.1375- CAMERA_HEIGHT;
+    final double APRIL_TAG_HEIGHT = 18.3125- CAMERA_HEIGHT;
     boolean codeMissing;
     int brokenId;
     int lastConfirmation;
     double FRCHeading=0;
     //get freshies to fill with position and direction of apriltags on field after kickoff
     //Should be in the format {x cord, y cord, facing direction} (0 for +x,1 for -x,2 for +y, 3 for-y)
+    // the cords should also be in inches
     //first array should be empty so u could use fiducial id directly
     final double[][] APRIL_TAG_POSITIONS = {{0,0,-1},
             {0,0,0},
             {67,67,0},
             {100,100,0}
     };
+    double lastHeading;
 
-
-
+    private void addPinpointTelemetry(){
+        lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
+        pinpoint.update();
+        FRCHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading;
+        double xVel=pinpoint.getVelX(DistanceUnit.INCH);
+        double yVel=pinpoint.getVelY(DistanceUnit.INCH);
+        telemetry.addData("Direction",
+                ((Math.abs(xVel)<2)?(Math.abs(yVel)<2?"Not moving":""):xVel>0?"Forward":"Backwards")
+                        +((xVel==0&&yVel==0)?"":" and ")
+                        +(Math.abs(yVel)<2?"":yVel<0?"Right":"Left"));
+        telemetry.addData("Heading", pinpoint.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("X position", pinpoint.getPosX(DistanceUnit.INCH));
+        telemetry.addData("Y position", pinpoint.getPosY(DistanceUnit.INCH));
+        telemetry.addData("2D Position", pinpoint.getPosition());
+    }
 
     @Override
     public void init() {
@@ -200,10 +203,10 @@ public class OffSeasonPrototype1I extends OpMode {
 
         double speedMultiplier = (MAXIMUM-(Difference*TotalTrigger));
 
-        double lastHeading=pinpoint.getHeading(AngleUnit.RADIANS);
+        lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
         pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);
-        double headingChange=pinpoint.getHeading(AngleUnit.RADIANS)-lastHeading;
-        FRCHeading+=headingChange;
+        FRCHeading+=(pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading);
+
         if(gamepad1.start)FRCHeading=0;
 
         //drive variables
@@ -290,12 +293,12 @@ public class OffSeasonPrototype1I extends OpMode {
                             default:
                                 codeMissing = true;
                                 brokenId = id;
-                                currentX = pinpoint.getPosX(DistanceUnit.MM) - CAMERA_X_OFFSET;
-                                currentY = pinpoint.getPosY(DistanceUnit.MM) - CAMERA_Y_OFFSET;
+                                currentX = pinpoint.getPosX(DistanceUnit.INCH) - CAMERA_X_OFFSET;
+                                currentY = pinpoint.getPosY(DistanceUnit.INCH) - CAMERA_Y_OFFSET;
                                 break;
                         }
                         if (!codeMissing) telemetry.addLine("Code Working!");
-                        pinpoint.setPosition(new Pose2D(DistanceUnit.MM, currentX + CAMERA_X_OFFSET, currentY + CAMERA_Y_OFFSET, AngleUnit.RADIANS, pinpoint.getHeading(AngleUnit.RADIANS)));
+                        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + CAMERA_X_OFFSET, currentY + CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
                     }
                 }
             }
