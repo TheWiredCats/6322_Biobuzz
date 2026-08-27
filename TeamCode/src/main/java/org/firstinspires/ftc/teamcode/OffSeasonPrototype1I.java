@@ -139,9 +139,9 @@ public class OffSeasonPrototype1I extends OpMode {
         BRMotor = hardwareMap.dcMotor.get("BR");
 
         BLMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-       // FLMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-       // BRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-       // FRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        FLMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        BRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        FRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         limelight.pipelineSwitch(0);
         //Deadline rateLimit = new Deadline(1, TimeUnit.SECONDS);
