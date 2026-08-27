@@ -14,14 +14,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 @Autonomous
 public class Auto_prolly_BLUE extends LinearOpMode {
-    private void DriveTo(double x, double y){
-        //pid bs
-    }
+    private void setPowers(double FL, double BL, double FR, double BR )
+    private void DriveTo(DistanceUnit sigma, double x, double y){
+        double desiredHeading= (y-pinpoint.getPosX(sigma))/(x-pinpoint.getPosX(sigma));
+        while(pinpoint.getPosX(sigma)!=x&&pinpoint.getPosY(sigma)!=y){
 
+        }
+    }
     private DcMotor Intake = null;
     private DcMotor Transfer = null;
     private DcMotor FLMotor = null;
-
     private DcMotor BLMotor = null;
     private DcMotor FRMotor = null;
     private DcMotor BRMotor = null;
@@ -42,7 +44,7 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(0);
 
-        //pinpoint stuff
+        //pinpoint, aka the odometry computer, stuff
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
@@ -76,6 +78,7 @@ public class Auto_prolly_BLUE extends LinearOpMode {
 
         //run this code once
         if (opModeIsActive()){
+            DriveTo(DistanceUnit.INCH,67,67);
 
         }
 
