@@ -50,13 +50,13 @@ public class Auto_prolly_BLUE extends LinearOpMode {
 
         //PID LOOP HELL
         while(opModeIsActive()&&Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2))>1){
-            //the last pinpoint data before we update to the newest
-            double previousX=pinpoint.getPosX(sigma);
-            double previousY=pinpoint.getPosY(sigma);
-
             //i need to finout how long a loop is so i can use that as my dt
             //this was as close as i could get
             double timeSinceLastUpdate=System.currentTimeMillis();
+
+            //the last pinpoint data before we update to the newest
+            double previousX=pinpoint.getPosX(sigma);
+            double previousY=pinpoint.getPosY(sigma);
 
             //update pinpoint for some fresh data
             pinpoint.update();
@@ -102,7 +102,9 @@ public class Auto_prolly_BLUE extends LinearOpMode {
             double xPower = OutputX * Math.cos(roboYaw) + OutputY * Math.sin(roboYaw);
             double yPower = OutputY * Math.cos(roboYaw) - OutputX * Math.sin(roboYaw);
             setPowers((yPower+xPower),(yPower-xPower),(yPower-xPower),(yPower+xPower));
-            telemetry.addData("KP: %.2f, KI: %.2f, KD:%.2f", KP, KI,KD);
+            telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f", KP, KI,KD);
+            telemetry.addData("PID X Data", "P: %.2f, I: %.2f, D: %.2f, Total: %2.f",proportionalX, readingIntegralX, derivativeX, OutputX );
+            telemetry.addData("PID Y Data", "P: %.2f, I: %.2f, D: %.2f, Total: %2.f",proportionalY, readingIntegralY, derivativeY, OutputY );
         }
         //break after we get to the x,y
         setPowers(0,0,0,0);
