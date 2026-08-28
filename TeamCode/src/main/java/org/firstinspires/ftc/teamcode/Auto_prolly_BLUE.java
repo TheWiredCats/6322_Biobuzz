@@ -14,9 +14,25 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 @Autonomous
 public class Auto_prolly_BLUE extends LinearOpMode {
-    private void setPowers(double FL, double BL, double FR, double BR )
+    private void setPowers(double FL, double BL, double FR, double BR ){
+        FLMotor.setPower(FL);
+        BLMotor.setPower(BL);
+        FRMotor.setPower(FR);
+        BRMotor.setPower(BR);
+    }
     private void DriveTo(DistanceUnit sigma, double x, double y){
+        //is getting slope i need this in radians tho
         double desiredHeading= (y-pinpoint.getPosX(sigma))/(x-pinpoint.getPosX(sigma));
+        double roboYaw = -(pinpoint.getHeading(AngleUnit.RADIANS)+desiredHeading);
+        double xPower =  -Math.sin(roboYaw);
+        double yPower =   Math.cos(roboYaw);
+        double stickTotal = Math.max(xPower,Math.max(yPower,1));
+
+        double FLMotorPower = ((yPower + xPower) / stickTotal);
+        double FRMotorPower = ((yPower - xPower) / stickTotal);
+        double BLMotorPower = ((yPower - xPower) / stickTotal);
+        double BRMotorPower = ((yPower + xPower) / stickTotal);
+
         while(pinpoint.getPosX(sigma)!=x&&pinpoint.getPosY(sigma)!=y){
 
         }
