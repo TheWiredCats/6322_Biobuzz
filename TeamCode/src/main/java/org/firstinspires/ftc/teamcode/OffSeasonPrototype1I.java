@@ -253,7 +253,7 @@ public class OffSeasonPrototype1I extends OpMode {
                 rx = headingError * Kp; rx = MathUtils.clamp(headingError*Kp,-0.5,0.5);
                 */
 
-                // get rud if -20 after kickoff
+                // get rid of -20 after kickoff
                 id = fr.getFiducialId()-20;
                 double tx=-result.getTx();
                 double ty=-result.getTy();

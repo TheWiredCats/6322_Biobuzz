@@ -14,8 +14,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
+import java.util.List;
+
 @Autonomous
 public class Auto_prolly_RED extends LinearOpMode {
+    /*
     private void confirmPosition(LLResult results){
         if (results.isValid()) {
             for (LLResultTypes.FiducialResult fr : results.getFiducialResults()) {
@@ -179,6 +182,7 @@ public class Auto_prolly_RED extends LinearOpMode {
         //break after we get to the x,y
         setPowers(0,0,0,0);
     }
+     */
 
     private DcMotor Intake = null;
     private DcMotor Transfer = null;
@@ -190,9 +194,7 @@ public class Auto_prolly_RED extends LinearOpMode {
     private HuskyLens huskyLens = null;
     private Limelight3A limelight = null;
     private GoBildaPinpointDriver pinpoint;
-    CameraConstants cc = new CameraConstants();
-    double currentX;
-    double currentY;
+    PID_System PID = new PID_System();
     @Override
     public void runOpMode() throws InterruptedException {
         //Start by initallizing all the cameras, motors, and also the pinpoint
@@ -235,7 +237,7 @@ public class Auto_prolly_RED extends LinearOpMode {
         BRMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-
+        List<DcMotor> motors = List.of(FLMotor, BLMotor,FRMotor,BRMotor);
         //won't move on till u click start
         waitForStart();
 
@@ -243,7 +245,7 @@ public class Auto_prolly_RED extends LinearOpMode {
         if (opModeIsActive()){
             Intake.setPower(-1);
             Transfer.setPower(1);
-            driveTo(DistanceUnit.INCH,67,67);
+            PID.driveTo(DistanceUnit.INCH,pinpoint,limelight,motors,this,new CameraConstants(),67,67);
             Intake.setPower(0);
             Transfer.setPower(0);
         }

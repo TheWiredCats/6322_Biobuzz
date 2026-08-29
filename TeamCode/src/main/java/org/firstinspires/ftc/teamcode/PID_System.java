@@ -1,29 +1,29 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorGoBildaPinpoint;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous
-public class Auto_prolly_BLUE extends LinearOpMode {
-    /*
-    private void confirmPosition(LLResult results){
+public class PID_System {
+    private void confirmPosition(LLResult results, GoBildaPinpointDriver pinpoint, CameraConstants cc){
         if (results.isValid()) {
             for (LLResultTypes.FiducialResult fr : results.getFiducialResults()) {
-                //get rid of - 20 after kick off
+                // get rid of - 20 after kick off
                 int id = fr.getFiducialId()-20;
+                double currentX;
+                double currentY;
                 double tx=-results.getTx();
                 double ty=-results.getTy();
                 if (Math.abs(tx)<60&&Math.abs(ty)<60) {
@@ -60,7 +60,7 @@ public class Auto_prolly_BLUE extends LinearOpMode {
             }
         }
     }
-    private void setPowers(double FL, double BL, double FR, double BR ){
+    private void setPowers(double FL, double BL, double FR, double BR,List<DcMotor> motors){
         //clipping extra could cause some problems and going in a circle
         //so we have to divide 1 by the greatest so we can multiply the rest by that
         //we can only do that if the greatest is over 1 tho
@@ -68,20 +68,21 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         //without rx, fl and br have the same power
         //aswell as bl and fr
         double greatest = Math.max(Math.abs(FL),Math.abs(BL));
-         if(greatest>1){
-             //if the greatest is over 1 divide evreything by the greatest to ensure the max is one
-             FL/=greatest;
-             BL/=greatest;
-             FR/=greatest;
-             BR/=greatest;
-         }
+        if(greatest>1){
+            //if the greatest is over 1 divide evreything by the greatest to ensure the max is one
+            FL/=greatest;
+            BL/=greatest;
+            FR/=greatest;
+            BR/=greatest;
+        }
 
-        FLMotor.setPower(FL);
-        BLMotor.setPower(BL);
-        FRMotor.setPower(FR);
-        BRMotor.setPower(BR);
+        motors.get(0).setPower(FL);
+        motors.get(1).setPower(BL);
+        motors.get(2).setPower(FR);
+        motors.get(3).setPower(BR);
     }
-    private void driveTo(DistanceUnit sigma, double x, double y){
+    public void driveTo(DistanceUnit sigma, GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors, LinearOpMode ll, CameraConstants cc,double x, double y){
+
         //PID BS
         //needs testing
         final double KP = 0.0125;
@@ -112,12 +113,12 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         //PID LOOP HELL
         //run untill either opmode turns off or untill were both moving less than 5 inches per second
         //and also .5 inches away from the position
-        while(opModeIsActive()&&
-                ((Math.sqrt(Math.pow(pinpoint.getVelX(sigma),2))+Math.pow(pinpoint.getVelY(sigma),2))>.5)||
-                (Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2))>.5)){
+        while(ll.opModeIsActive()&&
+                ((Math.sqrt(Math.pow(pinpoint.getVelX(sigma),2)+Math.pow(pinpoint.getVelY(sigma),2))>.5)||
+                (Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2))>.5))){
 
             //Confirming current position using limelight
-            confirmPosition(limelight.getLatestResult());
+            confirmPosition(limelight.getLatestResult(), pinpoint, cc);
 
             //the last pinpoint data before we update to the newest
             double previousError = Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2));
@@ -168,86 +169,19 @@ public class Auto_prolly_BLUE extends LinearOpMode {
             double output = -(readingIntegral+derivative+proportional);
 
             //telemetry
-            telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, error: %.2f", KP, KI,KD, error);
-            telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, Total: %2.f",proportional, readingIntegral, derivative, output );
-            telemetry.update();
+            ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, error: %.2f", KP, KI,KD, error);
+            ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",proportional, readingIntegral, derivative, output );
+            ll.telemetry.update();
 
 
             //cos represents x but bc shawn dosent know how  to place a pinpoint it now represnts Y
             //by that logic sin now reprsents X
             double xPower = output * Math.sin(roboYaw);// +OutputX*Math.cos(roboYaw);
             double yPower = output * Math.cos(roboYaw);// - OutputX * Math.sin(roboYaw);
-            setPowers((yPower+xPower),(yPower-xPower),(yPower-xPower),(yPower+xPower));
+            setPowers((yPower+xPower),(yPower-xPower),(yPower-xPower),(yPower+xPower),motors);
         }
         //break after we get to the x,y
-        setPowers(0,0,0,0);
+        setPowers(0,0,0,0,motors);
     }
 
-     */
-    private DcMotor Intake = null;
-    private DcMotor Transfer = null;
-    private DcMotor FLMotor = null;
-    private DcMotor BLMotor = null;
-    private DcMotor FRMotor = null;
-    private DcMotor BRMotor = null;
-    private HuskyLens huskyLens = null;
-    private Limelight3A limelight = null;
-    private GoBildaPinpointDriver pinpoint;
-    PID_System PID = new PID_System();
-    @Override
-    public void runOpMode() throws InterruptedException {
-        //Start by initallizing all the cameras, motors, and also the pinpoint
-
-        //intake and transfer motor
-        Intake = hardwareMap.dcMotor.get("intake");
-        Transfer = hardwareMap.dcMotor.get("transfer");
-
-        //camera 1 and 2
-        huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0);
-
-        //pinpoint, aka the odometry computer, stuff
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
-        pinpoint.resetPosAndIMU();
-        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,9,132, AngleUnit.DEGREES,0));
-
-        //driving motors
-        FLMotor = hardwareMap.dcMotor.get("FL");
-        FLMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        FLMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FLMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        BLMotor = hardwareMap.dcMotor.get("BL");
-        BLMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        BLMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BLMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        FRMotor = hardwareMap.dcMotor.get("FR");
-        FRMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        FRMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        BRMotor = hardwareMap.dcMotor.get("BR");
-        BRMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        BRMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        List<DcMotor> motors = List.of(FLMotor,BLMotor,FRMotor,BRMotor);
-        //won't move on till u click start
-        waitForStart();
-
-        //run this code once
-        if (opModeIsActive()){
-            Intake.setPower(-1);
-            Transfer.setPower(1);
-            PID.driveTo(DistanceUnit.INCH,pinpoint,limelight,motors, this,new CameraConstants(),67,67);
-            Intake.setPower(0);
-            Transfer.setPower(0);
-        }
-
-    }
 }
