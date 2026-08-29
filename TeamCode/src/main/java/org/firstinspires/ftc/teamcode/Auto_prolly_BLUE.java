@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import androidx.core.math.MathUtils;
-
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -13,16 +11,29 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.opencv.core.Mat;
 
 @Autonomous
 public class Auto_prolly_BLUE extends LinearOpMode {
     private void setPowers(double FL, double BL, double FR, double BR ){
-        //motors can only have their speed go up to 1, and down to -1
-        FLMotor.setPower(Math.max(-1,Math.min(FL,1)));
-        BLMotor.setPower(Math.max(-1,Math.min(BL,1)));
-        FRMotor.setPower(Math.max(-1,Math.min(FR,1)));
-        BRMotor.setPower(Math.max(-1,Math.min(BR,1)));
+        //clipping extra could cause some problems and going in a circle
+        //so we have to divide 1 by the greatest so we can multiply the rest by that
+        //we can only do that if the greatest is over 1 tho
+
+        //without rx, fl and br have the same power
+        //aswell as bl and fr
+        double greatest = Math.max(Math.abs(FL),Math.abs(BL));
+         if(greatest>1){
+             //if the greatest is over 1 divide evreything by the greatest to ensure the max is one
+             FL/=greatest;
+             BL/=greatest;
+             FR/=greatest;
+             BR/=greatest;
+         }
+
+        FLMotor.setPower(FL);
+        BLMotor.setPower(BL);
+        FRMotor.setPower(FR);
+        BRMotor.setPower(BR);
     }
     private void driveTo(DistanceUnit sigma, double x, double y){
         //PID BS
@@ -36,75 +47,76 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         double dt;
 
         //Some more mystery tools that will help us later
-        double integralX = 0;
-        double integralY = 0;
-        double readingIntegralX;
-        double readingIntegralY;
-        double derivativeX;
-        double derivativeY;
-        double proportionalX;
-        double proportionalY;
+        double integral =0;
+        double readingIntegral;
+        double derivative;
+        double proportional;
+
+        //dt measuring stuff
+        double currentTime;
+        double previousTime=System.currentTimeMillis();
 
         //update it once to get fresh data
         pinpoint.update();
 
+        double startingHeading = Math.atan2((y-pinpoint.getPosY(sigma)),(x-pinpoint.getPosX(sigma)));
+        double directionX = Math.cos(startingHeading);
+        double directionY = Math.sin(startingHeading);
+
         //PID LOOP HELL
-        while(opModeIsActive()&&Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2))>1){
-            //i need to finout how long a loop is so i can use that as my dt
-            //this was as close as i could get
-            double timeSinceLastUpdate=System.currentTimeMillis();
+        while(opModeIsActive()&&
+                ((Math.sqrt(Math.pow(pinpoint.getVelX(sigma),2))+Math.pow(pinpoint.getVelY(sigma),2))>.5)||
+                (Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2))>.5)){
 
             //the last pinpoint data before we update to the newest
-            double previousX=pinpoint.getPosX(sigma);
-            double previousY=pinpoint.getPosY(sigma);
+            double previousError = Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2));
+
 
             //update pinpoint for some fresh data
             pinpoint.update();
+
+            //For PID we need magnitude and Direction, the heading im gonna use for direction,
+            //and for magnitude im just gonna use distance formula
 
             //where i want to go
             double desiredHeading=Math.atan2((y-pinpoint.getPosY(sigma)),(x-pinpoint.getPosX(sigma)));
             //where i should tell the robot were pointing so we can go where we want to go
             double roboYaw = -(pinpoint.getHeading(AngleUnit.RADIANS)+desiredHeading);
 
-            //We need the errors for evreything, cuz it tells us how far away we are in X/Y direction
-            double errorX = x-pinpoint.getPosX(sigma);
-            double errorY = y-pinpoint.getPosY(sigma);
-
-            //We need the previous errors for deravitave, cuz were essentially plotting the error points
-            // and when we divide by dt that gives us our graph we can use
-            double previousErrorX = x-previousX;
-            double previousErrorY = y-previousY;
+            //were using distance formula to find out the absolute value of how far away we are
+            //from the target
+            double error = Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2));
 
             //P part of the PID
-            proportionalX=errorX*KP;
-            proportionalY=errorY*KP;
+            proportional=error*KP;
 
             //dt should be the length of the loop but this is as close to that so i could use
-            dt=Math.max(0.0001,System.currentTimeMillis()-timeSinceLastUpdate)/1000;
-            integralX+=errorX*dt;
-            integralY+=errorY*dt;
+            currentTime=System.currentTimeMillis();
+            dt=Math.max((currentTime-previousTime)/1000.0,0.001);
+            previousTime=currentTime;
+
+            //without the extra part the integral could not decrease
+            integral+=(((x-pinpoint.getPosX(sigma))*directionX)+(directionY*(y-pinpoint.getPosY(sigma))))*dt;
 
             //dont want to change the actual integral, bc that would mess up calculations
             // so we make a new variable and multiply that one by the KI
             // also I part of the PID
-            readingIntegralX=integralX*KI;
-            readingIntegralY=integralY*KI;
+            readingIntegral=integral*KI;
 
             //and finally D part of the PID
-            derivativeX=KD*((errorX-previousErrorX)/dt);
-            derivativeY=KD*((errorY-previousErrorY)/dt);
+            derivative=KD*((error-previousError)/dt);
 
-            //use PID as joysticks
-            double OutputX = 1.1*(readingIntegralX+derivativeX+proportionalX);
-            double OutputY = -(readingIntegralY+derivativeY+proportionalY);
+            //use PID as magnitude
+            double output = -(readingIntegral+derivative+proportional);
 
+            //telemetry
+            telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, error: %.2f", KP, KI,KD, error);
+            telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, Total: %2.f",proportional, readingIntegral, derivative, output );
+            telemetry.update();
             //math bs i havent read
-            double xPower = OutputX * Math.cos(roboYaw) + OutputY * Math.sin(roboYaw);
-            double yPower = OutputY * Math.cos(roboYaw) - OutputX * Math.sin(roboYaw);
+            double xPower = output * Math.sin(roboYaw);// +OutputX*Math.cos(roboYaw);
+            double yPower = output * Math.cos(roboYaw);// - OutputX * Math.sin(roboYaw);
             setPowers((yPower+xPower),(yPower-xPower),(yPower-xPower),(yPower+xPower));
-            telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f", KP, KI,KD);
-            telemetry.addData("PID X Data", "P: %.2f, I: %.2f, D: %.2f, Total: %2.f",proportionalX, readingIntegralX, derivativeX, OutputX );
-            telemetry.addData("PID Y Data", "P: %.2f, I: %.2f, D: %.2f, Total: %2.f",proportionalY, readingIntegralY, derivativeY, OutputY );
         }
         //break after we get to the x,y
         setPowers(0,0,0,0);
@@ -167,7 +179,8 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         //run this code once
         if (opModeIsActive()){
             driveTo(DistanceUnit.INCH,67,67);
-
+            Intake.setPower(-1);
+            Transfer.setPower(1);
         }
 
     }
