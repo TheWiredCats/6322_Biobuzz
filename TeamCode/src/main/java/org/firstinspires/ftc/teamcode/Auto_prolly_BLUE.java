@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -12,8 +14,52 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
+import java.util.List;
+
 @Autonomous
 public class Auto_prolly_BLUE extends LinearOpMode {
+    private void confirmPosition(LLResult results){
+        if (results.isValid()) {
+            for (LLResultTypes.FiducialResult fr : results.getFiducialResults()) {
+                int id = fr.getFiducialId()-20;
+                double tx=-results.getTx();
+                double ty=-results.getTy();
+                if (Math.abs(tx)<60&&Math.abs(ty)<60) {
+                    //                    Replace with just id after kickoff
+                    //                                   V
+                    double apriltagX = cc.APRIL_TAG_POSITIONS[id][0];
+                    double apriltagY = cc.APRIL_TAG_POSITIONS[id][1];
+                    //how far away the april tag is
+                    double ZDifference = cc.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(ty));
+                    //how far left or right it is, negative is left and right is positive
+                    double LRDifference = ZDifference * Math.tan(Math.toRadians(tx));
+                    switch ((int) cc.APRIL_TAG_POSITIONS[id][2]) {
+                        case (0):
+                            currentX = apriltagX - ZDifference;
+                            currentY = apriltagY - LRDifference;
+                            break;
+                        case (1):
+                            currentX = apriltagX + ZDifference;
+                            currentY = apriltagY + LRDifference;
+                            break;
+                        case (2):
+                            currentX = apriltagX + LRDifference;
+                            currentY = apriltagY - ZDifference;
+                            break;
+                        case (3):
+                            currentX = apriltagX - LRDifference;
+                            currentY = apriltagY + ZDifference;
+                            break;
+                        default:
+                            currentX = pinpoint.getPosX(DistanceUnit.INCH) - cc.CAMERA_X_OFFSET;
+                            currentY = pinpoint.getPosY(DistanceUnit.INCH) - cc.CAMERA_Y_OFFSET;
+                            break;
+                    }
+                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + cc.CAMERA_X_OFFSET, currentY + cc.CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
+                }
+            }
+        }
+    }
     private void setPowers(double FL, double BL, double FR, double BR ){
         //clipping extra could cause some problems and going in a circle
         //so we have to divide 1 by the greatest so we can multiply the rest by that
@@ -64,9 +110,14 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         double directionY = Math.sin(startingHeading);
 
         //PID LOOP HELL
+        //run untill either opmode turns off or untill were both moving less than 5 inches per second
+        //and also .5 inches away from the position
         while(opModeIsActive()&&
                 ((Math.sqrt(Math.pow(pinpoint.getVelX(sigma),2))+Math.pow(pinpoint.getVelY(sigma),2))>.5)||
                 (Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2))>.5)){
+
+            //Confirming current position using limelight
+            confirmPosition(limelight.getLatestResult());
 
             //the last pinpoint data before we update to the newest
             double previousError = Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2));
@@ -90,15 +141,22 @@ public class Auto_prolly_BLUE extends LinearOpMode {
             //P part of the PID
             proportional=error*KP;
 
-            //dt should be the length of the loop but this is as close to that so i could use
+            //dt is the length of the loop
+
+            //current time represents the current time
             currentTime=System.currentTimeMillis();
+            //we subtract current time by the last time we ran this and then divide by 1000
+            //so we could get dt in seconds rather than in miliseconds
             dt=Math.max((currentTime-previousTime)/1000.0,0.001);
+            //change previous time to the old current time so that when it loops previousTime
+            //now represents the previous currentTime
             previousTime=currentTime;
 
-            //without the extra part the integral could not decrease
+            //without the extra part the integral could not decrease, due to the fact that error
+            //represents the magnitute of the error, meaning its only the absolut value
             integral+=(((x-pinpoint.getPosX(sigma))*directionX)+(directionY*(y-pinpoint.getPosY(sigma))))*dt;
 
-            //dont want to change the actual integral, bc that would mess up calculations
+            //dont want to change the actual integral, bc that would mess up inner calculations
             // so we make a new variable and multiply that one by the KI
             // also I part of the PID
             readingIntegral=integral*KI;
@@ -113,7 +171,10 @@ public class Auto_prolly_BLUE extends LinearOpMode {
             telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, error: %.2f", KP, KI,KD, error);
             telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, Total: %2.f",proportional, readingIntegral, derivative, output );
             telemetry.update();
-            //math bs i havent read
+
+
+            //cos represents x but bc shawn dosent know how  to place a pinpoint it now represnts Y
+            //by that logic sin now reprsents X
             double xPower = output * Math.sin(roboYaw);// +OutputX*Math.cos(roboYaw);
             double yPower = output * Math.cos(roboYaw);// - OutputX * Math.sin(roboYaw);
             setPowers((yPower+xPower),(yPower-xPower),(yPower-xPower),(yPower+xPower));
@@ -130,6 +191,9 @@ public class Auto_prolly_BLUE extends LinearOpMode {
     private HuskyLens huskyLens = null;
     private Limelight3A limelight = null;
     private GoBildaPinpointDriver pinpoint;
+    double currentX;
+    double currentY;
+    CameraConstants cc = new CameraConstants();
     @Override
     public void runOpMode() throws InterruptedException {
         //Start by initallizing all the cameras, motors, and also the pinpoint

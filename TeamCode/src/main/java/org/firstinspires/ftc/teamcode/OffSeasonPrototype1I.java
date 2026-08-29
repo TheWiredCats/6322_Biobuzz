@@ -74,15 +74,11 @@ public class OffSeasonPrototype1I extends OpMode {
 
     private GoBildaPinpointDriver pinpoint;
     //private Deadline rateLimit = null;
-    double currentY=0;
 
+    //the public ones are so we can accsess them in the autos
+    //really all they are is to only have to do this stuff once
+    double currentY=0;
     double currentX=0;
-    final double CAMERA_X_OFFSET =5;
-    final double CAMERA_Y_OFFSET =6;
-    //replace with center of camera height once we have it
-    final double CAMERA_HEIGHT = 10.375;
-    //replace with the height of the center of this year's apriltags
-    final double APRIL_TAG_HEIGHT = 18.3125- CAMERA_HEIGHT;
     boolean codeMissing;
     int brokenId;
     int lastConfirmation;
@@ -90,15 +86,12 @@ public class OffSeasonPrototype1I extends OpMode {
     int id;
     double ZDifference;
     double LRDifference;
+    CameraConstants cc = new CameraConstants();
     //get freshies to fill with position and direction of apriltags on field after kickoff
     //Should be in the format {x cord, y cord, facing direction} (0 for +x,1 for -x,2 for +y, 3 for-y)
     // the cords should also be in inches
     //first array should be empty so u could use fiducial id directly
-    final double[][] APRIL_TAG_POSITIONS = {{0,0,-1},
-            {0,0,0},
-            {67,67,0},
-            {100,100,0}
-    };
+
     double lastHeading;
 
     private void addPinpointTelemetry(){
@@ -262,19 +255,19 @@ public class OffSeasonPrototype1I extends OpMode {
                 id = fr.getFiducialId()-20;
                 double tx=-result.getTx();
                 double ty=-result.getTy();
-                if(APRIL_TAG_POSITIONS[id][2]>=0&&APRIL_TAG_POSITIONS[id][2]<=3){
+                if(cc.APRIL_TAG_POSITIONS[id][2]>=0&&cc.APRIL_TAG_POSITIONS[id][2]<=3){
                     lastConfirmation=(int)(System.currentTimeMillis()/1000);
                 }
                 if (Math.abs(tx)<60&&Math.abs(ty)<60) {
                     //                    Replace with just id after kickoff
                     //                                   V
-                    double apriltagX = APRIL_TAG_POSITIONS[id][0];
-                    double apriltagY = APRIL_TAG_POSITIONS[id][1];
+                    double apriltagX = cc.APRIL_TAG_POSITIONS[id][0];
+                    double apriltagY = cc.APRIL_TAG_POSITIONS[id][1];
                     //how far away the april tag is
-                    ZDifference = APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(ty));
+                    ZDifference = cc.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(ty));
                     //how far left or right it is, negative is left and right is positive
                     LRDifference = ZDifference * Math.tan(Math.toRadians(tx));
-                    switch ((int) APRIL_TAG_POSITIONS[id][2]) {
+                    switch ((int) cc.APRIL_TAG_POSITIONS[id][2]) {
                         case (0):
                             currentX = apriltagX - ZDifference;
                             currentY = apriltagY - LRDifference;
@@ -294,12 +287,12 @@ public class OffSeasonPrototype1I extends OpMode {
                         default:
                             codeMissing = true;
                             brokenId = id;
-                            currentX = pinpoint.getPosX(DistanceUnit.INCH) - CAMERA_X_OFFSET;
-                            currentY = pinpoint.getPosY(DistanceUnit.INCH) - CAMERA_Y_OFFSET;
+                            currentX = pinpoint.getPosX(DistanceUnit.INCH) - cc.CAMERA_X_OFFSET;
+                            currentY = pinpoint.getPosY(DistanceUnit.INCH) - cc.CAMERA_Y_OFFSET;
                             break;
                     }
                     if (!codeMissing) telemetry.addLine("Code Working!");
-                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + CAMERA_X_OFFSET, currentY + CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
+                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + cc.CAMERA_X_OFFSET, currentY + cc.CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
                 }
 
             }
@@ -363,9 +356,9 @@ public class OffSeasonPrototype1I extends OpMode {
         int mins=secs/60;
         if(codeMissing)telemetry.addLine("CODE MISSING for "+ brokenId + "!!!!!!!");
         if(result.isValid()){
-            double Facing = APRIL_TAG_POSITIONS[id][2];
+            double Facing = cc.APRIL_TAG_POSITIONS[id][2];
             telemetry.addLine("Conforming Odometry :D");
-            telemetry.addData("Tag Data","Looking at Tag: %d, X Position: %.2f, Y Position: %.2f, Facing: %s",id,APRIL_TAG_POSITIONS[id][0],APRIL_TAG_POSITIONS[id][1],
+            telemetry.addData("Tag Data","Looking at Tag: %d, X Position: %.2f, Y Position: %.2f, Facing: %s",id,cc.APRIL_TAG_POSITIONS[id][0],cc.APRIL_TAG_POSITIONS[id][1],
                     (Facing>=2?(Facing==2?"+Y":"-Y"):(Facing==0?"+X":"-X")));
         }else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+(secs%60)+" Secs Ago");
             else telemetry.addLine("Not yet confirmed");
