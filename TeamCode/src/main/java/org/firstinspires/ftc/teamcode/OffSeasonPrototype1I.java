@@ -119,7 +119,7 @@ public class OffSeasonPrototype1I extends OpMode {
 //        imu = hardwareMap.get(IMU.class, "imu");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
-        //swapped reversed and forward directions -Noah randall 8/24 2:15pm
+        //swapped reversed and forward directions -Noah Randall 8/24 2:15pm
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -252,6 +252,8 @@ public class OffSeasonPrototype1I extends OpMode {
                  Optional: Cap rx so it doesn't spin violently
                 rx = headingError * Kp; rx = MathUtils.clamp(headingError*Kp,-0.5,0.5);
                 */
+
+                // get rud if -20 after kickoff
                 id = fr.getFiducialId()-20;
                 double tx=-result.getTx();
                 double ty=-result.getTy();
@@ -259,8 +261,6 @@ public class OffSeasonPrototype1I extends OpMode {
                     lastConfirmation=(int)(System.currentTimeMillis()/1000);
                 }
                 if (Math.abs(tx)<60&&Math.abs(ty)<60) {
-                    //                    Replace with just id after kickoff
-                    //                                   V
                     double apriltagX = cc.APRIL_TAG_POSITIONS[id][0];
                     double apriltagY = cc.APRIL_TAG_POSITIONS[id][1];
                     //how far away the april tag is

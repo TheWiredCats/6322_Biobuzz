@@ -21,12 +21,11 @@ public class Auto_prolly_BLUE extends LinearOpMode {
     private void confirmPosition(LLResult results){
         if (results.isValid()) {
             for (LLResultTypes.FiducialResult fr : results.getFiducialResults()) {
+                //get rid of - 20 after kick off
                 int id = fr.getFiducialId()-20;
                 double tx=-results.getTx();
                 double ty=-results.getTy();
                 if (Math.abs(tx)<60&&Math.abs(ty)<60) {
-                    //                    Replace with just id after kickoff
-                    //                                   V
                     double apriltagX = cc.APRIL_TAG_POSITIONS[id][0];
                     double apriltagY = cc.APRIL_TAG_POSITIONS[id][1];
                     //how far away the april tag is
@@ -242,9 +241,11 @@ public class Auto_prolly_BLUE extends LinearOpMode {
 
         //run this code once
         if (opModeIsActive()){
-            driveTo(DistanceUnit.INCH,67,67);
             Intake.setPower(-1);
             Transfer.setPower(1);
+            driveTo(DistanceUnit.INCH,67,67);
+            Intake.setPower(0);
+            Transfer.setPower(0);
         }
 
     }

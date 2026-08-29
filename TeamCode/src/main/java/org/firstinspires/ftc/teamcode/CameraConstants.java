@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 public class CameraConstants {
+    //replace with the position of this year's apriltags in inches
     public final double[][] APRIL_TAG_POSITIONS = {{0,0,-1},
             {0,0,0},
             {67,67,0},
