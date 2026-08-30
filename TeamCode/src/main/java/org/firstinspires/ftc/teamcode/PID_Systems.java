@@ -45,10 +45,10 @@ public class PID_Systems {
                     double apriltagY = cc.APRIL_TAG_POSITIONS[id][1];
 
                     //how far away the april tag is
-                    double ZDifference = cc.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(ty));
+                    double ZDifference = cc.APRIL_TAG_HEIGHT / Math.tan(ty);
 
                     //how far left or right it is, negative is left and right is positive
-                    double LRDifference = ZDifference * Math.tan(Math.toRadians(tx));
+                    double LRDifference = ZDifference * Math.tan(tx);
 
                     //We want to do something a lil different depending on which way the tag is
                     //facing
@@ -303,28 +303,62 @@ public class PID_Systems {
         //brake after we arrive at our destination
         setPowers(0,0,0,0,motors);
     }
-    public void lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint, List<DcMotor> motors, double initalHeading, double shimmy) {
+    public boolean lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint, List<DcMotor> motors, double initialHeading, double shimmy) {
         //Make sure im not trying to shimmy too much or trying to move while i shouldnt be
         if(ll.opModeIsActive()&&Math.abs(shimmy)<50) {
 
+            //if this isnt our first time looping then move a lil to the right or left
+            if(shimmy!=0)turnTo(AngleUnit.DEGREES,ll,pinpoint,motors, initialHeading +shimmy);
+
+
+            //give it a chance to scan after we shimmy
+            ll.sleep(50);
+
             //get latest results from the ll
             LLResult result = limelight.getLatestResult();
+
             if (result.isValid()) {
-
                 //if its valid head towards it
-                turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, initalHeading-result.getTx());
-
+                turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, initialHeading -result.getTx());
+                return true;
             } else {
-                //if this isnt our first time looping then move a lil to the right or left
-                if(shimmy!=0)turnTo(AngleUnit.DEGREES,ll,pinpoint,motors,initalHeading+shimmy);
-
-                //give it a chance to scan after we shimmy
-                ll.sleep(50);
 
                 //recursive hehe
                 //but in serious, were just gonna repeat the code but move a lil to the right or left
-                lockOn(ll, limelight, pinpoint, motors, initalHeading, (shimmy<0?5-shimmy:(shimmy>0?-shimmy:5)));
+                return lockOn(ll, limelight, pinpoint, motors, initialHeading, (shimmy<0?5-shimmy:(shimmy>0?-shimmy:5)));
+
             }
+        }else if(ll.opModeIsActive()){
+            //otherwise turn to where we were at the beginning
+            turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, initialHeading);
+            return false;
+        }
+        return false;
+    }
+    public void lockIn(DistanceUnit sigma,LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint, CameraConstants cc,List<DcMotor> motors, double Distance){
+        //make sure were facing the right way
+        if(lockOn(ll,limelight,pinpoint,motors, pinpoint.getHeading(AngleUnit.DEGREES),0)) {
+
+            //declare it outside so we can increase the scope beyond the fore loop
+            double ZDistance = 0;
+
+            //get fresh limelight data
+            LLResult results = limelight.getLatestResult();
+
+            //just to have some data
+            confirmPosition(results, pinpoint, cc);
+
+            //get how many degrees above us it is
+            double ty = results.getTy();
+
+            //we make a right triangle to find how far a way we are and use basic trig
+            ZDistance = cc.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(-ty));
+
+
+            Distance = ZDistance - Distance;
+            double x = pinpoint.getPosX(sigma) + (Distance * Math.sin(pinpoint.getHeading(AngleUnit.RADIANS)));
+            double y = pinpoint.getPosY(sigma) + (Distance * Math.cos(pinpoint.getHeading(AngleUnit.RADIANS)));
+            driveTo(sigma, pinpoint, limelight, motors, ll, cc, x, y);
         }
     }
 }

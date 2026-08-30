@@ -261,6 +261,8 @@ public class Auto_prolly_BLUE extends LinearOpMode {
             Intake.setPower(0);
             Transfer.setPower(0);
             driveTo(DistanceUnit.INCH,motors,9,135);
+            PID.turnTo(AngleUnit.DEGREES,this,pinpoint,motors,90);
+            PID.lockIn(DistanceUnit.INCH,this,limelight,pinpoint,new CameraConstants(),motors,12);
         }
 
     }
