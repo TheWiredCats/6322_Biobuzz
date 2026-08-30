@@ -115,7 +115,9 @@ public class PID_Systems {
                         double x, double y){
 
         //PID BS
-        //needs testing
+
+        //needs testing/tuning
+        //multiplier for each part of the PID
         final double KP = 0.125;
         final double KD = 0.1;
         final double KI = 0;
@@ -155,7 +157,8 @@ public class PID_Systems {
             confirmPosition(limelight.getLatestResult(), pinpoint, cc);
 
             //the last pinpoint data before we update to the newest
-            double previousError = Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2));
+            double previousError = Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+
+                    Math.pow(y-pinpoint.getPosY(sigma),2));
 
 
             //update pinpoint for some fresh data
@@ -210,8 +213,10 @@ public class PID_Systems {
             double output = -(readingIntegral+derivative+proportional);
 
             //telemetry data being added
-            ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, error: %.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
-            ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",proportional, readingIntegral, derivative, output );
+            ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, " +
+                    "error: %.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
+            ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
+                    "Total: %.2f",proportional, readingIntegral, derivative, output );
             ll.telemetry.update();
 
 
@@ -226,50 +231,100 @@ public class PID_Systems {
         //brake after we get to the x y positions
         setPowers(0,0,0,0,motors);
     }
-    public void turnTo(AngleUnit sigma, LinearOpMode ll,GoBildaPinpointDriver pinpoint, List<DcMotor> motors, double desiredHeading){
+    public void turnTo(AngleUnit sigma, LinearOpMode ll,GoBildaPinpointDriver pinpoint,
+                       List<DcMotor> motors, double desiredHeading){
         desiredHeading=AngleUnit.DEGREES.fromUnit(sigma,desiredHeading);
 
+        //needs tuning
+        //multiplier for each part of the PID
         final double KP = 0.125;
         final double KD = 0.1;
         final double KI = 0;
 
         //dt is the time between loops, its gonna be a very small amount of time
         double dt;
+        //set previous time to rn as a default value
         double previousTime=System.currentTimeMillis();
         double currentTime;
 
+        //each part of the PID
         double proportional;
         double integral=0;
         double derivative;
 
+        //update pinpoint before we start loop for fresh data
+        pinpoint.update();
         while(ll.opModeIsActive()&&
                 ((pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES)<0.5)||
                         (Math.abs(pinpoint.getHeading(AngleUnit.DEGREES)-desiredHeading)<0.5))){
 
-            double previousError = desiredHeading-pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
+            //grab the previous error to use for D
+            double previousError = desiredHeading-pinpoint.getHeading(AngleUnit.DEGREES);
 
+            //update the pinpoint for fresh data
             pinpoint.update();
 
+            //error is the current difference between the 2 angels
             double error = desiredHeading-pinpoint.getHeading(AngleUnit.RADIANS);
 
+            //P part of PID represents how much change we still need to do
+            //but is often the cause of oscillation when KP is too high
             proportional=error*KP;
 
+            //obvious name is obvious
             currentTime=System.currentTimeMillis();
+            //for all but the first loop this measure almost the time it takes to do the entire loop
             dt=currentTime-previousTime;
+            //set the last current time to previous time to be used in the next loop
             previousTime=currentTime;
 
+            //D part of the PID represents how much error is changing, were taking the derivative
+            //of the different positions by simply using the limit definition
             derivative=KD*((error-previousError)/dt);
 
+            //I part of the PID represnets how much the error has changed, we take the integral
+            //by using simply multiplying by dt and adding over evrey loop
             integral+=error*dt;
 
+            //the output of the PID is represented by the addition of each part of the pid
+            //multiplied by their respective multiplier
             double total=(proportional+derivative+(integral*KI));
 
-            ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, error: %.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
-            ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",proportional, integral*KI, derivative, total);
+            //telemetry data for tuning and testing
+            ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, error: " +
+                    "%.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
+            ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
+                    "Total: %.2f",proportional, integral*KI, derivative, total);
             ll.telemetry.update();
 
+            //set the motors to either positive or negative motors
             setPowers(total,-total,total,-total,motors);
         }
+        //brake after we arrive at our destination
         setPowers(0,0,0,0,motors);
+    }
+    public void lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint, List<DcMotor> motors, double initalHeading, double shimmy) {
+        //Make sure im not trying to shimmy too much or trying to move while i shouldnt be
+        if(ll.opModeIsActive()&&Math.abs(shimmy)<50) {
+
+            //get latest results from the ll
+            LLResult result = limelight.getLatestResult();
+            if (result.isValid()) {
+
+                //if its valid head towards it
+                turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, initalHeading-result.getTx());
+
+            } else {
+                //if this isnt our first time looping then move a lil to the right or left
+                if(shimmy!=0)turnTo(AngleUnit.DEGREES,ll,pinpoint,motors,initalHeading+shimmy);
+
+                //give it a chance to scan after we shimmy
+                ll.sleep(50);
+
+                //recursive hehe
+                //but in serious, were just gonna repeat the code but move a lil to the right or left
+                lockOn(ll, limelight, pinpoint, motors, initalHeading, (shimmy<0?5-shimmy:(shimmy>0?-shimmy:5)));
+            }
+        }
     }
 }
