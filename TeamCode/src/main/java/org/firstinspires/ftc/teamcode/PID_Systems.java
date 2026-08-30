@@ -7,15 +7,14 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcontroller.external.samples.SensorGoBildaPinpoint;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
 import java.util.List;
 
-public class PID_System {
+public class PID_Systems {
     private void confirmPosition(LLResult results, GoBildaPinpointDriver pinpoint, CameraConstants cc){
         //only run the rest of the code if we can actually see a tag
         if (results.isValid()) {
@@ -211,12 +210,12 @@ public class PID_System {
             double output = -(readingIntegral+derivative+proportional);
 
             //telemetry data being added
-            ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, error: %.2f", KP, KI,KD, error);
+            ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, error: %.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",proportional, readingIntegral, derivative, output );
             ll.telemetry.update();
 
 
-            //cos represents x but bc shawn dosent know how  to place a pinpoint it now represnts Y
+            //cos represents x but bc shawn dosent know how to place a pinpoint it now represnts Y
             //by that logic sin now reprsents X
             double xPower = output * Math.sin(roboYaw);// +OutputX*Math.cos(roboYaw);
             double yPower = output * Math.cos(roboYaw);// - OutputX * Math.sin(roboYaw);
@@ -227,5 +226,50 @@ public class PID_System {
         //brake after we get to the x y positions
         setPowers(0,0,0,0,motors);
     }
+    public void turnTo(AngleUnit sigma, LinearOpMode ll,GoBildaPinpointDriver pinpoint, List<DcMotor> motors, double desiredHeading){
+        desiredHeading=AngleUnit.DEGREES.fromUnit(sigma,desiredHeading);
 
+        final double KP = 0.125;
+        final double KD = 0.1;
+        final double KI = 0;
+
+        //dt is the time between loops, its gonna be a very small amount of time
+        double dt;
+        double previousTime=System.currentTimeMillis();
+        double currentTime;
+
+        double proportional;
+        double integral=0;
+        double derivative;
+
+        while(ll.opModeIsActive()&&
+                ((pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES)<0.5)||
+                        (Math.abs(pinpoint.getHeading(AngleUnit.DEGREES)-desiredHeading)<0.5))){
+
+            double previousError = desiredHeading-pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
+
+            pinpoint.update();
+
+            double error = desiredHeading-pinpoint.getHeading(AngleUnit.RADIANS);
+
+            proportional=error*KP;
+
+            currentTime=System.currentTimeMillis();
+            dt=currentTime-previousTime;
+            previousTime=currentTime;
+
+            derivative=KD*((error-previousError)/dt);
+
+            integral+=error*dt;
+
+            double total=(proportional+derivative+(integral*KI));
+
+            ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, error: %.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
+            ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",proportional, integral*KI, derivative, total);
+            ll.telemetry.update();
+
+            setPowers(total,-total,total,-total,motors);
+        }
+        setPowers(0,0,0,0,motors);
+    }
 }

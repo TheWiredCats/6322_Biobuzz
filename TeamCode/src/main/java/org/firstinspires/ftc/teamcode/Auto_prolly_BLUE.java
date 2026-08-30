@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -193,7 +191,13 @@ public class Auto_prolly_BLUE extends LinearOpMode {
     private HuskyLens huskyLens = null;
     private Limelight3A limelight = null;
     private GoBildaPinpointDriver pinpoint;
-    PID_System PID = new PID_System();
+    PID_Systems PID = new PID_Systems();
+
+    //Tip for rookies DONT DO WHAT IM ABOUT TO DO
+    // im lowkey jus lazy
+    private void driveTo(DistanceUnit measurements, List<DcMotor> motors,double x, double y){
+        PID.driveTo(measurements,pinpoint,limelight, motors,this,new CameraConstants(),x,y);
+    }
     @Override
     public void runOpMode() throws InterruptedException {
         //Start by initallizing all the cameras, motors, and also the pinpoint
@@ -213,7 +217,7 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         pinpoint.resetPosAndIMU();
-        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,9,132, AngleUnit.DEGREES,0));
+        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,9,135, AngleUnit.DEGREES,0));
 
         //driving motors
         FLMotor = hardwareMap.dcMotor.get("FL");
@@ -237,6 +241,7 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         BRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         List<DcMotor> motors = List.of(FLMotor,BLMotor,FRMotor,BRMotor);
+
         //won't move on till u click start
         waitForStart();
 
@@ -244,9 +249,18 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         if (opModeIsActive()){
             Intake.setPower(-1);
             Transfer.setPower(1);
-            PID.driveTo(DistanceUnit.INCH,pinpoint,limelight,motors, this,new CameraConstants(),67,67);
+            driveTo(DistanceUnit.INCH,motors,135,135);
             Intake.setPower(0);
             Transfer.setPower(0);
+            driveTo(DistanceUnit.INCH,motors,135,9);
+            PID.turnTo(AngleUnit.DEGREES, this, pinpoint, motors, -180);
+            PID.turnTo(AngleUnit.DEGREES, this, pinpoint, motors, 0);
+            Intake.setPower(-1);
+            Transfer.setPower(1);
+            driveTo(DistanceUnit.INCH,motors,9,9);
+            Intake.setPower(0);
+            Transfer.setPower(0);
+            driveTo(DistanceUnit.INCH,motors,9,135);
         }
 
     }

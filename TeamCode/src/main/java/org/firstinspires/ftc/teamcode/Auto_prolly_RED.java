@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -194,7 +192,7 @@ public class Auto_prolly_RED extends LinearOpMode {
     private HuskyLens huskyLens = null;
     private Limelight3A limelight = null;
     private GoBildaPinpointDriver pinpoint;
-    PID_System PID = new PID_System();
+    PID_Systems PID = new PID_Systems();
     @Override
     public void runOpMode() throws InterruptedException {
         //Start by initallizing all the cameras, motors, and also the pinpoint
@@ -249,6 +247,7 @@ public class Auto_prolly_RED extends LinearOpMode {
             PID.driveTo(DistanceUnit.INCH,pinpoint,limelight,motors,this,new CameraConstants(),67,67);
             Intake.setPower(0);
             Transfer.setPower(0);
+
         }
 
     }
