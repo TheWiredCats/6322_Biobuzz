@@ -199,7 +199,7 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         PID.driveTo(measurements,pinpoint,limelight, motors,this,new CameraConstants(),x,y);
     }
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode(){
         //Start by initallizing all the cameras, motors, and also the pinpoint
 
         //intake and transfer motor
