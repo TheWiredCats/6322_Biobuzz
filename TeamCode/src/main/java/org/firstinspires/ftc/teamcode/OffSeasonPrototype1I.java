@@ -254,47 +254,49 @@ public class OffSeasonPrototype1I extends OpMode {
                 */
 
                 // get rid of -20 after kickoff
-                id = fr.getFiducialId()-20;
-                double tx=-result.getTx();
-                double ty=-result.getTy();
-                if(cc.APRIL_TAG_POSITIONS[id][2]>=0&&cc.APRIL_TAG_POSITIONS[id][2]<=3){
-                    lastConfirmation=(int)(System.currentTimeMillis()/1000);
-                }
-                if (Math.abs(tx)<60&&Math.abs(ty)<60) {
-                    double apriltagX = cc.APRIL_TAG_POSITIONS[id][0];
-                    double apriltagY = cc.APRIL_TAG_POSITIONS[id][1];
-                    //how far away the april tag is
-                    ZDifference = cc.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(ty));
-                    //how far left or right it is, negative is left and right is positive
-                    LRDifference = ZDifference * Math.tan(Math.toRadians(tx));
-                    switch ((int) cc.APRIL_TAG_POSITIONS[id][2]) {
-                        case (0):
-                            currentX = apriltagX - ZDifference;
-                            currentY = apriltagY - LRDifference;
-                            break;
-                        case (1):
-                            currentX = apriltagX + ZDifference;
-                            currentY = apriltagY + LRDifference;
-                            break;
-                        case (2):
-                            currentX = apriltagX + LRDifference;
-                            currentY = apriltagY - ZDifference;
-                            break;
-                        case (3):
-                            currentX = apriltagX - LRDifference;
-                            currentY = apriltagY + ZDifference;
-                            break;
-                        default:
-                            codeMissing = true;
-                            brokenId = id;
-                            currentX = pinpoint.getPosX(DistanceUnit.INCH) - cc.CAMERA_X_OFFSET;
-                            currentY = pinpoint.getPosY(DistanceUnit.INCH) - cc.CAMERA_Y_OFFSET;
-                            break;
+                id = fr.getFiducialId() - 20;
+                if (id>=0&&id<cc.APRIL_TAG_POSITIONS.length) {
+                    double tx = -fr.getTargetXDegrees();
+                    double ty = -fr.getTargetYDegrees();
+                    if (cc.APRIL_TAG_POSITIONS[id][2] >= 0 && cc.APRIL_TAG_POSITIONS[id][2] <= 3) {
+                        lastConfirmation = (int) (System.currentTimeMillis() / 1000);
                     }
-                    if (!codeMissing) telemetry.addLine("Code Working!");
-                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + cc.CAMERA_X_OFFSET, currentY + cc.CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
-                }
+                    if (Math.abs(tx) < 60 && Math.abs(ty) < 60) {
+                        double apriltagX = cc.APRIL_TAG_POSITIONS[id][0];
+                        double apriltagY = cc.APRIL_TAG_POSITIONS[id][1];
+                        //how far away the april tag is
+                        ZDifference = cc.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(ty));
+                        //how far left or right it is, negative is left and right is positive
+                        LRDifference = ZDifference * Math.tan(Math.toRadians(tx));
+                        switch ((int) cc.APRIL_TAG_POSITIONS[id][2]) {
+                            case (0):
+                                currentX = apriltagX - ZDifference;
+                                currentY = apriltagY - LRDifference;
+                                break;
+                            case (1):
+                                currentX = apriltagX + ZDifference;
+                                currentY = apriltagY + LRDifference;
+                                break;
+                            case (2):
+                                currentX = apriltagX + LRDifference;
+                                currentY = apriltagY - ZDifference;
+                                break;
+                            case (3):
+                                currentX = apriltagX - LRDifference;
+                                currentY = apriltagY + ZDifference;
+                                break;
+                            default:
+                                codeMissing = true;
+                                brokenId = id;
+                                currentX = pinpoint.getPosX(DistanceUnit.INCH) - cc.CAMERA_X_OFFSET;
+                                currentY = pinpoint.getPosY(DistanceUnit.INCH) - cc.CAMERA_Y_OFFSET;
+                                break;
+                        }
+                        if (!codeMissing) telemetry.addLine("Code Working!");
+                        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + cc.CAMERA_X_OFFSET, currentY + cc.CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
+                    }
 
+                }
             }
         }
 

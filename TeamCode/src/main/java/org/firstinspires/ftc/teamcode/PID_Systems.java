@@ -11,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
+import org.opencv.core.Mat;
 
 import java.util.List;
 
@@ -25,63 +26,66 @@ public class PID_Systems {
                 // get rid of - 20 after kick off
                 // instead of having to write it the long way we can just make a variable to write
                 // the short way, also improves computations time
-                int id = fr.getFiducialId()-20;
+                int id = fr.getFiducialId() - 20;
 
-                //declare and reset the real X and Y
-                double currentX;
-                double currentY;
+                if (id >= 0 && id < cc.APRIL_TAG_POSITIONS.length) {
+                    //declare and reset the real X and Y
+                    double currentX;
+                    double currentY;
 
-                //Tx and Ty from the limelight are graphed in degrees and are also reversed so
-                //we have to make them negative and turn them into radians before we can use them
-                double tx=Math.toRadians(-results.getTx());
-                double ty=Math.toRadians(-results.getTy());
+                    //Tx and Ty from the limelight are graphed in degrees and are also reversed so
+                    //we have to make them negative and turn them into radians before we can use them
+                    double tx = Math.toRadians(-fr.getTargetXDegrees());
+                    double ty = Math.toRadians(-fr.getTargetYDegrees());
 
-                //tan of something that is too close to 90 starts to make it head towards
-                //infinity, and  FAST
-                if (Math.abs(tx)<(Math.PI/3)&&Math.abs(ty)<(Math.PI/3)) {
+                    //tan of something that is too close to 90 starts to make it head towards
+                    //infinity, and  FAST
+                    if (Math.abs(tx) < (Math.PI / 3) && Math.abs(ty) < (Math.PI / 3)) {
 
-                    //Get the X and Y positions of each tag
-                    double apriltagX = cc.APRIL_TAG_POSITIONS[id][0];
-                    double apriltagY = cc.APRIL_TAG_POSITIONS[id][1];
+                        //Get the X and Y positions of each tag
+                        double apriltagX = cc.APRIL_TAG_POSITIONS[id][0];
+                        double apriltagY = cc.APRIL_TAG_POSITIONS[id][1];
 
-                    //how far away the april tag is
-                    double ZDifference = cc.APRIL_TAG_HEIGHT / Math.tan(ty);
+                        //how far away the april tag is
+                        double ZDifference = cc.APRIL_TAG_HEIGHT / Math.tan(ty);
 
-                    //how far left or right it is, negative is left and right is positive
-                    double LRDifference = ZDifference * Math.tan(tx);
+                        //how far left or right it is, negative is left and right is positive
+                        double LRDifference = ZDifference * Math.tan(tx);
 
-                    //We want to do something a lil different depending on which way the tag is
-                    //facing
-                    switch ((int) cc.APRIL_TAG_POSITIONS[id][2]) {
-                        case (0):
-                            currentX = apriltagX - ZDifference;
-                            currentY = apriltagY - LRDifference;
-                            break;
-                        case (1):
-                            currentX = apriltagX + ZDifference;
-                            currentY = apriltagY + LRDifference;
-                            break;
-                        case (2):
-                            currentX = apriltagX + LRDifference;
-                            currentY = apriltagY - ZDifference;
-                            break;
-                        case (3):
-                            currentX = apriltagX - LRDifference;
-                            currentY = apriltagY + ZDifference;
-                            break;
-                        default:
-                            //if its something thats not in the code then set the position
-                            // to what it already is
-                            currentX = pinpoint.getPosX(DistanceUnit.INCH) - cc.CAMERA_X_OFFSET;
-                            currentY = pinpoint.getPosY(DistanceUnit.INCH) - cc.CAMERA_Y_OFFSET;
-                            break;
+                        //We want to do something a lil different depending on which way the tag is
+                        //facing
+                        switch ((int) cc.APRIL_TAG_POSITIONS[id][2]) {
+                            case (0):
+                                currentX = apriltagX - ZDifference;
+                                currentY = apriltagY - LRDifference;
+                                break;
+                            case (1):
+                                currentX = apriltagX + ZDifference;
+                                currentY = apriltagY + LRDifference;
+                                break;
+                            case (2):
+                                currentX = apriltagX + LRDifference;
+                                currentY = apriltagY - ZDifference;
+                                break;
+                            case (3):
+                                currentX = apriltagX - LRDifference;
+                                currentY = apriltagY + ZDifference;
+                                break;
+                            default:
+                                //if its something thats not in the code then set the position
+                                // to what it already is
+                                currentX = pinpoint.getPosX(DistanceUnit.INCH) - cc.CAMERA_X_OFFSET;
+                                currentY = pinpoint.getPosY(DistanceUnit.INCH) - cc.CAMERA_Y_OFFSET;
+                                break;
+                        }
+                        //set the position to what the tag says we are, and the position to what
+                        //it already is
+                        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,
+                                (currentX + cc.CAMERA_X_OFFSET),
+                                (currentY + cc.CAMERA_Y_OFFSET),
+                                AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
+
                     }
-                    //set the position to what the tag says we are, and the position to what
-                    //it already is
-                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,
-                                    (currentX + cc.CAMERA_X_OFFSET),
-                            (currentY + cc.CAMERA_Y_OFFSET),
-                            AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
                 }
             }
         }
@@ -91,9 +95,8 @@ public class PID_Systems {
         //so we have to divide 1 by the greatest so we can multiply the rest by that
         //we can only do that if the greatest is over 1 tho
 
-        //without rx, fl and br have the same power
-        //aswell as bl and fr
-        double greatest = Math.max(Math.abs(FL),Math.abs(BL));
+        //check all the powers and divide evreything by the greatest one if its over one
+        double greatest = Math.max(Math.max(Math.abs(FL),Math.abs(BL)), Math.max(Math.abs(FR),Math.abs(BR)));
         if(greatest>1){
             //if the greatest is over 1 divide evreything by the greatest to ensure the max is one
             FL/=greatest;
@@ -188,7 +191,7 @@ public class PID_Systems {
 
             //we subtract current time by the last time we ran this and then divide by 1000
             //so we could get dt in seconds rather than in miliseconds
-            dt=Math.max((currentTime-previousTime)/1000.0,0.001);
+            dt=Math.max((currentTime-previousTime)/1000.0, 0.001);
 
             //change previous time to the old current time so that when it loops previousTime
             //now represents the previous currentTime
@@ -233,8 +236,6 @@ public class PID_Systems {
     }
     public void turnTo(AngleUnit sigma, LinearOpMode ll,GoBildaPinpointDriver pinpoint,
                        List<DcMotor> motors, double desiredHeading){
-        desiredHeading=AngleUnit.DEGREES.fromUnit(sigma,desiredHeading);
-
         //needs tuning
         //multiplier for each part of the PID
         final double KP = 0.125;
@@ -255,17 +256,17 @@ public class PID_Systems {
         //update pinpoint before we start loop for fresh data
         pinpoint.update();
         while(ll.opModeIsActive()&&
-                ((pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES)<0.5)||
-                        (Math.abs(pinpoint.getHeading(AngleUnit.DEGREES)-desiredHeading)<0.5))){
+                ((pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES)>0.5)||
+                        (Math.abs(pinpoint.getHeading(sigma)-desiredHeading)>0.5))){
 
             //grab the previous error to use for D
-            double previousError = desiredHeading-pinpoint.getHeading(AngleUnit.DEGREES);
+            double previousError = desiredHeading-pinpoint.getHeading(sigma);
 
             //update the pinpoint for fresh data
             pinpoint.update();
 
             //error is the current difference between the 2 angels
-            double error = desiredHeading-pinpoint.getHeading(AngleUnit.RADIANS);
+            double error = desiredHeading-pinpoint.getHeading(sigma);
 
             //P part of PID represents how much change we still need to do
             //but is often the cause of oscillation when KP is too high
@@ -274,7 +275,8 @@ public class PID_Systems {
             //obvious name is obvious
             currentTime=System.currentTimeMillis();
             //for all but the first loop this measure almost the time it takes to do the entire loop
-            dt=currentTime-previousTime;
+            //we divide by 1000 so it gives the data to us in seconds
+            dt=(currentTime-previousTime)/1000;
             //set the last current time to previous time to be used in the next loop
             previousTime=currentTime;
 

@@ -264,7 +264,7 @@ public class Auto_prolly_BLUE extends LinearOpMode {
             sleep(1000);
 
             //turn to the right
-            PID.turnTo(AngleUnit.DEGREES,this,pinpoint,motors,-90);
+            PID.turnTo(AngleUnit.DEGREES,this,pinpoint,motors,-45);
 
             //look for an april tag and lock move untill ur exactly 3ft away from it
             PID.lockIn(DistanceUnit.INCH,this,limelight,pinpoint,new CameraConstants(),motors,36);
