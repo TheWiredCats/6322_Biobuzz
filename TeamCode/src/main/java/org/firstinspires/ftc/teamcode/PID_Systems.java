@@ -146,8 +146,8 @@ public class PID_Systems {
         double startingHeading = Math.atan2((y-pinpoint.getPosY(sigma)),(x-pinpoint.getPosX(sigma)));
 
         //We cant really read 2d direction so we split it into its X and Y direction
-        double directionX = Math.cos(startingHeading);
-        double directionY = Math.sin(startingHeading);
+        double directionX = Math.sin(startingHeading);
+        double directionY = Math.cos(startingHeading);
 
         //PID LOOP HELL
         //run untill either opmode turns off or untill were both moving less than .5 inches per second
@@ -171,9 +171,9 @@ public class PID_Systems {
             //and for magnitude im just gonna use distance formula
 
             //The angel of where i am compared to where i want to be going
-            double desiredHeading=Math.atan2((y-pinpoint.getPosY(sigma)),(x-pinpoint.getPosX(sigma)));
+            double desiredHeading=Math.atan2((x-pinpoint.getPosX(sigma)),(y-pinpoint.getPosY(sigma)));
             //where i should tell the robot were pointing so we can go where we want to go
-            double roboYaw = -(pinpoint.getHeading(AngleUnit.RADIANS)+desiredHeading);
+            double roboYaw = -(pinpoint.getHeading(AngleUnit.RADIANS)-desiredHeading);
 
             //were using distance formula to find out the absolute value of how far away we are
             //from the target, or if youve taken algebra 2, were finding the magnitude
@@ -198,16 +198,16 @@ public class PID_Systems {
             previousTime=currentTime;
 
             //without the extra part the integral could not decrease, due to the fact that error
-            //represents the magnitute of the error, meaning its only the absolut value
+            //represents the magnitude of the error, meaning its only the absolute value
             integral+=(((x-pinpoint.getPosX(sigma))*directionX)+(directionY*(y-pinpoint.getPosY(sigma))))*dt;
 
             //dont want to change the actual integral, bc that would mess up inner calculations
             // so we make a new variable and multiply that one by the KI also it represents the
-            //integral, or inheirited errors from PAST loops in other words
+            //integral, or inherited errors from PAST loops in other words
             // I part of the PID
             readingIntegral=integral*KI;
 
-            //This represents the Derivative, or destiny of the error, it handels
+            //This represents the Derivative, or destiny of the error, it handles
             //where the error WILL become or in other words
             //D0 part of the PID
             derivative=KD*((error-previousError)/dt);
@@ -220,13 +220,14 @@ public class PID_Systems {
                     "error: %.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f",proportional, readingIntegral, derivative, output );
+            ll.telemetry.addData("Position", new Pose2D(DistanceUnit.INCH,pinpoint.getPosX(DistanceUnit.INCH),pinpoint.getPosY(DistanceUnit.INCH),AngleUnit.DEGREES,0));
             ll.telemetry.update();
 
 
             //cos represents x but bc shawn dosent know how to place a pinpoint it now represnts Y
             //by that logic sin now reprsents X
-            double xPower = output * Math.sin(roboYaw);// +OutputX*Math.cos(roboYaw);
-            double yPower = output * Math.cos(roboYaw);// - OutputX * Math.sin(roboYaw);
+            double xPower = 1.1*output * Math.sin(roboYaw);// +OutputX*Math.cos(roboYaw);
+            double yPower = -output * Math.cos(roboYaw);// - OutputX * Math.sin(roboYaw);
 
             //We set the power to each motor using this math, and the motors list
             setPowers((yPower+xPower),(yPower-xPower),(yPower-xPower),(yPower+xPower),motors);
@@ -297,6 +298,7 @@ public class PID_Systems {
                     "%.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f",proportional, integral*KI, derivative, total);
+            ll.telemetry.addData("Position", new Pose2D(DistanceUnit.INCH,pinpoint.getPosX(DistanceUnit.INCH),pinpoint.getPosY(DistanceUnit.INCH),AngleUnit.DEGREES,0));
             ll.telemetry.update();
 
             //set the motors to either positive or negative motors

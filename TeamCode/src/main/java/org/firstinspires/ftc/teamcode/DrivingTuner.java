@@ -33,7 +33,7 @@ public class DrivingTuner extends LinearOpMode {
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         pinpoint.resetPosAndIMU();
-        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,9,135, AngleUnit.DEGREES,0));
+        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,-63,63, AngleUnit.DEGREES,0));
 
         //driving motors
         FLMotor = hardwareMap.dcMotor.get("FL");
@@ -58,6 +58,6 @@ public class DrivingTuner extends LinearOpMode {
 
         waitForStart();
 
-        if(opModeIsActive())pid.driveTo(DistanceUnit.INCH,pinpoint,limelight, List.of(FLMotor,BLMotor,FRMotor,BRMotor),this,new CameraConstants(),72,72);
+        if(opModeIsActive())pid.driveTo(DistanceUnit.INCH,pinpoint,limelight, List.of(FLMotor,BLMotor,FRMotor,BRMotor),this,new CameraConstants(),0,0);
     }
 }
