@@ -319,7 +319,7 @@ public class PID_Systems {
 
             if (result.isValid()) {
                 //if its valid head towards it
-                turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, initialHeading -result.getTx());
+                turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, pinpoint.getHeading(AngleUnit.DEGREES) - result.getTx());
                 return true;
             } else {
 
@@ -340,7 +340,7 @@ public class PID_Systems {
         if(lockOn(ll,limelight,pinpoint,motors, pinpoint.getHeading(AngleUnit.DEGREES),0)) {
 
             //declare it outside so we can increase the scope beyond the fore loop
-            double ZDistance = 0;
+            double ZDistance;
 
             //get fresh limelight data
             LLResult results = limelight.getLatestResult();
@@ -354,10 +354,13 @@ public class PID_Systems {
             //we make a right triangle to find how far a way we are and use basic trig
             ZDistance = cc.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(-ty));
 
+            //we subtract the total from how far we want to be from the tag to find
+            //out how far we have to move
+            double difference = ZDistance - Distance;
 
-            Distance = ZDistance - Distance;
-            double x = pinpoint.getPosX(sigma) + (Distance * Math.sin(pinpoint.getHeading(AngleUnit.RADIANS)));
-            double y = pinpoint.getPosY(sigma) + (Distance * Math.cos(pinpoint.getHeading(AngleUnit.RADIANS)));
+            //we have to get the coordinates -y,x because the whole graph is rotated 90 to the left
+            double x = pinpoint.getPosX(sigma) + (difference * Math.sin(pinpoint.getHeading(AngleUnit.RADIANS)));
+            double y = pinpoint.getPosY(sigma) + (difference * Math.cos(pinpoint.getHeading(AngleUnit.RADIANS)));
             driveTo(sigma, pinpoint, limelight, motors, ll, cc, x, y);
         }
     }
