@@ -143,7 +143,7 @@ public class PID_Systems {
         pinpoint.update();
 
         //This tells us the angel we want to travel in
-        double startingHeading = Math.atan2((y-pinpoint.getPosY(sigma)),(x-pinpoint.getPosX(sigma)));
+        double startingHeading = Math.atan2((y-pinpoint.getPosY(sigma)),-(x-pinpoint.getPosX(sigma)));
 
         //We cant really read 2d direction so we split it into its X and Y direction
         double directionX = Math.sin(startingHeading);
@@ -171,9 +171,9 @@ public class PID_Systems {
             //and for magnitude im just gonna use distance formula
 
             //The angel of where i am compared to where i want to be going
-            double desiredHeading=Math.atan2((x-pinpoint.getPosX(sigma)),(y-pinpoint.getPosY(sigma)));
+            double desiredHeading=Math.atan2((y-pinpoint.getPosY(sigma)),-(x-pinpoint.getPosX(sigma)));
             //where i should tell the robot were pointing so we can go where we want to go
-            double roboYaw = -(pinpoint.getHeading(AngleUnit.RADIANS)-desiredHeading);
+            double roboYaw = (pinpoint.getHeading(AngleUnit.RADIANS)-desiredHeading);
 
             //were using distance formula to find out the absolute value of how far away we are
             //from the target, or if youve taken algebra 2, were finding the magnitude
@@ -209,7 +209,7 @@ public class PID_Systems {
 
             //This represents the Derivative, or destiny of the error, it handles
             //where the error WILL become or in other words
-            //D0 part of the PID
+            //D part of the PID
             derivative=KD*((error-previousError)/dt);
 
             //use PID as magnitude
