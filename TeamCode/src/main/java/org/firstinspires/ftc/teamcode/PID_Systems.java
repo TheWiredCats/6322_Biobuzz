@@ -121,9 +121,9 @@ public class PID_Systems {
 
         //needs testing/tuning
         //multiplier for each part of the PID
-        final double KP = 0.125;
-        final double KD = 0.1;
-        final double KI = 0;
+        final double KP = 0.25;
+        final double KD = 0.05;
+        final double KI = -0.01;
 
         //dt is a tiny amount of times, it's a mystery tool that will help us later.
         //(cool calculus kids know what's up)
@@ -237,7 +237,7 @@ public class PID_Systems {
         //needs tuning
         //multiplier for each part of the PID
         final double KP = 0.125;
-        final double KD = 0.1;
+        final double KD = 0.2;
         final double KI = 0;
 
         //dt is the time between loops, its gonna be a very small amount of time
@@ -299,7 +299,7 @@ public class PID_Systems {
             ll.telemetry.update();
 
             //set the motors to either positive or negative motors
-            setPowers(total,-total,total,-total,motors);
+            setPowers(total,total,-total,-total,motors);
         }
         //brake after we arrive at our destination
         setPowers(0,0,0,0,motors);

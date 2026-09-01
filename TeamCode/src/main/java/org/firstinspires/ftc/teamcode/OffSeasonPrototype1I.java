@@ -118,9 +118,9 @@ public class OffSeasonPrototype1I extends OpMode {
 
 //        imu = hardwareMap.get(IMU.class, "imu");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         //swapped reversed and forward directions -Noah Randall 8/24 2:15pm
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
+        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
@@ -346,8 +346,8 @@ public class OffSeasonPrototype1I extends OpMode {
         }
 
         double FLMotorPower = ((y + x + rx) / stickTotal) * speedMultiplier;
-        double FRMotorPower = ((y - x - rx) / stickTotal) * speedMultiplier;
         double BLMotorPower = ((y - x + rx) / stickTotal) * speedMultiplier;
+        double FRMotorPower = ((y - x - rx) / stickTotal) * speedMultiplier;
         double BRMotorPower = ((y + x - rx) / stickTotal) * speedMultiplier;
 
         FLMotor.setPower(FLMotorPower);

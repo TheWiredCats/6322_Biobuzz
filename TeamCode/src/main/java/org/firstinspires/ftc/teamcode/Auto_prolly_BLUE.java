@@ -214,10 +214,11 @@ public class Auto_prolly_BLUE extends LinearOpMode {
 
         //pinpoint, aka the odometry computer, stuff
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.resetPosAndIMU();
-        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,9,135, AngleUnit.DEGREES,0));
+        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,-63,63, AngleUnit.DEGREES,0));
+        pinpoint.update();
 
         //driving motors
         FLMotor = hardwareMap.dcMotor.get("FL");
@@ -248,19 +249,19 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         //run this code once
         if (opModeIsActive()){
             //drive to top left corner
-            driveTo(DistanceUnit.INCH,motors,135,135);
+            driveTo(DistanceUnit.INCH,motors,60,60);
             sleep(1000);
 
             //drive to top right corner
-            driveTo(DistanceUnit.INCH,motors,135,9);
+            driveTo(DistanceUnit.INCH,motors, 60, -60);
             sleep(1000);
 
             //drive to bottom right corner
-            driveTo(DistanceUnit.INCH,motors,9,9);
+            driveTo(DistanceUnit.INCH,motors,-60,-60);
             sleep(1000);
 
             //drive back to start
-            driveTo(DistanceUnit.INCH,motors,9,135);
+            driveTo(DistanceUnit.INCH,motors,-60,60);
             sleep(1000);
 
             //turn to the right

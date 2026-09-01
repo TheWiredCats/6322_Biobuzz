@@ -53,7 +53,7 @@ public class DrivingTuner extends LinearOpMode {
         //pinpoint, aka the odometry computer, stuff
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
+        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, -63, 63, AngleUnit.DEGREES, 0));
 
         pinpoint.update();
