@@ -139,11 +139,8 @@ public class PID_Systems {
         double currentTime;
         double previousTime=System.currentTimeMillis();
 
-        //update it once to get fresh data
-        pinpoint.update();
-
         //This tells us the angel we want to travel in
-        double startingHeading = Math.atan2((y-pinpoint.getPosY(sigma)),-(x-pinpoint.getPosX(sigma)));
+        double startingHeading = Math.atan2(-(y-pinpoint.getPosY(sigma)),(x-pinpoint.getPosX(sigma)));
 
         //We cant really read 2d direction so we split it into its X and Y direction
         double directionX = Math.sin(startingHeading);
@@ -213,7 +210,7 @@ public class PID_Systems {
             derivative=KD*((error-previousError)/dt);
 
             //use PID as magnitude
-            double output = -(readingIntegral+derivative+proportional);
+            double output = (readingIntegral+derivative+proportional);
 
             //telemetry data being added
             ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, " +
@@ -365,7 +362,7 @@ public class PID_Systems {
             //we have to get the coordinates -y,x because the whole graph is rotated 90 to the left
             double x = pinpoint.getPosX(sigma) + (difference * Math.sin(pinpoint.getHeading(AngleUnit.RADIANS)));
             double y = pinpoint.getPosY(sigma) + (difference * Math.cos(pinpoint.getHeading(AngleUnit.RADIANS)));
-            driveTo(sigma, pinpoint, limelight, motors, ll, cc, x, y);
+            driveTo(sigma,pinpoint, limelight, motors, ll, cc, x, y);
         }
     }
 }
