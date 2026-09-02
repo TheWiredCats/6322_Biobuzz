@@ -122,8 +122,8 @@ public class PID_Systems {
         //needs testing/tuning
         //multiplier for each part of the PID
         final double KP = 0.25;
-        final double KD = 0.05;
-        final double KI = -0.01;
+        final double KD = 0.2;
+        final double KI = -0.15;
 
         //dt is a tiny amount of times, it's a mystery tool that will help us later.
         //(cool calculus kids know what's up)
@@ -234,11 +234,12 @@ public class PID_Systems {
     }
     public void turnTo(AngleUnit sigma, LinearOpMode ll,GoBildaPinpointDriver pinpoint,
                        List<DcMotor> motors, double desiredHeading){
+        UnnormalizedAngleUnit sigma2= sigma==AngleUnit.RADIANS?UnnormalizedAngleUnit.RADIANS:UnnormalizedAngleUnit.DEGREES;
         //needs tuning
         //multiplier for each part of the PID
-        final double KP = 0.125;
-        final double KD = 0.2;
-        final double KI = 0;
+        final double KP = 0.25;
+        final double KD = 0.1;
+        final double KI = 0.05;
 
         //dt is the time between loops, its gonna be a very small amount of time
         double dt;
@@ -255,16 +256,16 @@ public class PID_Systems {
         pinpoint.update();
         while(ll.opModeIsActive()&&
                 ((pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES)>0.5)||
-                        (Math.abs(pinpoint.getHeading(sigma)-desiredHeading)>0.5))){
+                        (Math.abs(pinpoint.getHeading(sigma2)-desiredHeading)>0.5))){
 
             //grab the previous error to use for D
-            double previousError = desiredHeading-pinpoint.getHeading(sigma);
+            double previousError = desiredHeading-pinpoint.getHeading(sigma2);
 
             //update the pinpoint for fresh data
             pinpoint.update();
 
             //error is the current difference between the 2 angels
-            double error = desiredHeading-pinpoint.getHeading(sigma);
+            double error = desiredHeading-pinpoint.getHeading(sigma2);
 
             //P part of PID represents how much change we still need to do
             //but is often the cause of oscillation when KP is too high
@@ -274,7 +275,7 @@ public class PID_Systems {
             currentTime=System.currentTimeMillis();
             //for all but the first loop this measure almost the time it takes to do the entire loop
             //we divide by 1000 so it gives the data to us in seconds
-            dt=(currentTime-previousTime)/1000;
+            dt=Math.max((currentTime-previousTime),1)/1000;
             //set the last current time to previous time to be used in the next loop
             previousTime=currentTime;
 
@@ -299,7 +300,7 @@ public class PID_Systems {
             ll.telemetry.update();
 
             //set the motors to either positive or negative motors
-            setPowers(total,total,-total,-total,motors);
+            setPowers(-total,-total,total,total,motors);
         }
         //brake after we arrive at our destination
         setPowers(0,0,0,0,motors);

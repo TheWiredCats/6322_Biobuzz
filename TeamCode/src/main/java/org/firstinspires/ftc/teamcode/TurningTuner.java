@@ -31,7 +31,7 @@ public class TurningTuner extends LinearOpMode {
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.resetPosAndIMU();
-        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
+        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 72, 72, AngleUnit.DEGREES, 0));
         pinpoint.update();
 
         //driving motors
@@ -55,6 +55,7 @@ public class TurningTuner extends LinearOpMode {
         BRMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        telemetry.addData("test", pinpoint.getPosition());
         waitForStart();
 
         if (opModeIsActive())pid.turnTo(AngleUnit.DEGREES,this,pinpoint,List.of(FLMotor,BLMotor,FRMotor,BRMotor),180);
