@@ -18,7 +18,11 @@ import java.util.List;
 public class PID_Systems {
     //2 or more uses of the same code just make a damn function for it
     private LLResultTypes.FiducialResult getBiggest(@NotNull LLResult results){
+        //make a new fiducial result that has nothing in it
         LLResultTypes.FiducialResult result = null;
+
+        //run through all of the april tags and checks for which one is the bigger
+        //cuz that means it the closest to the robot and least likley to have errors
         for(LLResultTypes.FiducialResult fr:results.getFiducialResults()){
             if(result==null||result.getTargetArea()<fr.getTargetArea())result = fr;
         }
@@ -141,9 +145,9 @@ public class PID_Systems {
 
         //needs testing/tuning
         //multiplier for each part of the PID
-        final double KP = 0.3;
-        final double KD = 0;
-        final double KI = -0;
+        final double KP = 0.25275;
+        final double KD = 0.155;
+        final double KI = -0.75;
 
         //dt is a tiny amount of times, it's a mystery tool that will help us later.
         //(cool calculus kids know what's up)
@@ -234,7 +238,7 @@ public class PID_Systems {
 
             //telemetry data being added
             ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, " +
-                    "error: %.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
+                    "error: %.2f, dt in secs: %.4f", KP, KI,KD, error, dt);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f",proportional, readingIntegral, derivative, output );
             ll.telemetry.addData("Position", new Pose2D(DistanceUnit.INCH,pinpoint.getPosX(DistanceUnit.INCH),pinpoint.getPosY(DistanceUnit.INCH),AngleUnit.DEGREES,0));
@@ -378,7 +382,10 @@ public class PID_Systems {
             //just to have some data
             confirmPosition(results, pinpoint, cc);
 
+            //
             LLResultTypes.FiducialResult result = getBiggest(results);
+
+            if(0>=result.getFiducialId()-20&&result.getFiducialId()-20<cc.APRIL_TAG_POSITIONS.length){
 
             //get how many degrees above us, it is
             double ty = result.getTargetYDegrees();
@@ -395,6 +402,7 @@ public class PID_Systems {
                 double x = pinpoint.getPosX(sigma) + (difference * Math.sin(pinpoint.getHeading(AngleUnit.RADIANS)));
                 double y = pinpoint.getPosY(sigma) + (difference * Math.cos(pinpoint.getHeading(AngleUnit.RADIANS)));
                 driveTo(sigma, pinpoint, limelight, motors, ll, cc, x, y);
+                }
             }
         }
     }
