@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -11,7 +10,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
 import java.util.List;
 
@@ -19,6 +17,7 @@ import java.util.List;
 public class DrivingTuner extends LinearOpMode {
     GoBildaPinpointDriver pinpoint;
     Limelight3A limelight;
+    CameraConstants cc = new CameraConstants();
     PID_Systems pid = new PID_Systems();
     DcMotor FLMotor;
     DcMotor BLMotor;
@@ -54,16 +53,16 @@ public class DrivingTuner extends LinearOpMode {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, -63, 63, AngleUnit.DEGREES, 0));
+        pinpoint.setPosition(new Pose2D((DistanceUnit)cc.MEASUREMENTS.get(0), -63, 63, (AngleUnit)cc.MEASUREMENTS.get(1), 0));
 
         pinpoint.update();
 
-        telemetry.addData("X", pinpoint.getPosX(DistanceUnit.INCH));
-        telemetry.addData("Y", pinpoint.getPosY(DistanceUnit.INCH));
-        telemetry.addData("Heading", pinpoint.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("X", pinpoint.getPosX((DistanceUnit)cc.MEASUREMENTS.get(0)));
+        telemetry.addData("Y", pinpoint.getPosY((DistanceUnit)cc.MEASUREMENTS.get(0)));
+        telemetry.addData("Heading", pinpoint.getHeading((AngleUnit)cc.MEASUREMENTS.get(1)));
         telemetry.update();
         waitForStart();
 
-        if(opModeIsActive())pid.driveTo(DistanceUnit.INCH, pinpoint,limelight, List.of(FLMotor,BLMotor,FRMotor,BRMotor),this,new CameraConstants(),0,0);
+        if(opModeIsActive()) pid.headTo(pinpoint, limelight, List.of(FLMotor, BLMotor, FRMotor, BRMotor), this, new CameraConstants(), DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0, 180);
     }
 }

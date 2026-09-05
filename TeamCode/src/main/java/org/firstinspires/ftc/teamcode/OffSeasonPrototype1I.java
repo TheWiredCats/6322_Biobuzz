@@ -24,7 +24,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 //import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -38,10 +37,6 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
-import org.firstinspires.ftc.robotcore.internal.system.Deadline;
-
-import java.text.Normalizer;
-import java.util.concurrent.TimeUnit;
 
 import java.util.List;
 
@@ -75,12 +70,12 @@ public class OffSeasonPrototype1I extends OpMode {
     private GoBildaPinpointDriver pinpoint;
     //private Deadline rateLimit = null;
 
-    //the public ones are so we can accsess them in the autos
+    //the public ones are so we can access them in the autos
     //really all they are is to only have to do this stuff once
     double currentY=0;
     double currentX=0;
     boolean codeMissing;
-    int brokenId;
+    List<Integer> brokenId;
     int lastConfirmation;
     double FRCHeading=0;
     int id;
@@ -88,7 +83,7 @@ public class OffSeasonPrototype1I extends OpMode {
     double LRDifference;
     CameraConstants cc = new CameraConstants();
     double lastHeading;
-    private PID_Systems pid = new PID_Systems();
+    PID_Systems pid = new PID_Systems();
     private void addPinpointTelemetry(){
         lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
         pinpoint.update();
@@ -131,24 +126,12 @@ public class OffSeasonPrototype1I extends OpMode {
         FRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         limelight.pipelineSwitch(0);
-        //Deadline rateLimit = new Deadline(1, TimeUnit.SECONDS);
-        //rateLimit.expire();
 
         if (!huskyLens.knock()) {
             telemetry.addData("HL:", "Problem communicating with " + huskyLens.getDeviceName());
         }
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
         pinpoint.recalibrateIMU();
-        /*
-        imu.initialize(
-            new IMU.Parameters(
-                new RevHubOrientationOnRobot(
-                    RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                    RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
-                )
-            )
-        );
-        */
     }
     /*
     *Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
@@ -180,7 +163,7 @@ public class OffSeasonPrototype1I extends OpMode {
         Intake.setPower(gamepad1.a?-1:0);
         Transfer.setPower(gamepad1.y?1:0);
 
-        //how low/high the Speed can go with both triggers down/up respectully
+        //how low/high the Speed can go with both triggers down/up respectfully
         final double MINIMUM = 0.25;
         //maximum must be less than or equal to 1
         final double MAXIMUM = 1;
@@ -248,7 +231,7 @@ public class OffSeasonPrototype1I extends OpMode {
                 */
 
                 // get rid of -20 after kickoff
-                id = result.getFiducialId() - 20;
+                id = result.getFiducialId();
                 if (id>=0&&id<cc.APRIL_TAG_POSITIONS.length) {
                     double tx = -result.getTargetXDegrees();
                     double ty = -result.getTargetYDegrees();
@@ -262,29 +245,20 @@ public class OffSeasonPrototype1I extends OpMode {
                         ZDifference = cc.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(ty));
                         //how far left or right it is, negative is left and right is positive
                         LRDifference = ZDifference * Math.tan(Math.toRadians(tx));
-                        switch ((int) cc.APRIL_TAG_POSITIONS[id][2]) {
-                            case (0):
-                                currentX = apriltagX - ZDifference;
-                                currentY = apriltagY - LRDifference;
-                                break;
-                            case (1):
-                                currentX = apriltagX + ZDifference;
-                                currentY = apriltagY + LRDifference;
-                                break;
-                            case (2):
-                                currentX = apriltagX + LRDifference;
-                                currentY = apriltagY - ZDifference;
-                                break;
-                            case (3):
-                                currentX = apriltagX - LRDifference;
-                                currentY = apriltagY + ZDifference;
-                                break;
-                            default:
-                                codeMissing = true;
-                                brokenId = id+20;
-                                currentX = pinpoint.getPosX(DistanceUnit.INCH) - cc.CAMERA_X_OFFSET;
-                                currentY = pinpoint.getPosY(DistanceUnit.INCH) - cc.CAMERA_Y_OFFSET;
-                                break;
+                        double apriltagAngle = AngleUnit.RADIANS.fromUnit((AngleUnit)cc.MEASUREMENTS.get(1),cc.APRIL_TAG_POSITIONS[id][2]);
+                        if (cc.APRIL_TAG_POSITIONS[id][2]<0) {
+                            currentX = apriltagX
+                                    - ZDifference * Math.cos(apriltagAngle)
+                                    + LRDifference * Math.sin(apriltagAngle);
+
+                            currentY = apriltagY
+                                    - ZDifference * Math.sin(apriltagAngle)
+                                    - LRDifference * Math.cos(apriltagAngle);
+                        }else {
+                            brokenId.add(id);
+                            codeMissing = true;
+                            currentX = pinpoint.getPosX(DistanceUnit.INCH) - cc.CAMERA_X_OFFSET;
+                            currentY = pinpoint.getPosY(DistanceUnit.INCH) - cc.CAMERA_Y_OFFSET;
                         }
                         if (!codeMissing) telemetry.addLine("Code Working!");
                         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + cc.CAMERA_X_OFFSET, currentY + cc.CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
@@ -350,7 +324,7 @@ public class OffSeasonPrototype1I extends OpMode {
         BRMotor.setPower(BRMotorPower);
         int secs=((int)(System.currentTimeMillis()/1000))-lastConfirmation;
         int mins=secs/60;
-        if(codeMissing)telemetry.addLine("CODE MISSING for "+ brokenId + "!!!!!!!");
+        if(codeMissing)telemetry.addLine("CODE MISSING for ids "+ brokenId + "!!!!!!!");
         if(results.isValid()){
             double Facing = cc.APRIL_TAG_POSITIONS[id][2];
             telemetry.addLine("Conforming Odometry :D");
@@ -359,7 +333,7 @@ public class OffSeasonPrototype1I extends OpMode {
         }else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+(secs%60)+" Secs Ago");
             else telemetry.addLine("Not yet confirmed");
         addPinpointTelemetry();
-        telemetry.addData("stickleftX", x);
+        telemetry.addData("stickLeftX", x);
         telemetry.addData("turn speed", rx);
         //after the camera code rx might have been altered
         telemetry.addData("SpeedMult", speedMultiplier);

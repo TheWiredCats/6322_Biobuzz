@@ -60,7 +60,8 @@ public class PID_Systems {
             return  fixedAdjustedAngle-Math.toRadians(179);
         }
     }
-    private void confirmPosition(LLResult results, GoBildaPinpointDriver pinpoint, CameraConstants cc)throws NullPointerException{
+    private void confirmPosition(LLResult results, GoBildaPinpointDriver pinpoint,
+                                 CameraConstants cc)throws NullPointerException{
         //noinspection CaughtExceptionImmediatelyRethrown
         try {
             LLResultTypes.FiducialResult result = getBiggest(results);
@@ -68,7 +69,7 @@ public class PID_Systems {
             // get rid of - 20 after kick off
             // instead of having to write it the long way we can just make a variable to write
             // the short way, also improves computations time
-            int id = result.getFiducialId() - 20;
+            int id = result.getFiducialId();
 
             if (id >= 0 && id < cc.APRIL_TAG_POSITIONS.length) {
                 //declare and reset the real X and Y
@@ -82,7 +83,7 @@ public class PID_Systems {
 
                 //tan of something that is too close to 90 starts to make it head towards
                 //infinity, and  FAST
-                if ((Math.abs(tx) < (Math.PI / 3) && Math.abs(ty) < (Math.PI / 3)) && Math.abs(ty) > Math.toRadians(1) ) {
+                if((Math.abs(tx)<(Math.PI/3)&&Math.abs(ty)<(Math.PI/3))&&Math.abs(ty)>Math.toRadians(1)){
 
                     //Get the X and Y positions of each tag
                     double apriltagX = cc.APRIL_TAG_POSITIONS[id][0];
@@ -94,38 +95,29 @@ public class PID_Systems {
                     //how far left or right it is, negative is left and right is positive
                     double LRDifference = ZDifference * Math.tan(tx);
 
-                    //We want to do something a lil different depending on which way the tag is
-                    //facing
-                    switch ((int) cc.APRIL_TAG_POSITIONS[id][2]) {
-                        case (0):
-                            currentX = apriltagX - ZDifference;
-                            currentY = apriltagY - LRDifference;
-                            break;
-                        case (1):
-                            currentX = apriltagX + ZDifference;
-                            currentY = apriltagY + LRDifference;
-                            break;
-                        case (2):
-                            currentX = apriltagX + LRDifference;
-                            currentY = apriltagY - ZDifference;
-                            break;
-                        case (3):
-                            currentX = apriltagX - LRDifference;
-                            currentY = apriltagY + ZDifference;
-                            break;
-                        default:
-                            //if it's something that's not in the code then set the position
-                            // to what it already is
-                            currentX = pinpoint.getPosX(DistanceUnit.INCH) - cc.CAMERA_X_OFFSET;
-                            currentY = pinpoint.getPosY(DistanceUnit.INCH) - cc.CAMERA_Y_OFFSET;
-                            break;
+                    double apriltagAngle = AngleUnit.RADIANS.fromUnit((AngleUnit)cc.MEASUREMENTS.get(1),
+                            cc.APRIL_TAG_POSITIONS[id][2]);
+
+                    if(cc.APRIL_TAG_POSITIONS[id][2]<0) {
+                        currentX = apriltagX
+                                - ZDifference * Math.cos(apriltagAngle)
+                                + LRDifference * Math.sin(apriltagAngle);
+
+                        currentY = apriltagY
+                                - ZDifference * Math.sin(apriltagAngle)
+                                - LRDifference * Math.cos(apriltagAngle);
+                    }else{
+                        currentX=pinpoint.getPosX((DistanceUnit) cc.MEASUREMENTS.get(0));
+                        currentY=pinpoint.getPosY((DistanceUnit) cc.MEASUREMENTS.get(0));
                     }
+
                     //set the position to what the tag says we are, and the position to what
                     //it already is
-                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,
+                    pinpoint.setPosition(new Pose2D((DistanceUnit) cc.MEASUREMENTS.get(0),
                             (currentX + cc.CAMERA_X_OFFSET),
                             (currentY + cc.CAMERA_Y_OFFSET),
-                            AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
+                            (AngleUnit)cc.MEASUREMENTS.get(1),
+                            pinpoint.getHeading((AngleUnit)cc.MEASUREMENTS.get(1))));
 
                 }
             }
@@ -156,7 +148,7 @@ public class PID_Systems {
         motors.get(2).setPower(FR);
         motors.get(3).setPower(BR);
     }
-    public void driveTo(DistanceUnit sigma, GoBildaPinpointDriver pinpoint, Limelight3A limelight,
+    private void driveTo(DistanceUnit sigma, GoBildaPinpointDriver pinpoint, Limelight3A limelight,
                         List<DcMotor> motors, LinearOpMode ll, CameraConstants cc,
                         double x, double y){
 
@@ -192,9 +184,10 @@ public class PID_Systems {
         //PID LOOP HELL
         //run until either op mode turns off or until we're both moving less than .5 inches per second
         //and also .5 inches away from the position
-        while(ll.opModeIsActive()&&
-                ((Math.sqrt(Math.pow(pinpoint.getVelX(sigma),2)+Math.pow(pinpoint.getVelY(sigma),2))>.5)||
-                (Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2))>.5))){
+        while(ll.opModeIsActive()&&((Math.sqrt(Math.pow(pinpoint.getVelX(sigma), 2) +
+                Math.pow(pinpoint.getVelY(sigma), 2)) > 0.5) || (Math.sqrt(
+                        Math.pow(x - pinpoint.getPosX(sigma), 2) +
+                        Math.pow(y - pinpoint.getPosY(sigma), 2)) > 0.5))){
 
             //Confirming current position using limelight
             try {
@@ -219,7 +212,8 @@ public class PID_Systems {
 
             //we're using distance formula to find out the absolute value of how far away we are
             //from the target, or if you've taken algebra 2, we're finding the magnitude
-            double error = Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2));
+            double error = Math.sqrt(Math.pow(x - pinpoint.getPosX(sigma), 2) +
+                    Math.pow(y-pinpoint.getPosY(sigma), 2));
 
             //This part tells us how fast to go depending on how far away we CURRENTLY are
             //This is known as the present or proportional part of the pid or in other words
@@ -241,7 +235,8 @@ public class PID_Systems {
 
             //without the extra part the integral could not decrease, due to the fact that error
             //represents the magnitude of the error, meaning it's only the absolute value
-            integral+=(((x-pinpoint.getPosX(sigma))*directionX)+(directionY*(y-pinpoint.getPosY(sigma))))*dt;
+            integral += (((x - pinpoint.getPosX(sigma)) * directionX) + (directionY *
+                    (y - pinpoint.getPosY(sigma)))) * dt;
 
             //don't want to change the actual integral, bc that would mess up inner calculations
             // so we make a new variable and multiply that one by the KI also it represents the
@@ -262,7 +257,11 @@ public class PID_Systems {
                     "error: %.2f, dt in secs: %.4f", KP, KI,KD, error, dt);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f",proportional, readingIntegral, derivative, output );
-            ll.telemetry.addData("Position", new Pose2D(DistanceUnit.INCH,pinpoint.getPosX(DistanceUnit.INCH),pinpoint.getPosY(DistanceUnit.INCH),AngleUnit.DEGREES,0));
+            ll.telemetry.addData("Position", new Pose2D((DistanceUnit)cc.MEASUREMENTS.get(0),
+                    pinpoint.getPosX((DistanceUnit) cc.MEASUREMENTS.get(0)),
+                    pinpoint.getPosY((DistanceUnit) cc.MEASUREMENTS.get(0)),
+                    ((AngleUnit)cc.MEASUREMENTS.get(1)),
+                    pinpoint.getHeading((AngleUnit)cc.MEASUREMENTS.get(1))));
             ll.telemetry.update();
 
 
@@ -277,8 +276,8 @@ public class PID_Systems {
         //brake after we get to the x y positions
         setPowers(0,0,0,0,motors);
     }
-    public void turnTo(AngleUnit sigma, LinearOpMode ll,GoBildaPinpointDriver pinpoint,
-                       List<DcMotor> motors, double desiredHeading){
+    private void turnTo(AngleUnit sigma, LinearOpMode ll,GoBildaPinpointDriver pinpoint,
+                       List<DcMotor> motors, CameraConstants cc, double desiredHeading){
         //needs tuning
         //multiplier for each part of the PID
         final double KP = 0.2;
@@ -344,7 +343,11 @@ public class PID_Systems {
                     "%.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f",proportional, integral*KI, derivative, total);
-            ll.telemetry.addData("Position", new Pose2D(DistanceUnit.INCH,pinpoint.getPosX(DistanceUnit.INCH),pinpoint.getPosY(DistanceUnit.INCH),AngleUnit.DEGREES,0));
+            ll.telemetry.addData("Position", new Pose2D((DistanceUnit)cc.MEASUREMENTS.get(0),
+                    pinpoint.getPosX((DistanceUnit) cc.MEASUREMENTS.get(0)),
+                    pinpoint.getPosY((DistanceUnit)cc.MEASUREMENTS.get(0)),
+                    (AngleUnit)cc.MEASUREMENTS.get(1),
+                    pinpoint.getHeading((AngleUnit)cc.MEASUREMENTS.get(1))));
             ll.telemetry.update();
 
             //set the motors to either positive or negative motors
@@ -353,13 +356,35 @@ public class PID_Systems {
         //brake after we arrive at our destination
         setPowers(0,0,0,0,motors);
     }
-    public boolean lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint, List<DcMotor> motors, double initialHeading, double shimmy) {
+    public void goTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
+                     LinearOpMode ll, CameraConstants cc, DistanceUnit sigma, int id,
+                     double distance)throws NullPointerException{
+        double convertedDistance = ((DistanceUnit)cc.MEASUREMENTS.get(0)).fromUnit(sigma, distance);
+        double x = cc.APRIL_TAG_POSITIONS[id][0] - convertedDistance * Math.sin(
+                cc.APRIL_TAG_POSITIONS[id][2]);
+        double y = cc.APRIL_TAG_POSITIONS[id][1] - convertedDistance * Math.cos(
+                cc.APRIL_TAG_POSITIONS[id][2]);
+        headTo(pinpoint, limelight, motors, ll , cc, (DistanceUnit) cc.MEASUREMENTS.get(0),
+                (AngleUnit)cc.MEASUREMENTS.get(1), x, y, cc.APRIL_TAG_POSITIONS[id][2]);
+        lockIn((DistanceUnit)cc.MEASUREMENTS.get(0), ll, limelight, pinpoint, cc, motors, distance);
+
+
+    }
+    public void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
+                       LinearOpMode ll, CameraConstants cc, DistanceUnit sigmaDis, AngleUnit sigmaAng,
+                       double x, double y, double heading){
+        driveTo(sigmaDis, pinpoint, limelight , motors, ll, cc, x, y);
+        turnTo(sigmaAng, ll, pinpoint, motors, cc, heading);
+    }
+    public boolean lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint,
+                          List<DcMotor> motors, CameraConstants cc, double initialHeading, double shimmy) {
 
         //Make sure im not trying to shimmy too much or trying to move while I shouldn't be
         if(ll.opModeIsActive()&&Math.abs(shimmy)<50) {
 
             //if this isn't our first time looping then move a lil to the right or left
-            if(shimmy!=0)turnTo(AngleUnit.DEGREES,ll,pinpoint,motors, initialHeading + shimmy);
+            if(shimmy!=0)turnTo(AngleUnit.DEGREES,ll,pinpoint,motors, cc,
+                    initialHeading + shimmy);
 
             shimmy = (shimmy<0?5-shimmy:(shimmy>0?-shimmy:5));
 
@@ -374,26 +399,28 @@ public class PID_Systems {
                 LLResultTypes.FiducialResult result = getBiggest(results);
 
                 //if its valid head towards it
-                turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, pinpoint.getHeading(AngleUnit.DEGREES) - result.getTargetXDegrees());
+                turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, cc,
+                        pinpoint.getHeading(AngleUnit.DEGREES)
+                                - result.getTargetXDegrees());
                 return true;
             } catch (NullPointerException e) {
-
-
                 //recursive hehe
                 //but in serious, we're just gonna repeat the code but move a lil to the right or left
-                return lockOn(ll, limelight, pinpoint, motors, initialHeading,shimmy);
+                return lockOn(ll, limelight, pinpoint, motors, cc, initialHeading,shimmy);
 
             }
         }else if(ll.opModeIsActive()){
             //otherwise turn to where we were at the beginning
-            turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, initialHeading);
+            turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, cc, initialHeading);
             return false;
         }
         return false;
     }
-    public void lockIn(DistanceUnit sigma,LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint, CameraConstants cc,List<DcMotor> motors, double Distance){
+    public void lockIn(DistanceUnit sigma,LinearOpMode ll, Limelight3A limelight,
+                       GoBildaPinpointDriver pinpoint, CameraConstants cc,List<DcMotor> motors,
+                       double Distance){
         //make sure we're facing the right way
-        if(lockOn(ll,limelight,pinpoint,motors, pinpoint.getHeading(AngleUnit.DEGREES),0)) {
+        if(lockOn(ll,limelight,pinpoint,motors, cc, pinpoint.getHeading(AngleUnit.DEGREES),0)) {
 
             //declare it outside so we can increase the scope beyond the fore loop
             double ZDistance;
@@ -421,8 +448,10 @@ public class PID_Systems {
                 double difference = ZDistance - Distance;
 
                 //we have to get the coordinates -y,x because the whole graph is rotated 90 to the left
-                double x = pinpoint.getPosX(sigma) + (difference * Math.sin(pinpoint.getHeading(AngleUnit.RADIANS)));
-                double y = pinpoint.getPosY(sigma) + (difference * Math.cos(pinpoint.getHeading(AngleUnit.RADIANS)));
+                double x = pinpoint.getPosX(sigma) + (difference * Math.sin(
+                        pinpoint.getHeading(AngleUnit.RADIANS)));
+                double y = pinpoint.getPosY(sigma) + (difference * Math.cos(
+                        pinpoint.getHeading(AngleUnit.RADIANS)));
                 driveTo(sigma, pinpoint, limelight, motors, ll, cc, x, y);
                 }
             }

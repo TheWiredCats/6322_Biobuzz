@@ -69,23 +69,20 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         //run this code once
         if (opModeIsActive()){
             //drive to top left corner
-            pid.driveTo(DistanceUnit.INCH, pinpoint, limelight, motors, this, cc, 60, 60);
+            pid.headTo(pinpoint, limelight, motors, this, cc, DistanceUnit.INCH, AngleUnit.DEGREES, 60, 60, 0);
             sleep(1000);
 
             //drive to top right corner
-            pid.driveTo(DistanceUnit.INCH, pinpoint, limelight, motors, this, cc, 60, -60);
+            pid.headTo(pinpoint, limelight, motors, this, cc, DistanceUnit.INCH, AngleUnit.DEGREES, 60, -60, 0);
             sleep(1000);
 
             //drive to bottom right corner
-            pid.driveTo(DistanceUnit.INCH, pinpoint, limelight, motors, this, cc, -60, -60);
+            pid.headTo(pinpoint, limelight, motors, this, cc, DistanceUnit.INCH, AngleUnit.DEGREES, -60, -60, 0);
             sleep(1000);
 
-            //drive back to start
-            pid.driveTo(DistanceUnit.INCH, pinpoint, limelight, motors, this, cc, -60,60);
+            //drive back to start -45
+            pid.headTo(pinpoint, limelight, motors, this, cc, DistanceUnit.INCH, AngleUnit.DEGREES, -60, -60, -45);
             sleep(1000);
-
-            //turn to the right
-            pid.turnTo(AngleUnit.DEGREES,this, pinpoint,motors,-45);
 
             //look for an April tag and lock move until ur exactly 3ft away from it
             pid.lockIn(DistanceUnit.INCH,this, limelight, pinpoint,new CameraConstants(),motors,36);
