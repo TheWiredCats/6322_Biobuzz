@@ -17,35 +17,52 @@ import java.util.List;
 
 public class PID_Systems {
     //2 or more uses of the same code just make a damn function for it
-    private LLResultTypes.FiducialResult getBiggest(@NotNull LLResult results){
+    public LLResultTypes.FiducialResult getBiggest(@NotNull LLResult results)throws NullPointerException{
+        if(!results.isValid())throw new NullPointerException();
+
         //make a new fiducial result that has nothing in it
         LLResultTypes.FiducialResult result = null;
 
-        //run through all of the april tags and checks for which one is the bigger
-        //cuz that means it the closest to the robot and least likley to have errors
+        //run through all the April tags and checks for which one is the bigger
+        //cuz that means it the closest to the robot and least likely to have errors
         for(LLResultTypes.FiducialResult fr:results.getFiducialResults()){
+
+            //makes result equal to this new result if the new result is greater than the old
+            //result, or if there is no old result
             if(result==null||result.getTargetArea()<fr.getTargetArea())result = fr;
+
         }
+        //return the result
         return result;
     }
-    private double wrapAngle(AngleUnit sigma, double currentAngel){
+    private double wrapAngle(AngleUnit sigma, double currentAngle){
+        //declaring variables
         double adjustedAngle;
         double fixedAdjustedAngle;
+        //not have to type it over and over again
         double pi2=2*Math.PI;
+
+        //checks if the angle is in degrees or in radians
         if(sigma==AngleUnit.DEGREES) {
-            adjustedAngle = currentAngel + 179;
+
+            //we add right now to subtract by 179 later
+            adjustedAngle = currentAngle + 179;
+            //makes it between 0 and 360
             fixedAdjustedAngle = ((adjustedAngle % 360) + 360) % 360;
+            //subtract the 179 to make our bounds now [-179, 180]
             return fixedAdjustedAngle - 179;
         }else{
-            adjustedAngle= currentAngel+Math.toRadians(179);
-            fixedAdjustedAngle = ((adjustedAngle%pi2)+pi2)%pi2;
+
+            //Does the exact same thing as the top one just in radians instead of degrees
+
+            adjustedAngle = currentAngle + Math.toRadians(179);
+            fixedAdjustedAngle = ((adjustedAngle % pi2) + pi2) % pi2;
             return  fixedAdjustedAngle-Math.toRadians(179);
         }
     }
-    private void confirmPosition(LLResult results, GoBildaPinpointDriver pinpoint, CameraConstants cc){
-        //only run the rest of the code if we can actually see a tag
-        if (results.isValid()) {
-
+    private void confirmPosition(LLResult results, GoBildaPinpointDriver pinpoint, CameraConstants cc)throws NullPointerException{
+        //noinspection CaughtExceptionImmediatelyRethrown
+        try {
             LLResultTypes.FiducialResult result = getBiggest(results);
 
             // get rid of - 20 after kick off
@@ -112,6 +129,8 @@ public class PID_Systems {
 
                 }
             }
+        }catch (NullPointerException e) {
+            throw e;
         }
     }
     private void setPowers(double FL, double BL, double FR, double BR,List<DcMotor> motors){
@@ -147,7 +166,7 @@ public class PID_Systems {
         //multiplier for each part of the PID
         final double KP = 0.25275;
         final double KD = 0.155;
-        final double KI = -0.75;
+        final double KI = -0.075;
 
         //dt is a tiny amount of times, it's a mystery tool that will help us later.
         //(cool calculus kids know what's up)
@@ -160,8 +179,8 @@ public class PID_Systems {
         double proportional;
 
         //dt measuring stuff
-        double currentTime;
-        double previousTime=System.currentTimeMillis();
+        long currentTime;
+        long previousTime=System.nanoTime();
 
         //This tells us the angel we want to travel in
         double startingHeading = Math.atan2(-(y-pinpoint.getPosY(sigma)),(x-pinpoint.getPosX(sigma)));
@@ -171,14 +190,16 @@ public class PID_Systems {
         double directionY = Math.cos(startingHeading);
 
         //PID LOOP HELL
-        //run until either opmode turns off or until we're both moving less than .5 inches per second
+        //run until either op mode turns off or until we're both moving less than .5 inches per second
         //and also .5 inches away from the position
         while(ll.opModeIsActive()&&
                 ((Math.sqrt(Math.pow(pinpoint.getVelX(sigma),2)+Math.pow(pinpoint.getVelY(sigma),2))>.5)||
                 (Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+Math.pow(y-pinpoint.getPosY(sigma),2))>.5))){
 
             //Confirming current position using limelight
-            confirmPosition(limelight.getLatestResult(), pinpoint, cc);
+            try {
+                confirmPosition(limelight.getLatestResult(), pinpoint, cc);
+            }catch(NullPointerException ignored){}
 
             //the last pinpoint data before we update to the newest
             double previousError = Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+
@@ -188,8 +209,8 @@ public class PID_Systems {
             //update pinpoint for some fresh data
             pinpoint.update();
 
-            //For PID, we need magnitude and Direction, the heading im gonna use for direction,
-            //and for magnitude im just gonna use distance formula
+            //For PID, we need magnitude and Direction, the heading I'm gonna use for direction,
+            //and for magnitude I'm just gonna use distance formula
 
             //The angel of where I am compared to where I want to be going
             double desiredHeading=Math.atan2((y-pinpoint.getPosY(sigma)),-(x-pinpoint.getPosX(sigma)));
@@ -208,11 +229,11 @@ public class PID_Systems {
             //dt is the length of the loop
 
             //current time represents the current time
-            currentTime=System.currentTimeMillis();
+            currentTime=System.nanoTime();
 
             //we subtract current time by the last time we ran this and then divide by 1000
             //so we could get dt in seconds rather than in milliseconds
-            dt=Math.max((currentTime-previousTime)/1000.0, 0.001);
+            dt=Math.max((currentTime-previousTime)/10000000.0, 0.000001);
 
             //change previous time to the old current time so that when it loops previousTime
             //now represents the previous currentTime
@@ -267,8 +288,8 @@ public class PID_Systems {
         //dt is the time between loops, it's gonna be a very small amount of time
         double dt;
         //set previous time to rn as a default value
-        double previousTime=System.currentTimeMillis();
-        double currentTime;
+        long previousTime=System.nanoTime();
+        long currentTime;
 
         //each part of the PID
         double proportional;
@@ -278,11 +299,11 @@ public class PID_Systems {
         //update pinpoint before we start loop for fresh data
         pinpoint.update();
         while(ll.opModeIsActive()&&
-                (Math.abs((pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES)))>0.5)||
+                ((Math.abs((pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES)))>0.5)||
                         (Math.abs(
                                 wrapAngle(sigma, pinpoint.getHeading(sigma)-desiredHeading))>
                                 (sigma==AngleUnit.DEGREES?5
-                                        :Math.toRadians(5)))){
+                                        :Math.toRadians(5))))){
 
             //grab the previous error to use for D
             double previousError = wrapAngle(sigma, desiredHeading-pinpoint.getHeading(sigma));
@@ -299,10 +320,10 @@ public class PID_Systems {
             proportional=error*KP;
 
             //obvious name is obvious
-            currentTime=System.currentTimeMillis();
+            currentTime=System.nanoTime();
             //for all but the first loop this measure almost the time it takes to do the entire loop
             //we divide by 1000 so it gives the data to us in seconds
-            dt=Math.max((currentTime-previousTime),1)/1000.0;
+            dt=Math.max((currentTime-previousTime),1)/1000000.0;
             //set the last current time to previous time to be used in the next loop
             previousTime=currentTime;
 
@@ -348,14 +369,15 @@ public class PID_Systems {
             //get latest results from the ll
             LLResult results = limelight.getLatestResult();
 
-            if (results.isValid()) {
+            try{
 
                 LLResultTypes.FiducialResult result = getBiggest(results);
 
                 //if its valid head towards it
                 turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, pinpoint.getHeading(AngleUnit.DEGREES) - result.getTargetXDegrees());
                 return true;
-            } else {
+            } catch (NullPointerException e) {
+
 
                 //recursive hehe
                 //but in serious, we're just gonna repeat the code but move a lil to the right or left

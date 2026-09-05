@@ -87,13 +87,8 @@ public class OffSeasonPrototype1I extends OpMode {
     double ZDifference;
     double LRDifference;
     CameraConstants cc = new CameraConstants();
-    //get freshies to fill with position and direction of apriltags on field after kickoff
-    //Should be in the format {x cord, y cord, facing direction} (0 for +x,1 for -x,2 for +y, 3 for-y)
-    // the cords should also be in inches
-    //first array should be empty so u could use fiducial id directly
-
     double lastHeading;
-
+    private PID_Systems pid = new PID_Systems();
     private void addPinpointTelemetry(){
         lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
         pinpoint.update();
@@ -102,7 +97,7 @@ public class OffSeasonPrototype1I extends OpMode {
         double yVel=pinpoint.getVelY(DistanceUnit.INCH);
         telemetry.addData("Direction",
                 ((Math.abs(xVel)<2)?(Math.abs(yVel)<2?"Not moving":""):xVel>0?"Forward":"Backwards")
-                        +((xVel==0&&yVel==0)?"":" and ")
+                        +((xVel==0||yVel==0)?"":" and ")
                         +(Math.abs(yVel)<2?"":yVel<0?"Right":"Left"));
         telemetry.addData("Heading", pinpoint.getHeading(AngleUnit.DEGREES));
         telemetry.addData("X position", pinpoint.getPosX(DistanceUnit.INCH));
@@ -119,7 +114,6 @@ public class OffSeasonPrototype1I extends OpMode {
 //        imu = hardwareMap.get(IMU.class, "imu");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
-        //swapped reversed and forward directions -Noah Randall 8/24 2:15pm
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -218,16 +212,16 @@ public class OffSeasonPrototype1I extends OpMode {
         double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
 
-        LLResult result = limelight.getLatestResult(); //april tag code
-        if (result.isValid()) {
-            double captureLatency = result.getCaptureLatency();
-            double targetingLatency = result.getTargetingLatency();
+        LLResult results = limelight.getLatestResult(); //april tag code
+        if (results.isValid()) {
+            double captureLatency = results.getCaptureLatency();
+            double targetingLatency = results.getTargetingLatency();
             //double parseLatency = result.getParseLatency();
             telemetry.addData("LL Latency", captureLatency + targetingLatency);
 
-            List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
-            for (LLResultTypes.FiducialResult fr : fiducialResults) {
-                telemetry.addData("LL: April tag", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());
+            try{
+                LLResultTypes.FiducialResult result = pid.getBiggest(results);
+                telemetry.addData("LL: April tag", "ID: %d, Family: %s, X: %.2f, Y: %.2f", result.getFiducialId(), result.getFamily(), result.getTargetXDegrees(), result.getTargetYDegrees());
                 /*
                 // rx = fr.getTargetPoseRobotSpace().getOrientation().getYaw() / 35; it wasn't one line of code
 
@@ -254,10 +248,10 @@ public class OffSeasonPrototype1I extends OpMode {
                 */
 
                 // get rid of -20 after kickoff
-                id = fr.getFiducialId() - 20;
+                id = result.getFiducialId() - 20;
                 if (id>=0&&id<cc.APRIL_TAG_POSITIONS.length) {
-                    double tx = -fr.getTargetXDegrees();
-                    double ty = -fr.getTargetYDegrees();
+                    double tx = -result.getTargetXDegrees();
+                    double ty = -result.getTargetYDegrees();
                     if (cc.APRIL_TAG_POSITIONS[id][2] >= 0 && cc.APRIL_TAG_POSITIONS[id][2] <= 3) {
                         lastConfirmation = (int) (System.currentTimeMillis() / 1000);
                     }
@@ -287,7 +281,7 @@ public class OffSeasonPrototype1I extends OpMode {
                                 break;
                             default:
                                 codeMissing = true;
-                                brokenId = id;
+                                brokenId = id+20;
                                 currentX = pinpoint.getPosX(DistanceUnit.INCH) - cc.CAMERA_X_OFFSET;
                                 currentY = pinpoint.getPosY(DistanceUnit.INCH) - cc.CAMERA_Y_OFFSET;
                                 break;
@@ -297,7 +291,7 @@ public class OffSeasonPrototype1I extends OpMode {
                     }
 
                 }
-            }
+            }catch (NullPointerException ignored){}
         }
 
         HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
@@ -357,7 +351,7 @@ public class OffSeasonPrototype1I extends OpMode {
         int secs=((int)(System.currentTimeMillis()/1000))-lastConfirmation;
         int mins=secs/60;
         if(codeMissing)telemetry.addLine("CODE MISSING for "+ brokenId + "!!!!!!!");
-        if(result.isValid()){
+        if(results.isValid()){
             double Facing = cc.APRIL_TAG_POSITIONS[id][2];
             telemetry.addLine("Conforming Odometry :D");
             telemetry.addData("Tag Data","Looking at Tag: %d, X Position: %.2f, Y Position: %.2f, Facing: %s",id,cc.APRIL_TAG_POSITIONS[id][0],cc.APRIL_TAG_POSITIONS[id][1],
