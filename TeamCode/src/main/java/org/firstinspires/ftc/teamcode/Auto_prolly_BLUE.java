@@ -16,8 +16,6 @@ import java.util.List;
 
 @Autonomous
 public class Auto_prolly_BLUE extends LinearOpMode {
-    PID_Systems pid = new PID_Systems();
-    CameraConstants cc = new CameraConstants();
     @Override
     public void runOpMode(){
         //Start by initializing all the cameras, motors, and also the pinpoint
@@ -69,23 +67,23 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         //run this code once
         if (opModeIsActive()){
             //drive to top left corner
-            pid.headTo(pinpoint, limelight, motors, this, cc, DistanceUnit.INCH, AngleUnit.DEGREES, 60, 60, 0);
+            PID_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 60, 60, 0);
             sleep(1000);
 
             //drive to top right corner
-            pid.headTo(pinpoint, limelight, motors, this, cc, DistanceUnit.INCH, AngleUnit.DEGREES, 60, -60, 0);
+            PID_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 60, -60, 0);
             sleep(1000);
 
             //drive to bottom right corner
-            pid.headTo(pinpoint, limelight, motors, this, cc, DistanceUnit.INCH, AngleUnit.DEGREES, -60, -60, 0);
+            PID_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0, -45);
             sleep(1000);
 
             //drive back to start -45
-            pid.headTo(pinpoint, limelight, motors, this, cc, DistanceUnit.INCH, AngleUnit.DEGREES, -60, -60, -45);
+            PID_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, -60, -60, -45);
             sleep(1000);
 
             //look for an April tag and lock move until ur exactly 3ft away from it
-            pid.lockIn(DistanceUnit.INCH,this, limelight, pinpoint,new CameraConstants(),motors,36);
+            PID_Systems.lockIn(DistanceUnit.INCH,this, limelight, pinpoint, motors,36);
         }
 
     }

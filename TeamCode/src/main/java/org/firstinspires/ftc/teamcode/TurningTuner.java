@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import static java.util.List.of;
 
-import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -19,8 +18,6 @@ import java.util.List;
 @Autonomous
 public class TurningTuner extends LinearOpMode {
     GoBildaPinpointDriver pinpoint;
-    PID_Systems pid = new PID_Systems();
-    CameraConstants cc = new CameraConstants();
     DcMotor FLMotor;
     DcMotor BLMotor;
     DcMotor FRMotor;
@@ -63,6 +60,6 @@ public class TurningTuner extends LinearOpMode {
         List<DcMotor> motors = List.of(FLMotor, BLMotor, FRMotor, BRMotor);
         waitForStart();
 
-        if (opModeIsActive())pid.headTo(pinpoint, limelight, motors, this, cc, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0 , 180);
+        if (opModeIsActive())PID_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0 , 180);
     }
 }

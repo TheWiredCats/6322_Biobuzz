@@ -192,11 +192,9 @@ public class Auto_prolly_RED extends LinearOpMode {
     private HuskyLens huskyLens = null;
     private Limelight3A limelight = null;
     private GoBildaPinpointDriver pinpoint;
-    PID_Systems pid = new PID_Systems();
-    CameraConstants cc = new CameraConstants();
     @Override
     public void runOpMode() throws InterruptedException {
-        //Start by initallizing all the cameras, motors, and also the pinpoint
+        //Start by initializing all the cameras, motors, and also the pinpoint
 
         //intake and transfer motor
         Intake = hardwareMap.dcMotor.get("intake");
@@ -243,7 +241,7 @@ public class Auto_prolly_RED extends LinearOpMode {
 
         //run this code once
         if (opModeIsActive()){
-            pid.headTo(pinpoint, limelight, motors, this, cc, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0, -180);
+            PID_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0, -180);
 
         }
 

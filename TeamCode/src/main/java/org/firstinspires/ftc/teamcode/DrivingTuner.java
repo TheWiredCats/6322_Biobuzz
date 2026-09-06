@@ -17,8 +17,6 @@ import java.util.List;
 public class DrivingTuner extends LinearOpMode {
     GoBildaPinpointDriver pinpoint;
     Limelight3A limelight;
-    CameraConstants cc = new CameraConstants();
-    PID_Systems pid = new PID_Systems();
     DcMotor FLMotor;
     DcMotor BLMotor;
     DcMotor FRMotor;
@@ -53,16 +51,16 @@ public class DrivingTuner extends LinearOpMode {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setPosition(new Pose2D((DistanceUnit)cc.MEASUREMENTS.get(0), -63, 63, (AngleUnit)cc.MEASUREMENTS.get(1), 0));
+        pinpoint.setPosition(new Pose2D(CONSTANTS.DISTANCE, -63, 63, CONSTANTS.ANGLE, 0));
 
         pinpoint.update();
 
-        telemetry.addData("X", pinpoint.getPosX((DistanceUnit)cc.MEASUREMENTS.get(0)));
-        telemetry.addData("Y", pinpoint.getPosY((DistanceUnit)cc.MEASUREMENTS.get(0)));
-        telemetry.addData("Heading", pinpoint.getHeading((AngleUnit)cc.MEASUREMENTS.get(1)));
+        telemetry.addData("X", pinpoint.getPosX(CONSTANTS.DISTANCE));
+        telemetry.addData("Y", pinpoint.getPosY(CONSTANTS.DISTANCE));
+        telemetry.addData("Heading", pinpoint.getHeading(CONSTANTS.ANGLE));
         telemetry.update();
         waitForStart();
 
-        if(opModeIsActive()) pid.headTo(pinpoint, limelight, List.of(FLMotor, BLMotor, FRMotor, BRMotor), this, new CameraConstants(), DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0, 180);
+        if(opModeIsActive()) PID_Systems.headTo(pinpoint, limelight, List.of(FLMotor, BLMotor, FRMotor, BRMotor), this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0, 180);
     }
 }

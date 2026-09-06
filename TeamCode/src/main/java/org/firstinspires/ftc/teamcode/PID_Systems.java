@@ -16,148 +16,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class PID_Systems {
+    private PID_Systems(){
+        //so u don't accidentally make an instance of it and only call it as needed
+    }
     //2 or more uses of the same code just make a damn function for it
-    public LLResultTypes.FiducialResult getBiggest(@NotNull LLResult results)throws NullPointerException{
-        if(!results.isValid())throw new NullPointerException();
-
-        //make a new fiducial result that has nothing in it
-        LLResultTypes.FiducialResult result = null;
-
-        //run through all the April tags and checks for which one is the bigger
-        //cuz that means it the closest to the robot and least likely to have errors
-        for(LLResultTypes.FiducialResult fr:results.getFiducialResults()){
-
-            //makes result equal to this new result if the new result is greater than the old
-            //result, or if there is no old result
-            if(result==null||result.getTargetArea()<fr.getTargetArea())result = fr;
-
-        }
-        //return the result
-        return result;
-    }
-    private double wrapAngle(AngleUnit sigma, double currentAngle){
-        //declaring variables
-        double adjustedAngle;
-        double fixedAdjustedAngle;
-        //not have to type it over and over again
-        double pi2=2*Math.PI;
-
-        //checks if the angle is in degrees or in radians
-        if(sigma==AngleUnit.DEGREES) {
-
-            //we add right now to subtract by 179 later
-            adjustedAngle = currentAngle + 179;
-            //makes it between 0 and 360
-            fixedAdjustedAngle = ((adjustedAngle % 360) + 360) % 360;
-            //subtract the 179 to make our bounds now [-179, 180]
-            return fixedAdjustedAngle - 179;
-        }else{
-
-            //Does the exact same thing as the top one just in radians instead of degrees
-
-            adjustedAngle = currentAngle + Math.toRadians(179);
-            fixedAdjustedAngle = ((adjustedAngle % pi2) + pi2) % pi2;
-            return  fixedAdjustedAngle-Math.toRadians(179);
-        }
-    }
-    private void confirmPosition(LLResult results, GoBildaPinpointDriver pinpoint,
-                                 CameraConstants cc)throws NullPointerException{
-        //noinspection CaughtExceptionImmediatelyRethrown
-        try {
-            LLResultTypes.FiducialResult result = getBiggest(results);
-
-            // get rid of - 20 after kick off
-            // instead of having to write it the long way we can just make a variable to write
-            // the short way, also improves computations time
-            int id = result.getFiducialId();
-
-            if (id >= 0 && id < cc.APRIL_TAG_POSITIONS.length) {
-                //declare and reset the real X and Y
-                double currentX;
-                double currentY;
-
-                //Tx and Ty from the limelight are graphed in degrees and are also reversed so
-                //we have to make them negative and turn them into radians before we can use them
-                double tx = Math.toRadians(-result.getTargetXDegrees());
-                double ty = Math.toRadians(-result.getTargetYDegrees());
-
-                //tan of something that is too close to 90 starts to make it head towards
-                //infinity, and  FAST
-                if((Math.abs(tx)<(Math.PI/3)&&Math.abs(ty)<(Math.PI/3))&&Math.abs(ty)>Math.toRadians(1)){
-
-                    //Get the X and Y positions of each tag
-                    double apriltagX = cc.APRIL_TAG_POSITIONS[id][0];
-                    double apriltagY = cc.APRIL_TAG_POSITIONS[id][1];
-
-                    //how far away the april tag is
-                    double ZDifference = cc.APRIL_TAG_HEIGHT / Math.tan(ty);
-
-                    //how far left or right it is, negative is left and right is positive
-                    double LRDifference = ZDifference * Math.tan(tx);
-
-                    double apriltagAngle = AngleUnit.RADIANS.fromUnit((AngleUnit)cc.MEASUREMENTS.get(1),
-                            cc.APRIL_TAG_POSITIONS[id][2]);
-
-                    if(cc.APRIL_TAG_POSITIONS[id][2]<0) {
-                        currentX = apriltagX
-                                - ZDifference * Math.cos(apriltagAngle)
-                                + LRDifference * Math.sin(apriltagAngle);
-
-                        currentY = apriltagY
-                                - ZDifference * Math.sin(apriltagAngle)
-                                - LRDifference * Math.cos(apriltagAngle);
-                    }else {
-                        currentX = pinpoint.getPosX((DistanceUnit) cc.MEASUREMENTS.get(0));
-                        currentY = pinpoint.getPosY((DistanceUnit) cc.MEASUREMENTS.get(0));
-                    }
-                    //how far away we are from what it says we are
-                    double distanceDifference = Math.sqrt(
-                            Math.pow((currentX - pinpoint.getPosX((DistanceUnit) cc.MEASUREMENTS.get(0))), 2)
-                            + Math.pow(currentY - pinpoint.getPosY((DistanceUnit) cc.MEASUREMENTS.get(0)), 2));
-
-                    //only runs if our "actual" distance is somewhat close to what we think we are
-                    //to prevent glitches messing with our odometry
-                    if(distanceDifference < 20){
-                        //set the position to what the tag says we are, and the position to what
-                        //it already is
-                        pinpoint.setPosition(new Pose2D((DistanceUnit) cc.MEASUREMENTS.get(0),
-                                (currentX + cc.CAMERA_X_OFFSET),
-                                (currentY + cc.CAMERA_Y_OFFSET),
-                                (AngleUnit) cc.MEASUREMENTS.get(1),
-                                pinpoint.getHeading((AngleUnit) cc.MEASUREMENTS.get(1))));
-                    }
-
-                }
-            }
-        }catch (NullPointerException e) {
-            throw e;
-        }
-    }
-    private void setPowers(double FL, double BL, double FR, double BR,List<DcMotor> motors){
-        //clipping extra could cause some problems and going in a circle
-        //so we have to divide 1 by the greatest so we can multiply the rest by that
-        //we can only do that if the greatest is over 1 tho
-
-        //check all the powers and divide everything by the greatest one if its over one
-        double greatest = Math.max(Math.max(Math.abs(FL),Math.abs(BL)), Math.max(Math.abs(FR),Math.abs(BR)));
-        if(greatest>1){
-            //if the greatest is over 1 divide everything by the greatest to ensure the max is one
-            FL/=greatest;
-            BL/=greatest;
-            FR/=greatest;
-            BR/=greatest;
-        }
-
-        //The motors in the list should always be placed in order
-        //FLMotor, BLMotor, FRMotor, BRMotor
-        //So we can set their power directly
-        motors.get(0).setPower(FL);
-        motors.get(1).setPower(BL);
-        motors.get(2).setPower(FR);
-        motors.get(3).setPower(BR);
-    }
-    private void driveTo(DistanceUnit sigma, GoBildaPinpointDriver pinpoint, Limelight3A limelight,
-                        List<DcMotor> motors, LinearOpMode ll, CameraConstants cc,
+    private static void driveTo(DistanceUnit sigma, GoBildaPinpointDriver pinpoint, Limelight3A limelight,
+                        List<DcMotor> motors, LinearOpMode ll,
                         double x, double y){
 
         //PID BS
@@ -199,7 +63,7 @@ public class PID_Systems {
 
             //Confirming current position using limelight
             try {
-                confirmPosition(limelight.getLatestResult(), pinpoint, cc);
+                LimelightCalculator.confirmPosition(limelight.getLatestResult(), pinpoint);
             }catch(NullPointerException ignored){}
 
             //the last pinpoint data before we update to the newest
@@ -264,12 +128,12 @@ public class PID_Systems {
             ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, " +
                     "error: %.2f, dt in secs: %.4f", KP, KI,KD, error, dt);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
-                    "Total: %.2f",proportional, readingIntegral, derivative, output );
-            ll.telemetry.addData("Position", new Pose2D((DistanceUnit)cc.MEASUREMENTS.get(0),
-                    pinpoint.getPosX((DistanceUnit) cc.MEASUREMENTS.get(0)),
-                    pinpoint.getPosY((DistanceUnit) cc.MEASUREMENTS.get(0)),
-                    ((AngleUnit)cc.MEASUREMENTS.get(1)),
-                    pinpoint.getHeading((AngleUnit)cc.MEASUREMENTS.get(1))));
+                    "Total: %.2f",proportional, readingIntegral, derivative, output);
+            ll.telemetry.addData("Position", new Pose2D(CONSTANTS.DISTANCE,
+                    pinpoint.getPosX(CONSTANTS.DISTANCE),
+                    pinpoint.getPosY(CONSTANTS.DISTANCE),
+                    CONSTANTS.ANGLE,
+                    pinpoint.getHeading(CONSTANTS.ANGLE)));
             ll.telemetry.update();
 
 
@@ -279,13 +143,13 @@ public class PID_Systems {
             double yPower = -output * Math.cos(roboYaw);// - OutputX * Math.sin(roboYaw);
 
             //We set the power to each motor using this math, and the motors list
-            setPowers((yPower+xPower),(yPower-xPower),(yPower-xPower),(yPower+xPower),motors);
+            Motors.setPowers((yPower+xPower),(yPower-xPower),(yPower-xPower),(yPower+xPower),motors);
         }
         //brake after we get to the x y positions
-        setPowers(0,0,0,0,motors);
+        Motors.setPowers(0,0,0,0,motors);
     }
-    private void turnTo(AngleUnit sigma, LinearOpMode ll,GoBildaPinpointDriver pinpoint,
-                       List<DcMotor> motors, CameraConstants cc, double desiredHeading){
+    private static void turnTo(AngleUnit sigma, LinearOpMode ll, GoBildaPinpointDriver pinpoint,
+                        List<DcMotor> motors, double desiredHeading){
         //needs tuning
         //multiplier for each part of the PID
         final double KP = 0.2;
@@ -308,18 +172,18 @@ public class PID_Systems {
         while(ll.opModeIsActive()&&
                 ((Math.abs((pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES)))>0.5)||
                         (Math.abs(
-                                wrapAngle(sigma, pinpoint.getHeading(sigma)-desiredHeading))>
+                                LimelightCalculator.wrapAngle(sigma, pinpoint.getHeading(sigma)-desiredHeading))>
                                 (sigma==AngleUnit.DEGREES?5
                                         :Math.toRadians(5))))){
 
             //grab the previous error to use for D
-            double previousError = wrapAngle(sigma, desiredHeading-pinpoint.getHeading(sigma));
+            double previousError = LimelightCalculator.wrapAngle(sigma, desiredHeading-pinpoint.getHeading(sigma));
 
             //update the pinpoint for fresh data
             pinpoint.update();
 
             //error is the current difference between the 2 angels
-            double error = wrapAngle(sigma, desiredHeading-pinpoint.getHeading(sigma));
+            double error = LimelightCalculator.wrapAngle(sigma, desiredHeading-pinpoint.getHeading(sigma));
 
 
             //P part of PID represents how much change we still need to do
@@ -336,7 +200,7 @@ public class PID_Systems {
 
             //D part of the PID represents how much error is changing, we're taking the derivative
             //of the different positions by simply using the limit definition
-            derivative=KD*(wrapAngle(sigma,error-previousError)/dt);
+            derivative=KD * (LimelightCalculator.wrapAngle(sigma,error-previousError)/dt);
 
             //I part of the PID represents how much the error has changed, we take the integral
             //by simply multiplying by dt and adding over every loop
@@ -351,47 +215,47 @@ public class PID_Systems {
                     "%.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f",proportional, integral*KI, derivative, total);
-            ll.telemetry.addData("Position", new Pose2D((DistanceUnit)cc.MEASUREMENTS.get(0),
-                    pinpoint.getPosX((DistanceUnit) cc.MEASUREMENTS.get(0)),
-                    pinpoint.getPosY((DistanceUnit)cc.MEASUREMENTS.get(0)),
-                    (AngleUnit)cc.MEASUREMENTS.get(1),
-                    pinpoint.getHeading((AngleUnit)cc.MEASUREMENTS.get(1))));
+            ll.telemetry.addData("Position", new Pose2D(CONSTANTS.DISTANCE,
+                    pinpoint.getPosX(CONSTANTS.DISTANCE),
+                    pinpoint.getPosY(CONSTANTS.DISTANCE),
+                    CONSTANTS.ANGLE,
+                    pinpoint.getHeading(CONSTANTS.ANGLE)));
             ll.telemetry.update();
 
             //set the motors to either positive or negative motors
-            setPowers(-total,-total,total,total,motors);
+            Motors.setPowers(-total,-total,total,total,motors);
         }
         //brake after we arrive at our destination
-        setPowers(0,0,0,0,motors);
+        Motors.setPowers(0,0,0,0,motors);
     }
-    public void goTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
-                     LinearOpMode ll, CameraConstants cc, DistanceUnit sigma, int id,
+    public static void goTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
+                     LinearOpMode ll, DistanceUnit sigma, int id,
                      double distance)throws NullPointerException{
-        double convertedDistance = ((DistanceUnit)cc.MEASUREMENTS.get(0)).fromUnit(sigma, distance);
-        double x = cc.APRIL_TAG_POSITIONS[id][0] - convertedDistance * Math.sin(
-                cc.APRIL_TAG_POSITIONS[id][2]);
-        double y = cc.APRIL_TAG_POSITIONS[id][1] - convertedDistance * Math.cos(
-                cc.APRIL_TAG_POSITIONS[id][2]);
-        headTo(pinpoint, limelight, motors, ll , cc, (DistanceUnit) cc.MEASUREMENTS.get(0),
-                (AngleUnit)cc.MEASUREMENTS.get(1), x, y, cc.APRIL_TAG_POSITIONS[id][2]);
-        lockIn((DistanceUnit)cc.MEASUREMENTS.get(0), ll, limelight, pinpoint, cc, motors, distance);
+        double convertedDistance = (CONSTANTS.DISTANCE).fromUnit(sigma, distance);
+        double x = CONSTANTS.APRIL_TAG_POSITIONS[id][0] - convertedDistance * Math.sin(
+                CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
+        double y = CONSTANTS.APRIL_TAG_POSITIONS[id][1] - convertedDistance * Math.cos(
+                CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
+        headTo(pinpoint, limelight, motors, ll , CONSTANTS.DISTANCE,
+                CONSTANTS.ANGLE, x, y, CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
+        lockIn(CONSTANTS.DISTANCE, ll, limelight, pinpoint, motors, convertedDistance);
 
 
     }
-    public void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
-                       LinearOpMode ll, CameraConstants cc, DistanceUnit sigmaDis, AngleUnit sigmaAng,
+    public static void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
+                       LinearOpMode ll, DistanceUnit sigmaDis, AngleUnit sigmaAng,
                        double x, double y, double heading){
-        driveTo(sigmaDis, pinpoint, limelight , motors, ll, cc, x, y);
-        turnTo(sigmaAng, ll, pinpoint, motors, cc, heading);
+        driveTo(sigmaDis, pinpoint, limelight , motors, ll, x, y);
+        turnTo(sigmaAng, ll, pinpoint, motors, heading);
     }
-    public boolean lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint,
-                          List<DcMotor> motors, CameraConstants cc, double initialHeading, double shimmy) {
+    public static boolean lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint,
+                          List<DcMotor> motors, double initialHeading, double shimmy) {
 
         //Make sure im not trying to shimmy too much or trying to move while I shouldn't be
         if(ll.opModeIsActive()&&Math.abs(shimmy)<50) {
 
             //if this isn't our first time looping then move a lil to the right or left
-            if(shimmy!=0)turnTo(AngleUnit.DEGREES,ll,pinpoint,motors, cc,
+            if(shimmy!=0)turnTo(AngleUnit.DEGREES,ll,pinpoint,motors,
                     initialHeading + shimmy);
 
             shimmy = (shimmy<0?5-shimmy:(shimmy>0?-shimmy:5));
@@ -404,31 +268,30 @@ public class PID_Systems {
 
             try{
 
-                LLResultTypes.FiducialResult result = getBiggest(results);
+                LLResultTypes.FiducialResult result = LimelightCalculator.getBiggest(results);
 
                 //if its valid head towards it
-                turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, cc,
-                        pinpoint.getHeading(AngleUnit.DEGREES)
-                                - result.getTargetXDegrees());
+                turnTo(AngleUnit.DEGREES, ll, pinpoint, motors,
+                pinpoint.getHeading(AngleUnit.DEGREES) - result.getTargetXDegrees());
                 return true;
             } catch (NullPointerException e) {
                 //recursive hehe
                 //but in serious, we're just gonna repeat the code but move a lil to the right or left
-                return lockOn(ll, limelight, pinpoint, motors, cc, initialHeading,shimmy);
+                return lockOn(ll, limelight, pinpoint, motors, initialHeading,shimmy);
 
             }
         }else if(ll.opModeIsActive()){
             //otherwise turn to where we were at the beginning
-            turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, cc, initialHeading);
+            turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, initialHeading);
             return false;
         }
         return false;
     }
-    public void lockIn(DistanceUnit sigma,LinearOpMode ll, Limelight3A limelight,
-                       GoBildaPinpointDriver pinpoint, CameraConstants cc,List<DcMotor> motors,
+    public static void lockIn(DistanceUnit sigma, LinearOpMode ll, Limelight3A limelight,
+                       GoBildaPinpointDriver pinpoint, List<DcMotor> motors,
                        double Distance){
         //make sure we're facing the right way
-        if(lockOn(ll,limelight,pinpoint,motors, cc, pinpoint.getHeading(AngleUnit.DEGREES),0)) {
+        if(lockOn(ll,limelight,pinpoint,motors, pinpoint.getHeading(AngleUnit.DEGREES),0)) {
 
             //declare it outside so we can increase the scope beyond the fore loop
             double ZDistance;
@@ -437,19 +300,19 @@ public class PID_Systems {
             LLResult results = limelight.getLatestResult();
 
             //just to have some data
-            confirmPosition(results, pinpoint, cc);
+            LimelightCalculator.confirmPosition(results, pinpoint);
 
             //
-            LLResultTypes.FiducialResult result = getBiggest(results);
+            LLResultTypes.FiducialResult result = LimelightCalculator.getBiggest(results);
 
-            if(0>=result.getFiducialId()-20&&result.getFiducialId()-20<cc.APRIL_TAG_POSITIONS.length){
+            if(0>=result.getFiducialId()-20&&result.getFiducialId()-20<CONSTANTS.APRIL_TAG_POSITIONS.length){
 
             //get how many degrees above us, it is
             double ty = result.getTargetYDegrees();
 
             if(Math.abs(ty) < 60 && Math.abs(ty) > 1) {
                 //we make a right triangle to find how far a way we are and use basic trig
-                ZDistance = cc.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(-ty));
+                ZDistance = CONSTANTS.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(-ty));
 
                 //we subtract the total from how far we want to be from the tag to find
                 //out how far we have to move
@@ -460,7 +323,7 @@ public class PID_Systems {
                         pinpoint.getHeading(AngleUnit.RADIANS)));
                 double y = pinpoint.getPosY(sigma) + (difference * Math.cos(
                         pinpoint.getHeading(AngleUnit.RADIANS)));
-                driveTo(sigma, pinpoint, limelight, motors, ll, cc, x, y);
+                driveTo(sigma, pinpoint, limelight, motors, ll, x, y);
                 }
             }
         }
