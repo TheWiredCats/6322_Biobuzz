@@ -55,12 +55,10 @@ public class DrivingTuner extends LinearOpMode {
 
         pinpoint.update();
 
-        telemetry.addData("X", pinpoint.getPosX(CONSTANTS.DISTANCE));
-        telemetry.addData("Y", pinpoint.getPosY(CONSTANTS.DISTANCE));
-        telemetry.addData("Heading", pinpoint.getHeading(CONSTANTS.ANGLE));
-        telemetry.update();
+        List<DcMotor> motors = List.of(FLMotor, BLMotor, FRMotor, BRMotor);
+
         waitForStart();
 
-        if(opModeIsActive()) PID_Systems.headTo(pinpoint, limelight, List.of(FLMotor, BLMotor, FRMotor, BRMotor), this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0, 180);
+        if(opModeIsActive()) PID_Systems.goTo(pinpoint, limelight, motors, this, CONSTANTS.DISTANCE, 21, 12);
     }
 }

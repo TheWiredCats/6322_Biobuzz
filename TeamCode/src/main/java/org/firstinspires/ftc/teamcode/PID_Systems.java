@@ -233,14 +233,12 @@ public class PID_Systems {
                      double distance)throws NullPointerException{
         double convertedDistance = (CONSTANTS.DISTANCE).fromUnit(sigma, distance);
         double x = CONSTANTS.APRIL_TAG_POSITIONS[id][0] - convertedDistance * Math.sin(
-                CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
+                AngleUnit.RADIANS.fromUnit(CONSTANTS.ANGLE, CONSTANTS.APRIL_TAG_POSITIONS[id][2]));
         double y = CONSTANTS.APRIL_TAG_POSITIONS[id][1] - convertedDistance * Math.cos(
-                CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
+                AngleUnit.RADIANS.fromUnit(CONSTANTS.ANGLE, CONSTANTS.APRIL_TAG_POSITIONS[id][2]));
         headTo(pinpoint, limelight, motors, ll , CONSTANTS.DISTANCE,
                 CONSTANTS.ANGLE, x, y, CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
         lockIn(CONSTANTS.DISTANCE, ll, limelight, pinpoint, motors, convertedDistance);
-
-
     }
     public static void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
                        LinearOpMode ll, DistanceUnit sigmaDis, AngleUnit sigmaAng,
