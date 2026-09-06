@@ -106,18 +106,26 @@ public class PID_Systems {
                         currentY = apriltagY
                                 - ZDifference * Math.sin(apriltagAngle)
                                 - LRDifference * Math.cos(apriltagAngle);
-                    }else{
-                        currentX=pinpoint.getPosX((DistanceUnit) cc.MEASUREMENTS.get(0));
-                        currentY=pinpoint.getPosY((DistanceUnit) cc.MEASUREMENTS.get(0));
+                    }else {
+                        currentX = pinpoint.getPosX((DistanceUnit) cc.MEASUREMENTS.get(0));
+                        currentY = pinpoint.getPosY((DistanceUnit) cc.MEASUREMENTS.get(0));
                     }
+                    //how far away we are from what it says we are
+                    double distanceDifference = Math.sqrt(
+                            Math.pow((currentX - pinpoint.getPosX((DistanceUnit) cc.MEASUREMENTS.get(0))), 2)
+                            + Math.pow(currentY - pinpoint.getPosY((DistanceUnit) cc.MEASUREMENTS.get(0)), 2));
 
-                    //set the position to what the tag says we are, and the position to what
-                    //it already is
-                    pinpoint.setPosition(new Pose2D((DistanceUnit) cc.MEASUREMENTS.get(0),
-                            (currentX + cc.CAMERA_X_OFFSET),
-                            (currentY + cc.CAMERA_Y_OFFSET),
-                            (AngleUnit)cc.MEASUREMENTS.get(1),
-                            pinpoint.getHeading((AngleUnit)cc.MEASUREMENTS.get(1))));
+                    //only runs if our "actual" distance is somewhat close to what we think we are
+                    //to prevent glitches messing with our odometry
+                    if(distanceDifference < 20){
+                        //set the position to what the tag says we are, and the position to what
+                        //it already is
+                        pinpoint.setPosition(new Pose2D((DistanceUnit) cc.MEASUREMENTS.get(0),
+                                (currentX + cc.CAMERA_X_OFFSET),
+                                (currentY + cc.CAMERA_Y_OFFSET),
+                                (AngleUnit) cc.MEASUREMENTS.get(1),
+                                pinpoint.getHeading((AngleUnit) cc.MEASUREMENTS.get(1))));
+                    }
 
                 }
             }

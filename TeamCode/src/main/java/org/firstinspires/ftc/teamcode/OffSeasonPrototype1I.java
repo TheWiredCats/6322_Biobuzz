@@ -245,8 +245,8 @@ public class OffSeasonPrototype1I extends OpMode {
                         ZDifference = cc.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(ty));
                         //how far left or right it is, negative is left and right is positive
                         LRDifference = ZDifference * Math.tan(Math.toRadians(tx));
-                        double apriltagAngle = AngleUnit.RADIANS.fromUnit((AngleUnit)cc.MEASUREMENTS.get(1),cc.APRIL_TAG_POSITIONS[id][2]);
-                        if (cc.APRIL_TAG_POSITIONS[id][2]<0) {
+                        double apriltagAngle = AngleUnit.RADIANS.fromUnit((AngleUnit) cc.MEASUREMENTS.get(1), cc.APRIL_TAG_POSITIONS[id][2]);
+                        if (cc.APRIL_TAG_POSITIONS[id][2] < 0) {
                             currentX = apriltagX
                                     - ZDifference * Math.cos(apriltagAngle)
                                     + LRDifference * Math.sin(apriltagAngle);
@@ -254,14 +254,21 @@ public class OffSeasonPrototype1I extends OpMode {
                             currentY = apriltagY
                                     - ZDifference * Math.sin(apriltagAngle)
                                     - LRDifference * Math.cos(apriltagAngle);
-                        }else {
+                        } else {
                             brokenId.add(id);
                             codeMissing = true;
                             currentX = pinpoint.getPosX(DistanceUnit.INCH) - cc.CAMERA_X_OFFSET;
                             currentY = pinpoint.getPosY(DistanceUnit.INCH) - cc.CAMERA_Y_OFFSET;
                         }
                         if (!codeMissing) telemetry.addLine("Code Working!");
-                        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + cc.CAMERA_X_OFFSET, currentY + cc.CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
+
+                        double distanceDifference = Math.sqrt(
+                                Math.pow(currentX - pinpoint.getPosX((DistanceUnit) cc.MEASUREMENTS.get(0)), 2) +
+                                Math.pow(currentY - pinpoint.getPosY((DistanceUnit) cc.MEASUREMENTS.get(0)), 2));
+
+                        if (distanceDifference < 20) {
+                            pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + cc.CAMERA_X_OFFSET, currentY + cc.CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
+                        }
                     }
 
                 }
