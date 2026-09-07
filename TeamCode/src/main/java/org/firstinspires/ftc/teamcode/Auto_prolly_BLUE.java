@@ -6,7 +6,6 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -19,10 +18,6 @@ public class Auto_prolly_BLUE extends LinearOpMode {
     @Override
     public void runOpMode(){
         //Start by initializing all the cameras, motors, and also the pinpoint
-
-        //intake and transfer motor
-        DcMotor intake = hardwareMap.dcMotor.get("intake");
-        DcMotor transfer = hardwareMap.dcMotor.get("transfer");
 
         //camera 1 and 2
         HuskyLens huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
@@ -39,27 +34,7 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         pinpoint.update();
 
         //driving motors
-        DcMotor FLMotor = hardwareMap.dcMotor.get("FL");
-        FLMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        FLMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FLMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        DcMotor BLMotor = hardwareMap.dcMotor.get("BL");
-        BLMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        BLMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BLMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        DcMotor FRMotor = hardwareMap.dcMotor.get("FR");
-        FRMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        FRMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        DcMotor BRMotor = hardwareMap.dcMotor.get("BR");
-        BRMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        BRMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        List<DcMotor> motors = List.of(FLMotor, BLMotor, FRMotor, BRMotor);
+        List<DcMotor> motors = Motors.setupMotors(this);
 
         //won't move on till u click start
         waitForStart();

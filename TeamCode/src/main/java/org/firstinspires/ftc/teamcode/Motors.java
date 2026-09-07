@@ -1,12 +1,30 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class Motors {
+public final class Motors {
     private Motors(){
         //same as the others
+    }
+    public static List<DcMotor> setupMotors(OpMode op){
+        List<DcMotor> motors = initializeMotors(op);
+        for(int i = 0; i < 4; i++){
+            motors.get(i).setMode(CONSTANTS.MOTOR_CONFIG.get(i).RUN_MODE);
+            motors.get(i).setZeroPowerBehavior(CONSTANTS.MOTOR_CONFIG.get(i).BRAKE_MODE);
+            motors.get(i).setDirection(CONSTANTS.MOTOR_CONFIG.get(i).DIRECTION);
+        }
+        return motors;
+    }
+    private static List<DcMotor> initializeMotors(OpMode op){
+        List<DcMotor> motors = new ArrayList<>();
+        for(int i = 0; i < 4; i++){
+            motors.add(i, op.hardwareMap.dcMotor.get(CONSTANTS.MOTOR_CONFIG.get(i).NAME));
+        }
+        return motors;
     }
     public static void setPowers(double FL, double BL, double FR, double BR, List<DcMotor> motors){
         //clipping extra could cause some problems and going in a circle
@@ -22,13 +40,12 @@ public class Motors {
             FR/=greatest;
             BR/=greatest;
         }
-
+        double[] powers = new double[]{FL, BL, FR, BR};
         //The motors in the list should always be placed in order
         //FLMotor, BLMotor, FRMotor, BRMotor
         //So we can set their power directly
-        motors.get(0).setPower(FL);
-        motors.get(1).setPower(BL);
-        motors.get(2).setPower(FR);
-        motors.get(3).setPower(BR);
+        for(int i = 0; i < 4; i++){
+            motors.get(i).setPower(powers[i]);
+        }
     }
 }

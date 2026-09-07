@@ -1,14 +1,63 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+import java.util.List;
+
 public final class CONSTANTS {
+    public static final class MOTOR_CONFIGS{
+        final String NAME;
+        final DcMotor.RunMode RUN_MODE;
+        final DcMotor.ZeroPowerBehavior BRAKE_MODE;
+        final DcMotor.Direction DIRECTION;
+
+        public MOTOR_CONFIGS(String name, DcMotor.RunMode runMode, DcMotor.ZeroPowerBehavior brakeMode, DcMotor.Direction direction) {
+            NAME = name;
+            RUN_MODE = runMode;
+            BRAKE_MODE = brakeMode;
+            DIRECTION = direction;
+        }
+    }
+
+
     private CONSTANTS(){
         //so u don't accidentally make an instance of it and only call it as needed
     }
+
+    //All motors should be in order FL, BL, FR, BR
+    private static final String[] MOTORS = {"FL", "BL", "FR", "BR"};
+    private static final List<DcMotor.RunMode> RUN_TYPES = List.of(
+    /* FL */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
+    /* BL */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
+    /* FR */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
+    /* BR */DcMotor.RunMode.RUN_WITHOUT_ENCODER
+    );
+    private static final List<DcMotor.ZeroPowerBehavior> BRAKE_MODES = List.of(
+    /* FL */DcMotor.ZeroPowerBehavior.BRAKE,
+    /* BL */DcMotor.ZeroPowerBehavior.BRAKE,
+    /* FR */DcMotor.ZeroPowerBehavior.BRAKE,
+    /* BR */DcMotor.ZeroPowerBehavior.BRAKE
+    );
+    private static final List<DcMotor.Direction> DIRECTIONS = List.of(
+    /* FL */DcMotor.Direction.FORWARD,
+    /* BL */DcMotor.Direction.REVERSE,
+    /* FR */DcMotor.Direction.FORWARD,
+    /* BR */DcMotor.Direction.FORWARD
+    );
+
+    public static final List<MOTOR_CONFIGS> MOTOR_CONFIG = List.of(
+            new MOTOR_CONFIGS(MOTORS[0], RUN_TYPES.get(0), BRAKE_MODES.get(0), DIRECTIONS.get(0)),
+            new MOTOR_CONFIGS(MOTORS[1], RUN_TYPES.get(1), BRAKE_MODES.get(1), DIRECTIONS.get(1)),
+            new MOTOR_CONFIGS(MOTORS[2], RUN_TYPES.get(2), BRAKE_MODES.get(2), DIRECTIONS.get(2)),
+            new MOTOR_CONFIGS(MOTORS[3], RUN_TYPES.get(3), BRAKE_MODES.get(3), DIRECTIONS.get(3))
+    );
+
     public static final DistanceUnit DISTANCE = DistanceUnit.INCH;
     public static final AngleUnit ANGLE = AngleUnit.DEGREES;
+
     //used in case we switch to Radians
     //private final double pi = Math.PI;
 

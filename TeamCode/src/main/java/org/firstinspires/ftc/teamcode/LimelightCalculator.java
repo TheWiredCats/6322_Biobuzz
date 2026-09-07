@@ -8,7 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.jetbrains.annotations.NotNull;
 
-public class LimelightCalculator {
+public final class LimelightCalculator {
     private LimelightCalculator(){
         //so u don't accidentally make an instance of it and only call it as needed
     }

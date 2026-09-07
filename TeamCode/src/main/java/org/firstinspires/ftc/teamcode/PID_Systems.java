@@ -11,11 +11,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class PID_Systems {
+public final class PID_Systems {
     private PID_Systems(){
         //so u don't accidentally make an instance of it and only call it as needed
     }

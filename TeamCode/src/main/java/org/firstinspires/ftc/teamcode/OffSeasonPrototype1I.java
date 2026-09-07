@@ -28,7 +28,6 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
@@ -38,6 +37,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,10 +57,6 @@ public class OffSeasonPrototype1I extends OpMode {
 
     private DcMotor Intake = null;
     private DcMotor Transfer = null;
-    private DcMotor FLMotor = null;
-    private DcMotor BLMotor = null;
-    private DcMotor FRMotor = null;
-    private DcMotor BRMotor = null;
     private HuskyLens huskyLens = null;
 
     private Limelight3A limelight = null;
@@ -68,15 +64,11 @@ public class OffSeasonPrototype1I extends OpMode {
 //    private IMU imu = null;
 
     private GoBildaPinpointDriver pinpoint;
-    //private Deadline rateLimit = null;
-
-    //the public ones are so we can access them in the autos
-    //really all they are is to only have to do this stuff once
     double currentY=0;
     double currentX=0;
     boolean codeMissing;
     List<Integer> brokenId;
-    int lastConfirmation;
+    long lastConfirmation;
     double FRCHeading=0;
     int id;
     double ZDifference;
@@ -93,14 +85,18 @@ public class OffSeasonPrototype1I extends OpMode {
                 ((Math.abs(xVel)<2)?(Math.abs(yVel)<2?"Not moving":""):xVel>0?"Forward":"Backwards")
                         +((xVel==0||yVel==0)?"":" and ")
                         +(Math.abs(yVel)<2?"":yVel<0?"Right":"Left"));
-        telemetry.addData("Heading", pinpoint.getHeading(AngleUnit.DEGREES));
-        telemetry.addData("X position", pinpoint.getPosX(DistanceUnit.INCH));
-        telemetry.addData("Y position", pinpoint.getPosY(DistanceUnit.INCH));
+        telemetry.addData("Heading", pinpoint.getHeading(CONSTANTS.ANGLE));
+        telemetry.addData("X position", pinpoint.getPosX(CONSTANTS.DISTANCE));
+        telemetry.addData("Y position", pinpoint.getPosY(CONSTANTS.DISTANCE));
         telemetry.addData("2D Position", pinpoint.getPosition());
     }
 
     @Override
     public void init() {
+
+        motors = Motors.setupMotors(this);
+
+        brokenId = new ArrayList<>();
         //runs once as soon as "init" is pressed
         Intake = hardwareMap.dcMotor.get("intake");
         Transfer = hardwareMap.dcMotor.get("transfer");
@@ -114,15 +110,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
         huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
 
-        FLMotor = hardwareMap.dcMotor.get("FL");
-        BLMotor = hardwareMap.dcMotor.get("BL");
-        FRMotor = hardwareMap.dcMotor.get("FR");
-        BRMotor = hardwareMap.dcMotor.get("BR");
 
-        BLMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        FLMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        BRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        FRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         limelight.pipelineSwitch(0);
 
@@ -131,8 +119,6 @@ public class OffSeasonPrototype1I extends OpMode {
         }
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
         pinpoint.recalibrateIMU();
-
-        motors = List.of(FLMotor, BLMotor, FRMotor, BRMotor);
     }
     /*
     *Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
@@ -237,7 +223,7 @@ public class OffSeasonPrototype1I extends OpMode {
                     double tx = -result.getTargetXDegrees();
                     double ty = -result.getTargetYDegrees();
                     if (CONSTANTS.APRIL_TAG_POSITIONS[id][2] >= 0 && CONSTANTS.APRIL_TAG_POSITIONS[id][2] <= 3) {
-                        lastConfirmation = (int) (System.currentTimeMillis() / 1000);
+                        lastConfirmation = System.currentTimeMillis() / 1000;
                     }
                     if (Math.abs(tx) < 60 && Math.abs(ty) < 60) {
                         double apriltagX = CONSTANTS.APRIL_TAG_POSITIONS[id][0];
@@ -328,9 +314,9 @@ public class OffSeasonPrototype1I extends OpMode {
 
         Motors.setPowers(FLMotorPower, BLMotorPower, FRMotorPower, BRMotorPower, motors);
 
-        int secs=((int)(System.currentTimeMillis()/1000))-lastConfirmation;
-        int mins=secs/60;
-        if(codeMissing)telemetry.addLine("CODE MISSING for ids "+ brokenId + "!!!!!!!");
+        long secs=(System.currentTimeMillis()/1000)-lastConfirmation;
+        long mins=secs/60;
+        if(codeMissing&&!brokenId.isEmpty())telemetry.addLine("CODE MISSING for ids "+ brokenId.toString().substring(1, brokenId.toString().length()-1) + "!!!!!!!");
         if(results.isValid()){
             double Facing = CONSTANTS.APRIL_TAG_POSITIONS[id][2];
             telemetry.addLine("Conforming Odometry :D");
