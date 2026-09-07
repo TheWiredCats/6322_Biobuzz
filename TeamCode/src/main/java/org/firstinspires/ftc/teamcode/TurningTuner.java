@@ -17,19 +17,18 @@ public class TurningTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Limelight3A limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0);
+
+        Limelight3A limelight = Cameras.setupLimeLight(this);
+        //HuskyLens huskyLens = Cameras.setupHuskyLens(this);
 
         //pinpoint, aka the odometry computer, stuff
-        GoBildaPinpointDriver pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        GoBildaPinpointDriver pinpoint = Pinpoint.setUpPinpoint(this);
         pinpoint.resetPosAndIMU();
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
         pinpoint.update();
 
         //driving motors
-        List<DcMotor> motors = Motors.setupMotors(this);
+        List<DcMotor> motors = Motors.setupDrivingMotors(this);
 
         waitForStart();
 

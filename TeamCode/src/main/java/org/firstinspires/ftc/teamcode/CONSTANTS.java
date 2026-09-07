@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class CONSTANTS {
@@ -21,40 +22,50 @@ public final class CONSTANTS {
             DIRECTION = direction;
         }
     }
-
+    public static final String PINPOINT = "pinpoint";
+    public static final String LIMELIGHT = "limelight";
+    public static final String HUSKY_LENS = "huskylens";
 
     private CONSTANTS(){
         //so u don't accidentally make an instance of it and only call it as needed
     }
 
-    //All motors should be in order FL, BL, FR, BR
-    private static final String[] MOTORS = {"FL", "BL", "FR", "BR"};
+    //All motors should be in order FL, BL, FR, BR, Intake, Transfer
+    private static final String[] MOTORS = {"FL", "BL", "FR", "BR", "intake", "transfer"};
     private static final List<DcMotor.RunMode> RUN_TYPES = List.of(
     /* FL */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
     /* BL */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
     /* FR */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
-    /* BR */DcMotor.RunMode.RUN_WITHOUT_ENCODER
+    /* BR */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
+/* Intake */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
+/*Transfer*/DcMotor.RunMode.RUN_WITHOUT_ENCODER
     );
     private static final List<DcMotor.ZeroPowerBehavior> BRAKE_MODES = List.of(
     /* FL */DcMotor.ZeroPowerBehavior.BRAKE,
     /* BL */DcMotor.ZeroPowerBehavior.BRAKE,
     /* FR */DcMotor.ZeroPowerBehavior.BRAKE,
-    /* BR */DcMotor.ZeroPowerBehavior.BRAKE
+    /* BR */DcMotor.ZeroPowerBehavior.BRAKE,
+/* Intake */DcMotor.ZeroPowerBehavior.FLOAT,
+/*Transfer*/DcMotor.ZeroPowerBehavior.FLOAT
     );
     private static final List<DcMotor.Direction> DIRECTIONS = List.of(
     /* FL */DcMotor.Direction.FORWARD,
     /* BL */DcMotor.Direction.REVERSE,
     /* FR */DcMotor.Direction.FORWARD,
-    /* BR */DcMotor.Direction.FORWARD
+    /* BR */DcMotor.Direction.FORWARD,
+/* Intake */DcMotor.Direction.FORWARD,
+/*Transfer*/DcMotor.Direction.FORWARD
     );
-
-    public static final List<MOTOR_CONFIGS> MOTOR_CONFIG = List.of(
-            new MOTOR_CONFIGS(MOTORS[0], RUN_TYPES.get(0), BRAKE_MODES.get(0), DIRECTIONS.get(0)),
-            new MOTOR_CONFIGS(MOTORS[1], RUN_TYPES.get(1), BRAKE_MODES.get(1), DIRECTIONS.get(1)),
-            new MOTOR_CONFIGS(MOTORS[2], RUN_TYPES.get(2), BRAKE_MODES.get(2), DIRECTIONS.get(2)),
-            new MOTOR_CONFIGS(MOTORS[3], RUN_TYPES.get(3), BRAKE_MODES.get(3), DIRECTIONS.get(3))
-    );
-
+    public static final List<MOTOR_CONFIGS> MOTOR_CONFIG = new ArrayList<>();
+    static {
+        for (int i = 0; i < 6; i++) {
+            MOTOR_CONFIG.add(new MOTOR_CONFIGS(MOTORS[i],
+                    RUN_TYPES.get(i),
+                    BRAKE_MODES.get(i),
+                    DIRECTIONS.get(i))
+            );
+        }
+    }
     public static final DistanceUnit DISTANCE = DistanceUnit.INCH;
     public static final AngleUnit ANGLE = AngleUnit.DEGREES;
 

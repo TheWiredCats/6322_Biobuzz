@@ -94,31 +94,19 @@ public class OffSeasonPrototype1I extends OpMode {
     @Override
     public void init() {
 
-        motors = Motors.setupMotors(this);
+        motors = Motors.setupDrivingMotors(this);
 
         brokenId = new ArrayList<>();
         //runs once as soon as "init" is pressed
-        Intake = hardwareMap.dcMotor.get("intake");
-        Transfer = hardwareMap.dcMotor.get("transfer");
+        List<DcMotor> tempMotors = Motors.setupMotors(this);
+        Intake = tempMotors.get(0);
+        Transfer = tempMotors.get(1);
 
 //        imu = hardwareMap.get(IMU.class, "imu");
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        pinpoint = Pinpoint.setUpPinpoint(this);
 
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-
-        huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
-
-
-
-        limelight.pipelineSwitch(0);
-
-        if (!huskyLens.knock()) {
-            telemetry.addData("HL:", "Problem communicating with " + huskyLens.getDeviceName());
-        }
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
-        pinpoint.recalibrateIMU();
+        limelight=Cameras.setupLimeLight(this);
+        huskyLens=Cameras.setupHuskyLens(this);
     }
     /*
     *Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
@@ -133,8 +121,6 @@ public class OffSeasonPrototype1I extends OpMode {
     @Override
     public void start() {
         codeMissing=false;
-        //move to start of auto in start() when have it
-        pinpoint.resetPosAndIMU();
         //imu.resetYaw();
         limelight.start();
 
@@ -190,32 +176,8 @@ public class OffSeasonPrototype1I extends OpMode {
             telemetry.addData("LL Latency", captureLatency + targetingLatency);
 
             try{
-                LLResultTypes.FiducialResult result = LimelightCalculator.getBiggest(results);
+                LLResultTypes.FiducialResult result = Cameras.getBiggest(results);
                 telemetry.addData("LL: April tag", "ID: %d, Family: %s, X: %.2f, Y: %.2f", result.getFiducialId(), result.getFamily(), result.getTargetXDegrees(), result.getTargetYDegrees());
-                /*
-                // rx = fr.getTargetPoseRobotSpace().getOrientation().getYaw() / 35; it wasn't one line of code
-
-                // If Limelight is mounted forward, tx IS your error.
-                // You might need to flip the sign depending on your motor configuration.
-
-
-                //Makes sure that the heading error is between -180 and 180 so the robot doesn't spin violently
-                double headingError;
-                if(result.getTx()%360==180){
-                    double sign = Math.signum(result.getTx());
-                    headingError = sign * 180;
-                }else{
-                    double adjustedError=result.getTx()+180;
-                    double fixedAdjustedError=adjustedError%360;
-                    headingError=fixedAdjustedError-180;
-                }
-
-                 Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
-                double Kp = 0.04;
-
-                 Optional: Cap rx so it doesn't spin violently
-                rx = headingError * Kp; rx = MathUtils.clamp(headingError*Kp,-0.5,0.5);
-                */
 
                 // get rid of -20 after kickoff
                 id = result.getFiducialId();
@@ -257,7 +219,6 @@ public class OffSeasonPrototype1I extends OpMode {
                             pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + CONSTANTS.CAMERA_X_OFFSET, currentY + CONSTANTS.CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
                         }
                     }
-
                 }
             }catch (NullPointerException ignored){}
         }

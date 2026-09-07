@@ -12,22 +12,19 @@ import java.util.List;
 
 @Autonomous
 public class DrivingTuner extends LinearOpMode {
-    GoBildaPinpointDriver pinpoint;
-    Limelight3A limelight;
     @Override
     public void runOpMode() {
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0);
+
+        Limelight3A limelight = Cameras.setupLimeLight(this);
+        //HuskyLens huskyLens = Cameras.setupHuskyLens(this);
 
         //driving motors
-        List<DcMotor> motors = Motors.setupMotors(this);
+        List<DcMotor> motors = Motors.setupDrivingMotors(this);
 
 
 
         //pinpoint, aka the odometry computer, stuff
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        GoBildaPinpointDriver pinpoint = Pinpoint.setUpPinpoint(this);
         pinpoint.setPosition(new Pose2D(CONSTANTS.DISTANCE, -63, 63, CONSTANTS.ANGLE, 0));
 
         pinpoint.update();

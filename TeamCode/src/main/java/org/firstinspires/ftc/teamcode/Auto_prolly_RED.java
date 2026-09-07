@@ -24,19 +24,16 @@ public class Auto_prolly_RED extends LinearOpMode {
         //DcMotor Transfer = hardwareMap.dcMotor.get("transfer");
 
         //camera
-        Limelight3A limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0);
+        Limelight3A limelight = Cameras.setupLimeLight(this);
+        //HuskyLens huskyLens = Cameras.setupHuskyLens(this);
 
         //pinpoint stuff
-        GoBildaPinpointDriver pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD,
-                GoBildaPinpointDriver.EncoderDirection.REVERSED);
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        GoBildaPinpointDriver pinpoint = Pinpoint.setUpPinpoint(this);
         pinpoint.resetPosAndIMU();
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,9,9, AngleUnit.DEGREES,0));
 
         //driving motors
-        List<DcMotor> motors = Motors.setupMotors(this);
+        List<DcMotor> motors = Motors.setupDrivingMotors(this);
 
         //won't move on till u click start
         waitForStart();

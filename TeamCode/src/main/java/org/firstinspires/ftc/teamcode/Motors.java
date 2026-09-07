@@ -12,7 +12,7 @@ public final class Motors {
     }
     public static List<DcMotor> setupMotors(OpMode op){
         List<DcMotor> motors = initializeMotors(op);
-        for(int i = 0; i < 4; i++){
+        for(int i = 4; i < 6; i++){
             motors.get(i).setMode(CONSTANTS.MOTOR_CONFIG.get(i).RUN_MODE);
             motors.get(i).setZeroPowerBehavior(CONSTANTS.MOTOR_CONFIG.get(i).BRAKE_MODE);
             motors.get(i).setDirection(CONSTANTS.MOTOR_CONFIG.get(i).DIRECTION);
@@ -21,8 +21,24 @@ public final class Motors {
     }
     private static List<DcMotor> initializeMotors(OpMode op){
         List<DcMotor> motors = new ArrayList<>();
+        for(int i  = 4; i < 6; i++){
+            motors.add(op.hardwareMap.dcMotor.get(CONSTANTS.MOTOR_CONFIG.get(i).NAME));
+        }
+        return motors;
+    }
+    public static List<DcMotor> setupDrivingMotors(OpMode op){
+        List<DcMotor> motors = initializeDrivingMotors(op);
         for(int i = 0; i < 4; i++){
-            motors.add(i, op.hardwareMap.dcMotor.get(CONSTANTS.MOTOR_CONFIG.get(i).NAME));
+            motors.get(i).setMode(CONSTANTS.MOTOR_CONFIG.get(i).RUN_MODE);
+            motors.get(i).setZeroPowerBehavior(CONSTANTS.MOTOR_CONFIG.get(i).BRAKE_MODE);
+            motors.get(i).setDirection(CONSTANTS.MOTOR_CONFIG.get(i).DIRECTION);
+        }
+        return motors;
+    }
+    private static List<DcMotor> initializeDrivingMotors(OpMode op){
+        List<DcMotor> motors = new ArrayList<>();
+        for(int i = 0; i < 4; i++){
+            motors.add(op.hardwareMap.dcMotor.get(CONSTANTS.MOTOR_CONFIG.get(i).NAME));
         }
         return motors;
     }

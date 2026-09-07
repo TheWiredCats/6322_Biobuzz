@@ -1,15 +1,36 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.jetbrains.annotations.NotNull;
 
-public final class LimelightCalculator {
-    private LimelightCalculator(){
+public final class Cameras {
+    public static HuskyLens setupHuskyLens(OpMode op){
+        HuskyLens huskyLens = initializeHuskyLens(op);
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
+        return huskyLens;
+    }
+
+    public static HuskyLens initializeHuskyLens(OpMode op) {
+        return op.hardwareMap.get(HuskyLens.class, CONSTANTS.HUSKY_LENS);
+    }
+
+    public static Limelight3A setupLimeLight(OpMode op){
+        Limelight3A limelight = initializeLimeLight(op);
+        limelight.pipelineSwitch(0);
+        return limelight;
+    }
+    public static Limelight3A initializeLimeLight(OpMode op){
+        return op.hardwareMap.get(Limelight3A.class, CONSTANTS.LIMELIGHT);
+    }
+    private Cameras(){
         //so u don't accidentally make an instance of it and only call it as needed
     }
     public static LLResultTypes.FiducialResult getBiggest(@NotNull LLResult results)throws NullPointerException{

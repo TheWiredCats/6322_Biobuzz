@@ -62,7 +62,7 @@ public final class PID_Systems {
 
             //Confirming current position using limelight
             try {
-                LimelightCalculator.confirmPosition(limelight.getLatestResult(), pinpoint);
+                Cameras.confirmPosition(limelight.getLatestResult(), pinpoint);
             }catch(NullPointerException ignored){}
 
             //the last pinpoint data before we update to the newest
@@ -171,18 +171,18 @@ public final class PID_Systems {
         while(ll.opModeIsActive()&&
                 ((Math.abs((pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES)))>0.5)||
                         (Math.abs(
-                                LimelightCalculator.wrapAngle(sigma, pinpoint.getHeading(sigma)-desiredHeading))>
+                                Cameras.wrapAngle(sigma, pinpoint.getHeading(sigma)-desiredHeading))>
                                 (sigma==AngleUnit.DEGREES?5
                                         :Math.toRadians(5))))){
 
             //grab the previous error to use for D
-            double previousError = LimelightCalculator.wrapAngle(sigma, desiredHeading-pinpoint.getHeading(sigma));
+            double previousError = Cameras.wrapAngle(sigma, desiredHeading-pinpoint.getHeading(sigma));
 
             //update the pinpoint for fresh data
             pinpoint.update();
 
             //error is the current difference between the 2 angels
-            double error = LimelightCalculator.wrapAngle(sigma, desiredHeading-pinpoint.getHeading(sigma));
+            double error = Cameras.wrapAngle(sigma, desiredHeading-pinpoint.getHeading(sigma));
 
 
             //P part of PID represents how much change we still need to do
@@ -199,7 +199,7 @@ public final class PID_Systems {
 
             //D part of the PID represents how much error is changing, we're taking the derivative
             //of the different positions by simply using the limit definition
-            derivative=KD * (LimelightCalculator.wrapAngle(sigma,error-previousError)/dt);
+            derivative=KD * (Cameras.wrapAngle(sigma,error-previousError)/dt);
 
             //I part of the PID represents how much the error has changed, we take the integral
             //by simply multiplying by dt and adding over every loop
@@ -265,7 +265,7 @@ public final class PID_Systems {
 
             try{
 
-                LLResultTypes.FiducialResult result = LimelightCalculator.getBiggest(results);
+                LLResultTypes.FiducialResult result = Cameras.getBiggest(results);
 
                 //if its valid head towards it
                 turnTo(AngleUnit.DEGREES, ll, pinpoint, motors,
@@ -297,10 +297,10 @@ public final class PID_Systems {
             LLResult results = limelight.getLatestResult();
 
             //just to have some data
-            LimelightCalculator.confirmPosition(results, pinpoint);
+            Cameras.confirmPosition(results, pinpoint);
 
             //
-            LLResultTypes.FiducialResult result = LimelightCalculator.getBiggest(results);
+            LLResultTypes.FiducialResult result = Cameras.getBiggest(results);
 
             if(0>=result.getFiducialId()-20&&result.getFiducialId()-20<CONSTANTS.APRIL_TAG_POSITIONS.length){
 
