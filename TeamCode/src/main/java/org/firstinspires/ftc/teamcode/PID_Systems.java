@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
 import java.util.List;
@@ -128,11 +127,7 @@ public final class PID_Systems {
                     "error: %.2f, dt in secs: %.4f", KP, KI,KD, error, dt);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f",proportional, readingIntegral, derivative, output);
-            ll.telemetry.addData("Position", new Pose2D(CONSTANTS.DISTANCE,
-                    pinpoint.getPosX(CONSTANTS.DISTANCE),
-                    pinpoint.getPosY(CONSTANTS.DISTANCE),
-                    CONSTANTS.ANGLE,
-                    pinpoint.getHeading(CONSTANTS.ANGLE)));
+            Pinpoint.addTelemetry(pinpoint, ll);
             ll.telemetry.update();
 
 
@@ -214,11 +209,7 @@ public final class PID_Systems {
                     "%.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f",proportional, integral*KI, derivative, total);
-            ll.telemetry.addData("Position", new Pose2D(CONSTANTS.DISTANCE,
-                    pinpoint.getPosX(CONSTANTS.DISTANCE),
-                    pinpoint.getPosY(CONSTANTS.DISTANCE),
-                    CONSTANTS.ANGLE,
-                    pinpoint.getHeading(CONSTANTS.ANGLE)));
+            Pinpoint.addTelemetry(pinpoint, ll);
             ll.telemetry.update();
 
             //set the motors to either positive or negative motors
@@ -230,19 +221,32 @@ public final class PID_Systems {
     public static void goTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
                      LinearOpMode ll, DistanceUnit sigma, int id,
                      double distance)throws NullPointerException{
+        //turn the distance from whatever it is to the standardized one
         double convertedDistance = (CONSTANTS.DISTANCE).fromUnit(sigma, distance);
+
+        //how far away we should be given a certain angle pretty sure this is right could be wrong tho
+        //idrk lol
         double x = CONSTANTS.APRIL_TAG_POSITIONS[id][0] - convertedDistance * Math.sin(
                 AngleUnit.RADIANS.fromUnit(CONSTANTS.ANGLE, CONSTANTS.APRIL_TAG_POSITIONS[id][2]));
+        //same thing as x just a lil different still should be right do
         double y = CONSTANTS.APRIL_TAG_POSITIONS[id][1] - convertedDistance * Math.cos(
                 AngleUnit.RADIANS.fromUnit(CONSTANTS.ANGLE, CONSTANTS.APRIL_TAG_POSITIONS[id][2]));
+
+        //go towards that position, and then look towards the id
         headTo(pinpoint, limelight, motors, ll , CONSTANTS.DISTANCE,
                 CONSTANTS.ANGLE, x, y, CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
+
+        //make sure we are looking at it and then move until we are the exact distance away
+        //that we want to be
         lockIn(CONSTANTS.DISTANCE, ll, limelight, pinpoint, motors, convertedDistance);
     }
     public static void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
                        LinearOpMode ll, DistanceUnit sigmaDis, AngleUnit sigmaAng,
                        double x, double y, double heading){
+        //first drive to the location we want to go to
         driveTo(sigmaDis, pinpoint, limelight , motors, ll, x, y);
+
+        //then turn to the direction we want to be heading
         turnTo(sigmaAng, ll, pinpoint, motors, heading);
     }
     public static boolean lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint,
@@ -252,9 +256,10 @@ public final class PID_Systems {
         if(ll.opModeIsActive()&&Math.abs(shimmy)<50) {
 
             //if this isn't our first time looping then move a lil to the right or left
-            if(shimmy!=0)turnTo(AngleUnit.DEGREES,ll,pinpoint,motors,
-                    initialHeading + shimmy);
+            if(shimmy!=0)turnTo(CONSTANTS.ANGLE,ll,pinpoint,motors,
+                 initialHeading + CONSTANTS.ANGLE.fromUnit(AngleUnit.DEGREES, shimmy));
 
+            //increment shimmy by 5 or make it negative
             shimmy = (shimmy<0?5-shimmy:(shimmy>0?-shimmy:5));
 
             //give it a chance to scan after we shimmy
@@ -265,11 +270,13 @@ public final class PID_Systems {
 
             try{
 
+                //get the closest result as the result we want
                 LLResultTypes.FiducialResult result = Cameras.getBiggest(results);
 
                 //if its valid head towards it
-                turnTo(AngleUnit.DEGREES, ll, pinpoint, motors,
-                pinpoint.getHeading(AngleUnit.DEGREES) - result.getTargetXDegrees());
+                turnTo(CONSTANTS.ANGLE, ll, pinpoint, motors,
+                pinpoint.getHeading(CONSTANTS.ANGLE) -
+                        CONSTANTS.ANGLE.fromUnit(AngleUnit.DEGREES, result.getTargetXDegrees()));
                 return true;
             } catch (NullPointerException e) {
                 //recursive hehe
@@ -279,7 +286,7 @@ public final class PID_Systems {
             }
         }else if(ll.opModeIsActive()){
             //otherwise turn to where we were at the beginning
-            turnTo(AngleUnit.DEGREES, ll, pinpoint, motors, initialHeading);
+            turnTo(CONSTANTS.ANGLE, ll, pinpoint, motors, initialHeading);
             return false;
         }
         return false;
@@ -299,10 +306,12 @@ public final class PID_Systems {
             //just to have some data
             Cameras.confirmPosition(results, pinpoint);
 
-            //
+            //get the closest tag cuz it's the most accurate one usually
             LLResultTypes.FiducialResult result = Cameras.getBiggest(results);
 
-            if(0>=result.getFiducialId()-20&&result.getFiducialId()-20<CONSTANTS.APRIL_TAG_POSITIONS.length){
+            //make sure that it actually exists and were not getting garbage data
+            if(0 >= result.getFiducialId() - 20 && result.getFiducialId() - 20 <
+                    CONSTANTS.APRIL_TAG_POSITIONS.length){
 
             //get how many degrees above us, it is
             double ty = result.getTargetYDegrees();
@@ -320,6 +329,8 @@ public final class PID_Systems {
                         pinpoint.getHeading(AngleUnit.RADIANS)));
                 double y = pinpoint.getPosY(sigma) + (difference * Math.cos(
                         pinpoint.getHeading(AngleUnit.RADIANS)));
+
+                //now drive there
                 driveTo(sigma, pinpoint, limelight, motors, ll, x, y);
                 }
             }

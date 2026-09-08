@@ -75,21 +75,6 @@ public class OffSeasonPrototype1I extends OpMode {
     double LRDifference;
     double lastHeading;
     List<DcMotor> motors;
-    private void addPinpointTelemetry(){
-        lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
-        pinpoint.update();
-        FRCHeading+= pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading;
-        double xVel=pinpoint.getVelX(DistanceUnit.INCH);
-        double yVel=pinpoint.getVelY(DistanceUnit.INCH);
-        telemetry.addData("Direction",
-                ((Math.abs(xVel)<2)?(Math.abs(yVel)<2?"Not moving":""):xVel>0?"Forward":"Backwards")
-                        +((xVel==0||yVel==0)?"":" and ")
-                        +(Math.abs(yVel)<2?"":yVel<0?"Right":"Left"));
-        telemetry.addData("Heading", pinpoint.getHeading(CONSTANTS.ANGLE));
-        telemetry.addData("X position", pinpoint.getPosX(CONSTANTS.DISTANCE));
-        telemetry.addData("Y position", pinpoint.getPosY(CONSTANTS.DISTANCE));
-        telemetry.addData("2D Position", pinpoint.getPosition());
-    }
 
     @Override
     public void init() {
@@ -149,10 +134,6 @@ public class OffSeasonPrototype1I extends OpMode {
         double TotalTrigger=gamepad1.right_trigger+gamepad1.left_trigger;
 
         double speedMultiplier = (MAXIMUM-(Difference*TotalTrigger));
-
-        lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
-        pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);
-        FRCHeading+=(pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading);
 
         if(gamepad1.start)FRCHeading=0;
 
@@ -274,18 +255,18 @@ public class OffSeasonPrototype1I extends OpMode {
         double BRMotorPower = ((y + x - rx) / stickTotal) * speedMultiplier;
 
         Motors.setPowers(FLMotorPower, BLMotorPower, FRMotorPower, BRMotorPower, motors);
+        lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
+        pinpoint.update();
+        FRCHeading+=(pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading);
+        Pinpoint.addTelemetry(pinpoint, this);
 
         long secs=(System.currentTimeMillis()/1000)-lastConfirmation;
         long mins=secs/60;
         if(codeMissing&&!brokenId.isEmpty())telemetry.addLine("CODE MISSING for ids "+ brokenId.toString().substring(1, brokenId.toString().length()-1) + "!!!!!!!");
         if(results.isValid()){
-            double Facing = CONSTANTS.APRIL_TAG_POSITIONS[id][2];
             telemetry.addLine("Conforming Odometry :D");
-            telemetry.addData("Tag Data","Looking at Tag: %d, X Position: %.2f, Y Position: %.2f, Facing: %s", id, CONSTANTS.APRIL_TAG_POSITIONS[id][0], CONSTANTS.APRIL_TAG_POSITIONS[id][1],
-                    (Facing>=2?(Facing==2?"+Y":"-Y"):(Facing==0?"+X":"-X")));
         }else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+(secs%60)+" Secs Ago");
             else telemetry.addLine("Not yet confirmed");
-        addPinpointTelemetry();
         telemetry.addData("stickLeftX", x);
         telemetry.addData("turn speed", rx);
         //after the camera code rx might have been altered
