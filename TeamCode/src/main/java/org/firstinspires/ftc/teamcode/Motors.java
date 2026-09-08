@@ -11,37 +11,26 @@ public final class Motors {
         //same as the others
     }
     public static List<DcMotor> setupMotors(OpMode op){
-        List<DcMotor> motors = initializeMotors(op);
+        List<DcMotor> motors = new ArrayList<>();
         for(int i = 4; i < 6; i++){
+            motors.set(i, op.hardwareMap.dcMotor.get(CONSTANTS.MOTOR_CONFIG.get(i).NAME));
             motors.get(i).setMode(CONSTANTS.MOTOR_CONFIG.get(i).RUN_MODE);
             motors.get(i).setZeroPowerBehavior(CONSTANTS.MOTOR_CONFIG.get(i).BRAKE_MODE);
             motors.get(i).setDirection(CONSTANTS.MOTOR_CONFIG.get(i).DIRECTION);
-        }
-        return motors;
-    }
-    private static List<DcMotor> initializeMotors(OpMode op){
-        List<DcMotor> motors = new ArrayList<>();
-        for(int i  = 4; i < 6; i++){
-            motors.add(op.hardwareMap.dcMotor.get(CONSTANTS.MOTOR_CONFIG.get(i).NAME));
         }
         return motors;
     }
     public static List<DcMotor> setupDrivingMotors(OpMode op){
-        List<DcMotor> motors = initializeDrivingMotors(op);
+        List<DcMotor> motors = new ArrayList<>();
         for(int i = 0; i < 4; i++){
+            motors.set(i, op.hardwareMap.dcMotor.get(CONSTANTS.MOTOR_CONFIG.get(i).NAME));
             motors.get(i).setMode(CONSTANTS.MOTOR_CONFIG.get(i).RUN_MODE);
             motors.get(i).setZeroPowerBehavior(CONSTANTS.MOTOR_CONFIG.get(i).BRAKE_MODE);
             motors.get(i).setDirection(CONSTANTS.MOTOR_CONFIG.get(i).DIRECTION);
         }
         return motors;
     }
-    private static List<DcMotor> initializeDrivingMotors(OpMode op){
-        List<DcMotor> motors = new ArrayList<>();
-        for(int i = 0; i < 4; i++){
-            motors.add(op.hardwareMap.dcMotor.get(CONSTANTS.MOTOR_CONFIG.get(i).NAME));
-        }
-        return motors;
-    }
+
     public static void setPowers(double FL, double BL, double FR, double BR, List<DcMotor> motors){
         //clipping extra could cause some problems and going in a circle
         //so we have to divide 1 by the greatest so we can multiply the rest by that

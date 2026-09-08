@@ -59,7 +59,7 @@ public final class CONSTANTS {
     public static final List<MOTOR_CONFIGS> MOTOR_CONFIG = new ArrayList<>();
     static {
         for (int i = 0; i < 6; i++) {
-            MOTOR_CONFIG.add(new MOTOR_CONFIGS(MOTORS[i],
+            MOTOR_CONFIG.add(i, new MOTOR_CONFIGS(MOTORS[i],
                     RUN_TYPES.get(i),
                     BRAKE_MODES.get(i),
                     DIRECTIONS.get(i))
