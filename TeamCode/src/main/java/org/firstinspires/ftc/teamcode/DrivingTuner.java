@@ -29,6 +29,11 @@ public class DrivingTuner extends LinearOpMode {
 
         pinpoint.update();
 
+        //put in all auto modes
+        while(opModeInInit()){
+            Cameras.placementScanner(limelight, this);
+        }
+
         waitForStart();
 
         if(opModeIsActive()) PID_Systems.goTo(pinpoint, limelight, motors, this, CONSTANTS.DISTANCE, 21, 12);

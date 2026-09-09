@@ -35,6 +35,11 @@ public class Auto_prolly_RED extends LinearOpMode {
         //driving motors
         List<DcMotor> motors = Motors.setupDrivingMotors(this);
 
+        //put in all auto modes
+        while(opModeInInit()){
+            Cameras.placementScanner(limelight, this);
+        }
+
         //won't move on till u click start
         waitForStart();
 

@@ -30,6 +30,11 @@ public class TurningTuner extends LinearOpMode {
         //driving motors
         List<DcMotor> motors = Motors.setupDrivingMotors(this);
 
+        //put in all auto modes
+        while(opModeInInit()){
+            Cameras.placementScanner(limelight, this);
+        }
+
         waitForStart();
 
         if (opModeIsActive())PID_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0 , 180);

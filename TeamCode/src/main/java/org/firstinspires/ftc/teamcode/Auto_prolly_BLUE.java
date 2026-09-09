@@ -12,10 +12,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
+
 @Autonomous
 public class Auto_prolly_BLUE extends LinearOpMode {
+
     @Override
     public void runOpMode(){
+
         //Start by initializing all the cameras, motors, and also the pinpoint
 
         //camera 1 and 2
@@ -30,6 +33,12 @@ public class Auto_prolly_BLUE extends LinearOpMode {
 
         //driving motors
         List<DcMotor> motors = Motors.setupDrivingMotors(this);
+
+        //put in all auto modes
+        while(opModeInInit()){
+            Cameras.placementScanner(limelight, this);
+        }
+
 
         //won't move on till u click start
         waitForStart();
