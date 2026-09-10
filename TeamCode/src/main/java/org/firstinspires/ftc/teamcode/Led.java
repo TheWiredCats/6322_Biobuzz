@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
@@ -13,8 +14,8 @@ public final class Led {
     public static void placementScanner(Limelight3A limelight, RevBlinkinLedDriver LED){
         try{
             LLResultTypes.FiducialResult x = Cameras.getBiggest(limelight.getLatestResult());
-            if(Math.abs(x.getTargetXDegrees()) > 10) LED.setPattern(CONSTANTS.ledConfig.TARGET_SIGHTED);
-            else if(Math.abs(x.getTargetXDegrees()) <= 10 && Math.abs(x.getTargetXDegrees()) > 5)
+            if(Math.abs(x.getTargetXDegrees()) > 7.5) LED.setPattern(CONSTANTS.ledConfig.TARGET_SIGHTED);
+            else if(Math.abs(x.getTargetXDegrees()) <= 7.5 && Math.abs(x.getTargetXDegrees()) > 2.5)
                 LED.setPattern(CONSTANTS.ledConfig.CLOSE);
             else LED.setPattern(CONSTANTS.ledConfig.ON_POINT);
         } catch (NullPointerException ignored) {

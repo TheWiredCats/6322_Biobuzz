@@ -21,6 +21,7 @@ public final class Cameras {
     public static Limelight3A setupLimeLight(OpMode op){
         Limelight3A limelight = op.hardwareMap.get(Limelight3A.class, CONSTANTS.LIMELIGHT);
         limelight.pipelineSwitch(0);
+        limelight.start();
         return limelight;
     }
 
