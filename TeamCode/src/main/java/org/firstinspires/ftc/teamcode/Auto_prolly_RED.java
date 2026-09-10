@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -35,9 +36,11 @@ public class Auto_prolly_RED extends LinearOpMode {
         //driving motors
         List<DcMotor> motors = Motors.setupDrivingMotors(this);
 
+        RevBlinkinLedDriver LED = Led.LEDSetUP(this);
+
         //put in all auto modes
         while(opModeInInit()){
-            Cameras.placementScanner(limelight, this);
+            Led.placementScanner(limelight, LED);
         }
 
         //won't move on till u click start

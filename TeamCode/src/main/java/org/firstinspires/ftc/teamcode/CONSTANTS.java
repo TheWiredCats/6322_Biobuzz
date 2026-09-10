@@ -22,6 +22,7 @@ public final class CONSTANTS {
             DIRECTION = direction;
         }
     }
+    public static final String LED = "led";
     public static final String PINPOINT = "pinpoint";
     public static final String LIMELIGHT = "limelight";
     public static final String HUSKY_LENS = "huskylens";

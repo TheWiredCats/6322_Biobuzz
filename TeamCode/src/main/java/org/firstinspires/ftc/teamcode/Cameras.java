@@ -27,18 +27,6 @@ public final class Cameras {
     private Cameras(){
         //so u don't accidentally make an instance of it and only call it as needed
     }
-    public static void placementScanner(Limelight3A limelight, OpMode op){
-        try{
-            LLResultTypes.FiducialResult x = Cameras.getBiggest(limelight.getLatestResult());
-            if(Math.abs(x.getTargetXDegrees()) > 10) op.telemetry.addLine("Target sighted");
-            else if(Math.abs(x.getTargetXDegrees()) <= 10 && Math.abs(x.getTargetXDegrees()) > 5)
-                op.telemetry.addLine("Close");
-            else op.telemetry.addLine("Bingo");
-        } catch (NullPointerException ignored) {
-            op.telemetry.addLine("Not even close gng XD");
-        }
-        op.telemetry.update();
-    }
     public static LLResultTypes.FiducialResult getBiggest(@NotNull LLResult results)throws NullPointerException{
         if(!results.isValid())throw new NullPointerException();
 

@@ -97,7 +97,7 @@ public final class PID_Systems {
 
             //we subtract current time by the last time we ran this and then divide by 1000
             //so we could get dt in seconds rather than in milliseconds
-            dt=Math.max((currentTime-previousTime)/10000000.0, 0.000001);
+            dt=Math.max((currentTime-previousTime)/1000000000.0, 0.001);
 
             //change previous time to the old current time so that when it loops previousTime
             //now represents the previous currentTime
@@ -188,7 +188,7 @@ public final class PID_Systems {
             currentTime=System.nanoTime();
             //for all but the first loop this measure almost the time it takes to do the entire loop
             //we divide by 1000 so it gives the data to us in seconds
-            dt=Math.max((currentTime-previousTime),1)/1000000.0;
+            dt=Math.max((currentTime-previousTime)/1000000000.0,0.001);
             //set the last current time to previous time to be used in the next loop
             previousTime=currentTime;
 
@@ -310,7 +310,7 @@ public final class PID_Systems {
             LLResultTypes.FiducialResult result = Cameras.getBiggest(results);
 
             //make sure that it actually exists and were not getting garbage data
-            if(0 >= result.getFiducialId() - 20 && result.getFiducialId() - 20 <
+            if(0 >= result.getFiducialId() && result.getFiducialId() <
                     CONSTANTS.APRIL_TAG_POSITIONS.length){
 
             //get how many degrees above us, it is
