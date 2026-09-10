@@ -175,7 +175,7 @@ public class OffSeasonPrototype1I extends OpMode {
                         ZDifference = CONSTANTS.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(ty));
                         //how far left or right it is, negative is left and right is positive
                         LRDifference = ZDifference * Math.tan(Math.toRadians(tx));
-                        double apriltagAngle = AngleUnit.RADIANS.fromUnit(CONSTANTS.ANGLE, CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
+                        double apriltagAngle = AngleUnit.RADIANS.fromUnit(CONSTANTS.unit.AU, CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
                         if (CONSTANTS.APRIL_TAG_POSITIONS[id][2] < 0) {
                             currentX = apriltagX
                                     - ZDifference * Math.cos(apriltagAngle)
@@ -193,8 +193,8 @@ public class OffSeasonPrototype1I extends OpMode {
                         if (!codeMissing) telemetry.addLine("Code Working!");
 
                         double distanceDifference = Math.sqrt(
-                                Math.pow(currentX - pinpoint.getPosX(CONSTANTS.DISTANCE), 2) +
-                                Math.pow(currentY - pinpoint.getPosY(CONSTANTS.DISTANCE), 2));
+                                Math.pow(currentX - pinpoint.getPosX(CONSTANTS.unit.DU), 2) +
+                                Math.pow(currentY - pinpoint.getPosY(CONSTANTS.unit.DU), 2));
 
                         if (distanceDifference < 20) {
                             pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + CONSTANTS.CAMERA_X_OFFSET, currentY + CONSTANTS.CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));

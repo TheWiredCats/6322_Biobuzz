@@ -222,23 +222,23 @@ public final class PID_Systems {
                      LinearOpMode ll, DistanceUnit sigma, int id,
                      double distance)throws NullPointerException{
         //turn the distance from whatever it is to the standardized one
-        double convertedDistance = (CONSTANTS.DISTANCE).fromUnit(sigma, distance);
+        double convertedDistance = (CONSTANTS.unit.DU).fromUnit(sigma, distance);
 
         //how far away we should be given a certain angle pretty sure this is right could be wrong tho
         //idrk lol
         double x = CONSTANTS.APRIL_TAG_POSITIONS[id][0] - convertedDistance * Math.sin(
-                AngleUnit.RADIANS.fromUnit(CONSTANTS.ANGLE, CONSTANTS.APRIL_TAG_POSITIONS[id][2]));
+                AngleUnit.RADIANS.fromUnit(CONSTANTS.unit.AU, CONSTANTS.APRIL_TAG_POSITIONS[id][2]));
         //same thing as x just a lil different still should be right do
         double y = CONSTANTS.APRIL_TAG_POSITIONS[id][1] - convertedDistance * Math.cos(
-                AngleUnit.RADIANS.fromUnit(CONSTANTS.ANGLE, CONSTANTS.APRIL_TAG_POSITIONS[id][2]));
+                AngleUnit.RADIANS.fromUnit(CONSTANTS.unit.AU, CONSTANTS.APRIL_TAG_POSITIONS[id][2]));
 
         //go towards that position, and then look towards the id
-        headTo(pinpoint, limelight, motors, ll , CONSTANTS.DISTANCE,
-                CONSTANTS.ANGLE, x, y, CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
+        headTo(pinpoint, limelight, motors, ll , CONSTANTS.unit.DU,
+                CONSTANTS.unit.AU, x, y, CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
 
         //make sure we are looking at it and then move until we are the exact distance away
         //that we want to be
-        lockIn(CONSTANTS.DISTANCE, ll, limelight, pinpoint, motors, convertedDistance);
+        lockIn(CONSTANTS.unit.DU, ll, limelight, pinpoint, motors, convertedDistance);
     }
     public static void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
                        LinearOpMode ll, DistanceUnit sigmaDis, AngleUnit sigmaAng,
@@ -256,8 +256,8 @@ public final class PID_Systems {
         if(ll.opModeIsActive()&&Math.abs(shimmy)<50) {
 
             //if this isn't our first time looping then move a lil to the right or left
-            if(shimmy!=0)turnTo(CONSTANTS.ANGLE,ll,pinpoint,motors,
-                 initialHeading + CONSTANTS.ANGLE.fromUnit(AngleUnit.DEGREES, shimmy));
+            if(shimmy!=0)turnTo(CONSTANTS.unit.AU,ll,pinpoint,motors,
+                 initialHeading + CONSTANTS.unit.AU.fromUnit(AngleUnit.DEGREES, shimmy));
 
             //increment shimmy by 5 or make it negative
             shimmy = (shimmy<0?5-shimmy:(shimmy>0?-shimmy:5));
@@ -274,9 +274,9 @@ public final class PID_Systems {
                 LLResultTypes.FiducialResult result = Cameras.getBiggest(results);
 
                 //if its valid head towards it
-                turnTo(CONSTANTS.ANGLE, ll, pinpoint, motors,
-                pinpoint.getHeading(CONSTANTS.ANGLE) -
-                        CONSTANTS.ANGLE.fromUnit(AngleUnit.DEGREES, result.getTargetXDegrees()));
+                turnTo(CONSTANTS.unit.AU, ll, pinpoint, motors,
+                pinpoint.getHeading(CONSTANTS.unit.AU) -
+                        CONSTANTS.unit.AU.fromUnit(AngleUnit.DEGREES, result.getTargetXDegrees()));
                 return true;
             } catch (NullPointerException e) {
                 //recursive hehe
@@ -286,7 +286,7 @@ public final class PID_Systems {
             }
         }else if(ll.opModeIsActive()){
             //otherwise turn to where we were at the beginning
-            turnTo(CONSTANTS.ANGLE, ll, pinpoint, motors, initialHeading);
+            turnTo(CONSTANTS.unit.AU, ll, pinpoint, motors, initialHeading);
             return false;
         }
         return false;

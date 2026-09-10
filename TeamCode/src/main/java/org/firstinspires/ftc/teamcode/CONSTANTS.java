@@ -94,9 +94,16 @@ public final class CONSTANTS {
             );
         }
     }
-    public static final DistanceUnit DISTANCE = DistanceUnit.INCH;
-    public static final AngleUnit ANGLE = AngleUnit.DEGREES;
+    public static final class Units{
+        final DistanceUnit DU;
+        final AngleUnit AU;
+        public Units(DistanceUnit du, AngleUnit au){
+            DU = du;
+            AU = au;
+        }
+    }
 
+    public static final Units unit = new Units(DistanceUnit.INCH, AngleUnit.DEGREES);
     //used in case we switch to Radians
     //private final double pi = Math.PI;
 

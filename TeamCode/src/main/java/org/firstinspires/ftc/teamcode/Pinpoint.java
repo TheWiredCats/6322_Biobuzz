@@ -9,11 +9,11 @@ public final class Pinpoint {
         //adds the distance unit, angle unit, x y positions, and the heading to telemetry
         op.telemetry.addData("Odometry Data", "Distance Unit: %s, Angle Unit: %s, " +
                         "X Pos: %.2f, Y Pos: %.2f, Heading: %.2f",
-                CONSTANTS.DISTANCE,
-                CONSTANTS.ANGLE,
-                pinpoint.getPosX(CONSTANTS.DISTANCE),
-                pinpoint.getPosY(CONSTANTS.DISTANCE),
-                pinpoint.getHeading(CONSTANTS.ANGLE)
+                CONSTANTS.unit.DU,
+                CONSTANTS.unit.AU,
+                pinpoint.getPosX(CONSTANTS.unit.DU),
+                pinpoint.getPosY(CONSTANTS.unit.DU),
+                pinpoint.getHeading(CONSTANTS.unit.AU)
         );
     }
     //can just call a single function rather than righting it all out

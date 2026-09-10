@@ -26,7 +26,7 @@ public class DrivingTuner extends LinearOpMode {
 
         //pinpoint, aka the odometry computer, stuff
         GoBildaPinpointDriver pinpoint = Pinpoint.setUpPinpoint(this);
-        pinpoint.setPosition(new Pose2D(CONSTANTS.DISTANCE, -63, 63, CONSTANTS.ANGLE, 0));
+        pinpoint.setPosition(new Pose2D(CONSTANTS.unit.DU, -63, 63, CONSTANTS.unit.AU, 0));
 
         pinpoint.update();
 
@@ -39,6 +39,6 @@ public class DrivingTuner extends LinearOpMode {
 
         waitForStart();
 
-        if(opModeIsActive()) PID_Systems.goTo(pinpoint, limelight, motors, this, CONSTANTS.DISTANCE, 21, 12);
+        if(opModeIsActive()) PID_Systems.goTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, 21, 12);
     }
 }

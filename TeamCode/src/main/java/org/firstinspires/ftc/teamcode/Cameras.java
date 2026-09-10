@@ -105,7 +105,7 @@ public final class Cameras {
                     //how far left or right it is, negative is left and right is positive
                     double LRDifference = ZDifference * Math.tan(tx);
 
-                    double apriltagAngle = AngleUnit.RADIANS.fromUnit(CONSTANTS.ANGLE,
+                    double apriltagAngle = AngleUnit.RADIANS.fromUnit(CONSTANTS.unit.AU,
                             CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
 
                     if(CONSTANTS.APRIL_TAG_POSITIONS[id][2]<0) {
@@ -117,24 +117,24 @@ public final class Cameras {
                                 - ZDifference * Math.sin(apriltagAngle)
                                 - LRDifference * Math.cos(apriltagAngle);
                     }else {
-                        currentX = pinpoint.getPosX(CONSTANTS.DISTANCE);
-                        currentY = pinpoint.getPosY(CONSTANTS.DISTANCE);
+                        currentX = pinpoint.getPosX(CONSTANTS.unit.DU);
+                        currentY = pinpoint.getPosY(CONSTANTS.unit.DU);
                     }
                     //how far away we are from what it says we are
                     double distanceDifference = Math.sqrt(
-                            Math.pow((currentX - pinpoint.getPosX(CONSTANTS.DISTANCE)), 2)
-                                    + Math.pow(currentY - pinpoint.getPosY(CONSTANTS.DISTANCE), 2));
+                            Math.pow((currentX - pinpoint.getPosX(CONSTANTS.unit.DU)), 2)
+                                    + Math.pow(currentY - pinpoint.getPosY(CONSTANTS.unit.DU), 2));
 
                     //only runs if our "actual" distance is somewhat close to what we think we are
                     //to prevent glitches messing with our odometry
                     if(distanceDifference < 20){
                         //set the position to what the tag says we are, and the position to what
                         //it already is
-                        pinpoint.setPosition(new Pose2D(CONSTANTS.DISTANCE,
+                        pinpoint.setPosition(new Pose2D(CONSTANTS.unit.DU,
                                 (currentX + CONSTANTS.CAMERA_X_OFFSET),
                                 (currentY + CONSTANTS.CAMERA_Y_OFFSET),
-                                CONSTANTS.ANGLE,
-                                pinpoint.getHeading(CONSTANTS.ANGLE)));
+                                CONSTANTS.unit.AU,
+                                pinpoint.getHeading(CONSTANTS.unit.AU)));
                     }
 
                 }
