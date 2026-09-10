@@ -13,12 +13,12 @@ public final class Led {
     public static void placementScanner(Limelight3A limelight, RevBlinkinLedDriver LED){
         try{
             LLResultTypes.FiducialResult x = Cameras.getBiggest(limelight.getLatestResult());
-            if(Math.abs(x.getTargetXDegrees()) > 10) LED.setPattern(RevBlinkinLedDriver.BlinkinPattern.YELLOW);
+            if(Math.abs(x.getTargetXDegrees()) > 10) LED.setPattern(CONSTANTS.ledConfig.TARGET_SIGHTED);
             else if(Math.abs(x.getTargetXDegrees()) <= 10 && Math.abs(x.getTargetXDegrees()) > 5)
-                LED.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
-            else LED.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
+                LED.setPattern(CONSTANTS.ledConfig.CLOSE);
+            else LED.setPattern(CONSTANTS.ledConfig.ON_POINT);
         } catch (NullPointerException ignored) {
-            LED.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
+            LED.setPattern(CONSTANTS.ledConfig.NONE_SIGHTED);
         }
     }
 }
