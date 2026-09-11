@@ -234,7 +234,8 @@ public final class PID_Systems {
 
         //go towards that position, and then look towards the id
         headTo(pinpoint, limelight, motors, ll , CONSTANTS.unit.DU,
-                CONSTANTS.unit.AU, x, y, CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
+                CONSTANTS.unit.AU, x, y, (CONSTANTS.unit.AU==AngleUnit.RADIANS?
+                        Math.PI:180) + CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
 
         //make sure we are looking at it and then move until we are the exact distance away
         //that we want to be
