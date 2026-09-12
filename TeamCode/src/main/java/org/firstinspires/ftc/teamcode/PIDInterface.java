@@ -4,7 +4,6 @@ package org.firstinspires.ftc.teamcode;
 public interface PIDInterface {
     double getError(double a, double b);
     double getError(double Heading);
-    double errorCalculator(double[] input);
     double getP(double error);
     double getI(double error);
     double getD(double error);

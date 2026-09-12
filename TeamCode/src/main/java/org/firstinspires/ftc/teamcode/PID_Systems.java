@@ -55,9 +55,9 @@ public final class PID_Systems {
             pinpoint.update();
             double error = pidD.getError(pinpoint.getPosX(sigma), pinpoint.getPosY(sigma));
             double P = pidD.getP(error);
-            double D = pidD.getD(error);
             double I = pidD.getI((x-pinpoint.getPosX(sigma))*directionX+
                     (y-pinpoint.getPosY(sigma))*directionY);
+            double D = pidD.getD(error);
 
             //For PID, we need magnitude and Direction, the heading I'm gonna use for direction,
             //and for magnitude I'm just gonna use distance formula
@@ -107,7 +107,7 @@ public final class PID_Systems {
                 ((Math.abs((pinpoint.getHeadingVelocity(CONSTANTS.unit.AU.getUnnormalized())))>
                         CONSTANTS.tolerance.TSpeed)||
                         (Math.abs(pidT.getError(pinpoint.getHeading(sigma)))>
-                                CONSTANTS.unit.AU.fromUnit( sigma, CONSTANTS.tolerance.TError)))){
+                                CONSTANTS.unit.AU.fromUnit(sigma, CONSTANTS.tolerance.TError)))){
 
             //update the pinpoint for fresh data
             pinpoint.update();
