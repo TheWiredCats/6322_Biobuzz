@@ -3,8 +3,13 @@ package org.firstinspires.ftc.teamcode;
 
 public interface PIDInterface {
     double getError(double a, double b);
-    double getP(double error, final double KP);
-    double[] getI(double error, double dt ,double lastI, final double KI);
-    double getD(double error, double previousError, double dt, double KD);
+    double getError(double Heading);
+    double errorCalculator(double[] input);
+    double getP(double error);
+    double getI(double error);
+    double getD(double error);
+    void setTime(long time, double error);
+    void reset(double x, double y);
+    void reset(double heading);
 
 }

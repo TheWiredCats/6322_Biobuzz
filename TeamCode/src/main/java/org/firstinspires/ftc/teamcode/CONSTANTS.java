@@ -10,6 +10,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class CONSTANTS {
+    public final static class tolerances{
+        final double DError;
+        final double DSpeed;
+        final double TError;
+        final double TSpeed;
+        public tolerances(double DE, double DS, double TE, double TS){
+            this.DError = DE;
+            this.DSpeed = DS;
+            this.TError = TE;
+            this.TSpeed = TS;
+        }
+    }
+    public static final tolerances tolerance = new tolerances(1, 1, 5, 5);
+    public final static class tunerHolder{
+        final double KP;
+        final double KI;
+        final double KD;
+        public tunerHolder(double kp, double ki, double kd){
+            KP = kp;
+            KI = ki;
+            KD = kd;
+        }
+    }
     public static final class MOTOR_CONFIGS{
         final String NAME;
         final DcMotor.RunMode RUN_MODE;
@@ -102,6 +125,9 @@ public final class CONSTANTS {
             AU = au;
         }
     }
+
+    public static final tunerHolder driverConstants = new tunerHolder(0.25275,  -0.075, 0.155);
+    public static final tunerHolder turningConstants = new tunerHolder(0.2, 0, 0);
 
     public static final Units unit = new Units(DistanceUnit.INCH, AngleUnit.DEGREES);
     //used in case we switch to Radians

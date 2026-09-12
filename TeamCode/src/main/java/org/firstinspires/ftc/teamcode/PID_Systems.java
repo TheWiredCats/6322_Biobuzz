@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
 import java.util.List;
 
@@ -17,32 +16,16 @@ public final class PID_Systems {
     private PID_Systems(){
         //so u don't accidentally make an instance of it and only call it as needed
     }
-    //2 or more uses of the same code just make a damn function for it
+
+    private final static PID_Controller pidD = new PID_Controller(PIDModes.DRIVING);
+    private final static PID_Controller pidT = new PID_Controller(PIDModes.TURNING);
+
     private static void driveTo(DistanceUnit sigma, GoBildaPinpointDriver pinpoint, Limelight3A limelight,
-                        List<DcMotor> motors, LinearOpMode ll,
-                        double x, double y){
+                                List<DcMotor> motors, LinearOpMode ll,
+                                double x, double y){
 
-        //PID BS
+        pidD.reset(x, y);
 
-        //needs testing/tuning
-        //multiplier for each part of the PID
-        final double KP = 0.25275;
-        final double KD = 0.155;
-        final double KI = -0.075;
-
-        //dt is a tiny amount of times, it's a mystery tool that will help us later.
-        //(cool calculus kids know what's up)
-        double dt;
-
-        //Some more mystery tools that will help us later
-        double integral =0;
-        double readingIntegral;
-        double derivative;
-        double proportional;
-
-        //dt measuring stuff
-        long currentTime;
-        long previousTime=System.nanoTime();
 
         //This tells us the angel we want to travel in
         double startingHeading = Math.atan2(-(y-pinpoint.getPosY(sigma)),(x-pinpoint.getPosX(sigma)));
@@ -51,26 +34,30 @@ public final class PID_Systems {
         double directionX = Math.sin(startingHeading);
         double directionY = Math.cos(startingHeading);
 
+        pinpoint.update();
+
+        pidD.setTime(System.nanoTime(), pidD.getError(pinpoint.getPosX(sigma), pinpoint.getPosY(sigma)));
         //PID LOOP HELL
         //run until either op mode turns off or until we're both moving less than .5 inches per second
         //and also .5 inches away from the position
         while(ll.opModeIsActive()&&((Math.sqrt(Math.pow(pinpoint.getVelX(sigma), 2) +
-                Math.pow(pinpoint.getVelY(sigma), 2)) > 0.5) || (Math.sqrt(
-                        Math.pow(x - pinpoint.getPosX(sigma), 2) +
-                        Math.pow(y - pinpoint.getPosY(sigma), 2)) > 0.5))){
+                Math.pow(pinpoint.getVelY(sigma), 2)) > CONSTANTS.tolerance.DSpeed) || (pidD.getError(
+                pinpoint.getPosX(sigma),
+                pinpoint.getPosY(sigma)
+        ))<CONSTANTS.tolerance.DError)){
 
             //Confirming current position using limelight
             try {
                 Cameras.confirmPosition(limelight.getLatestResult(), pinpoint);
             }catch(NullPointerException ignored){}
 
-            //the last pinpoint data before we update to the newest
-            double previousError = Math.sqrt(Math.pow(x-pinpoint.getPosX(sigma),2)+
-                    Math.pow(y-pinpoint.getPosY(sigma),2));
-
-
             //update pinpoint for some fresh data
             pinpoint.update();
+            double error = pidD.getError(pinpoint.getPosX(sigma), pinpoint.getPosY(sigma));
+            double P = pidD.getP(error);
+            double D = pidD.getD(error);
+            double I = pidD.getI((x-pinpoint.getPosX(sigma))*directionX+
+                    (y-pinpoint.getPosY(sigma))*directionY);
 
             //For PID, we need magnitude and Direction, the heading I'm gonna use for direction,
             //and for magnitude I'm just gonna use distance formula
@@ -80,53 +67,17 @@ public final class PID_Systems {
             //where I should tell the robot we're pointing so we can go where we want to go
             double roboYaw = (pinpoint.getHeading(AngleUnit.RADIANS)-desiredHeading);
 
-            //we're using distance formula to find out the absolute value of how far away we are
-            //from the target, or if you've taken algebra 2, we're finding the magnitude
-            double error = Math.sqrt(Math.pow(x - pinpoint.getPosX(sigma), 2) +
-                    Math.pow(y-pinpoint.getPosY(sigma), 2));
-
-            //This part tells us how fast to go depending on how far away we CURRENTLY are
-            //This is known as the present or proportional part of the pid or in other words
-            //P part of the PID
-            proportional=error*KP;
-
-            //dt is the length of the loop
-
-            //current time represents the current time
-            currentTime=System.nanoTime();
-
-            //we subtract current time by the last time we ran this and then divide by 1000
-            //so we could get dt in seconds rather than in milliseconds
-            dt=Math.max((currentTime-previousTime)/1000000000.0, 0.001);
-
-            //change previous time to the old current time so that when it loops previousTime
-            //now represents the previous currentTime
-            previousTime=currentTime;
-
-            //without the extra part the integral could not decrease, due to the fact that error
-            //represents the magnitude of the error, meaning it's only the absolute value
-            integral += (((x - pinpoint.getPosX(sigma)) * directionX) + (directionY *
-                    (y - pinpoint.getPosY(sigma)))) * dt;
-
-            //don't want to change the actual integral, bc that would mess up inner calculations
-            // so we make a new variable and multiply that one by the KI also it represents the
-            //integral, or inherited errors from PAST loops in other words
-            // I part of the PID
-            readingIntegral=integral*KI;
-
-            //This represents the Derivative, or destiny of the error, it handles
-            //where the error WILL become or in other words
-            //D part of the PID
-            derivative=KD*((error-previousError)/dt);
-
             //use PID as magnitude
-            double output = (readingIntegral+derivative+proportional);
+            double output = P+I+D;
 
             //telemetry data being added
             ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, " +
-                    "error: %.2f, dt in secs: %.4f", KP, KI,KD, error, dt);
+                            "error: %.2f", CONSTANTS.driverConstants.KP,
+                    CONSTANTS.driverConstants.KI,
+                    CONSTANTS.driverConstants.KD,
+                    error);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
-                    "Total: %.2f",proportional, readingIntegral, derivative, output);
+                    "Total: %.2f", P, I, D, output);
             Pinpoint.addTelemetry(pinpoint, ll);
             ll.telemetry.update();
 
@@ -144,34 +95,19 @@ public final class PID_Systems {
     }
     private static void turnTo(AngleUnit sigma, LinearOpMode ll, GoBildaPinpointDriver pinpoint,
                         List<DcMotor> motors, double desiredHeading){
-        //needs tuning
-        //multiplier for each part of the PID
-        final double KP = 0.2;
-        final double KD = 0;
-        final double KI = 0;
 
-        //dt is the time between loops, it's gonna be a very small amount of time
-        double dt;
-        //set previous time to rn as a default value
-        long previousTime=System.nanoTime();
-        long currentTime;
-
-        //each part of the PID
-        double proportional;
-        double integral=0;
-        double derivative;
+        pidT.reset(desiredHeading);
 
         //update pinpoint before we start loop for fresh data
         pinpoint.update();
-        while(ll.opModeIsActive()&&
-                ((Math.abs((pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES)))>0.5)||
-                        (Math.abs(
-                                Cameras.wrapAngle(sigma, pinpoint.getHeading(sigma)-desiredHeading))>
-                                (sigma==AngleUnit.DEGREES?5
-                                        :Math.toRadians(5))))){
 
-            //grab the previous error to use for D
-            double previousError = Cameras.wrapAngle(sigma, desiredHeading-pinpoint.getHeading(sigma));
+        pidT.setTime(System.nanoTime(), pidT.getError(pinpoint.getHeading(CONSTANTS.unit.AU)));
+
+        while(ll.opModeIsActive()&&
+                ((Math.abs((pinpoint.getHeadingVelocity(CONSTANTS.unit.AU.getUnnormalized())))>
+                        CONSTANTS.tolerance.TSpeed)||
+                        (Math.abs(pidT.getError(pinpoint.getHeading(sigma)))>
+                                CONSTANTS.unit.AU.fromUnit( sigma, CONSTANTS.tolerance.TError)))){
 
             //update the pinpoint for fresh data
             pinpoint.update();
@@ -179,36 +115,30 @@ public final class PID_Systems {
             //error is the current difference between the 2 angels
             double error = Cameras.wrapAngle(sigma, desiredHeading-pinpoint.getHeading(sigma));
 
-
             //P part of PID represents how much change we still need to do
             //but is often the cause of oscillation when KP is too high
-            proportional=error*KP;
-
-            //obvious name is obvious
-            currentTime=System.nanoTime();
-            //for all but the first loop this measure almost the time it takes to do the entire loop
-            //we divide by 1000 so it gives the data to us in seconds
-            dt=Math.max((currentTime-previousTime)/1000000000.0,0.001);
-            //set the last current time to previous time to be used in the next loop
-            previousTime=currentTime;
+            double P = pidT.getP(error);
 
             //D part of the PID represents how much error is changing, we're taking the derivative
             //of the different positions by simply using the limit definition
-            derivative=KD * (Cameras.wrapAngle(sigma,error-previousError)/dt);
+            double D = pidT.getD(error);
 
             //I part of the PID represents how much the error has changed, we take the integral
             //by simply multiplying by dt and adding over every loop
-            integral+=error*dt;
+            double I = pidT.getI(error);
 
             //the output of the PID is represented by the addition of each part of the pid
             //multiplied by their respective multiplier
-            double total=(proportional+derivative+(integral*KI));
+            double total=(P+I+D);
 
             //telemetry data for tuning and testing
             ll.telemetry.addData("PID DATA","KP: %.2f, KI: %.2f, KD: %.2f, error: " +
-                    "%.2f, dt in secs: %.2f", KP, KI,KD, error, dt);
+                    "%.2f",
+                    CONSTANTS.turningConstants.KP,
+                    CONSTANTS.turningConstants.KI,
+                    CONSTANTS.turningConstants.KD, error);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
-                    "Total: %.2f",proportional, integral*KI, derivative, total);
+                    "Total: %.2f",P, I, D, total);
             Pinpoint.addTelemetry(pinpoint, ll);
             ll.telemetry.update();
 
