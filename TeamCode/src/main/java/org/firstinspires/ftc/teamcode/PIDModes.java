@@ -14,7 +14,7 @@ public enum PIDModes {
     DRIVING(CONSTANTS.driverConstants){
         @Override
         public double getError(double[] input, double[] goal) {
-            return Math.sqrt(Math.pow(goal[0]-input[0], 2)+Math.pow(goal[1]-input[1], 2));
+            return Math.hypot(goal[0]-input[0], goal[1]-input[1]);
         }
         @Override
         public double getD(double error, double previousError, double dt){

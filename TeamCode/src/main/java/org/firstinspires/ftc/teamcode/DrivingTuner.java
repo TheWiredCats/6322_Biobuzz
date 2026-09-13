@@ -16,7 +16,6 @@ public class DrivingTuner extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        Limelight3A limelight = Cameras.setupLimeLight(this);
         //HuskyLens huskyLens = Cameras.setupHuskyLens(this);
 
         //driving motors
@@ -27,8 +26,9 @@ public class DrivingTuner extends LinearOpMode {
         //pinpoint, aka the odometry computer, stuff
         GoBildaPinpointDriver pinpoint = Pinpoint.setUpPinpoint(this);
         pinpoint.setPosition(new Pose2D(CONSTANTS.unit.DU, -63, 63, CONSTANTS.unit.AU, 0));
-
         pinpoint.update();
+
+        Limelight3A limelight = Cameras.setupLimeLight(this, pinpoint);
 
         RevBlinkinLedDriver LED = Led.LEDSetUP(this);
 
@@ -39,6 +39,6 @@ public class DrivingTuner extends LinearOpMode {
 
         waitForStart();
 
-        if(opModeIsActive()) PID_Systems.goTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, 21, 12);
+        if(opModeIsActive()) Driving_Systems.goTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, 21, 12);
     }
 }

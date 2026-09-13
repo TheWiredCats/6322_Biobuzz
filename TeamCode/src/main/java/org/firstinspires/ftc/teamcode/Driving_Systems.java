@@ -12,8 +12,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.List;
 
-public final class PID_Systems {
-    private PID_Systems(){
+public final class Driving_Systems {
+    private Driving_Systems(){
         //so u don't accidentally make an instance of it and only call it as needed
     }
 
@@ -202,7 +202,7 @@ public final class PID_Systems {
             try{
 
                 //get the closest result as the result we want
-                LLResultTypes.FiducialResult result = Cameras.getBiggest(results);
+                LLResultTypes.FiducialResult result = Cameras.getBiggest(results.getFiducialResults());
 
                 //if its valid head towards it
                 turnTo(CONSTANTS.unit.AU, ll, pinpoint, motors,
@@ -238,7 +238,7 @@ public final class PID_Systems {
             Cameras.confirmPosition(results, pinpoint);
 
             //get the closest tag cuz it's the most accurate one usually
-            LLResultTypes.FiducialResult result = Cameras.getBiggest(results);
+            LLResultTypes.FiducialResult result = Cameras.getBiggest(results.getFiducialResults());
 
             //make sure that it actually exists and were not getting garbage data
             if(0 >= result.getFiducialId() && result.getFiducialId() <

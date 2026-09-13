@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.limelightvision.LLFieldMap;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -9,7 +10,12 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.jetbrains.annotations.NotNull;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class Cameras {
     public static HuskyLens setupHuskyLens(OpMode op){
@@ -18,25 +24,47 @@ public final class Cameras {
         return huskyLens;
     }
 
-    public static Limelight3A setupLimeLight(OpMode op){
+    public static Limelight3A setupLimeLight(OpMode op, GoBildaPinpointDriver pinpoint){
         Limelight3A limelight = op.hardwareMap.get(Limelight3A.class, CONSTANTS.LIMELIGHT);
         limelight.pipelineSwitch(0);
         limelight.start();
+        limelight.updateRobotOrientation(pinpoint.getHeading(CONSTANTS.unit.AU));
         return limelight;
     }
 
     private Cameras(){
         //so u don't accidentally make an instance of it and only call it as needed
     }
-    public static LLResultTypes.FiducialResult getBiggest(@NotNull LLResult results)throws NullPointerException{
-        if(!results.isValid())throw new NullPointerException();
 
+    public static List<LLResultTypes.FiducialResult> get4Biggest(LLResult results)throws NullPointerException{
+        if(!results.isValid()||results.getFiducialResults().size()<4)throw new NullPointerException();
+
+        List<LLResultTypes.FiducialResult> output = new ArrayList<>(results.getFiducialResults());
+
+        for(int i = 0; i < 4; i++){
+            for(int j = output.size()-1; j > 0; j--){
+                if (output.get(j - 1).getTargetArea() < output.get(j).getTargetArea()) {
+                    LLResultTypes.FiducialResult placeHolder = output.get(j - 1);
+                    output.set(j - 1, output.get(j));
+                    output.set(j, placeHolder);
+                }
+            }
+        }
+        Families checker = TagData.tagData.get(output.get(0).getFiducialId());
+        for(int i=0;i<3;i++)if (checker!=TagData.tagData.get(output.get(i).getFiducialId()))throw new NullPointerException();
+
+        return List.of(output.get(0), output.get(1), output.get(2), output.get(3));
+    }
+
+    public static LLResultTypes.FiducialResult getBiggest(List<LLResultTypes.FiducialResult> results)throws NullPointerException{
+        if(results.isEmpty())throw new NullPointerException();
+        if(results.size()==1)return results.get(0);
         //make a new fiducial result that has nothing in it
         LLResultTypes.FiducialResult result = null;
 
         //run through all the April tags and checks for which one is the bigger
         //cuz that means it the closest to the robot and least likely to have errors
-        for(LLResultTypes.FiducialResult fr:results.getFiducialResults()){
+        for(LLResultTypes.FiducialResult fr:results){
 
             //makes result equal to this new result if the new result is greater than the old
             //result, or if there is no old result
@@ -71,77 +99,11 @@ public final class Cameras {
             return  fixedAdjustedAngle-Math.toRadians(179);
         }
     }
-    public static void confirmPosition(LLResult results, GoBildaPinpointDriver pinpoint
+    public static void confirmPosition(Limelight3A limelight, LLResult results, GoBildaPinpointDriver pinpoint
     )throws NullPointerException{
-        //noinspection CaughtExceptionImmediatelyRethrown
-        try {
-            LLResultTypes.FiducialResult result = getBiggest(results);
-
-            // get rid of - 20 after kick off
-            // instead of having to write it the long way we can just make a variable to write
-            // the short way, also improves computations time
-            int id = result.getFiducialId();
-
-            if (id >= 0 && id < CONSTANTS.APRIL_TAG_POSITIONS.length) {
-                //declare and reset the real X and Y
-                double currentX;
-                double currentY;
-
-                //Tx and Ty from the limelight are graphed in degrees and are also reversed so
-                //we have to make them negative and turn them into radians before we can use them
-                double tx = Math.toRadians(-result.getTargetXDegrees());
-                double ty = Math.toRadians(-result.getTargetYDegrees());
-
-                //tan of something that is too close to 90 starts to make it head towards
-                //infinity, and  FAST
-                if((Math.abs(tx)<(Math.PI/3)&&Math.abs(ty)<(Math.PI/3))&&Math.abs(ty)>Math.toRadians(1)){
-
-                    //Get the X and Y positions of each tag
-                    double apriltagX = CONSTANTS.APRIL_TAG_POSITIONS[id][0];
-                    double apriltagY = CONSTANTS.APRIL_TAG_POSITIONS[id][1];
-
-                    //how far away the april tag is
-                    double ZDifference = CONSTANTS.APRIL_TAG_HEIGHT / Math.tan(ty);
-
-                    //how far left or right it is, negative is left and right is positive
-                    double LRDifference = ZDifference * Math.tan(tx);
-
-                    double apriltagAngle = AngleUnit.RADIANS.fromUnit(CONSTANTS.unit.AU,
-                            CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
-
-                    if(CONSTANTS.APRIL_TAG_POSITIONS[id][2]<0) {
-                        currentX = apriltagX
-                                - ZDifference * Math.cos(apriltagAngle)
-                                + LRDifference * Math.sin(apriltagAngle);
-
-                        currentY = apriltagY
-                                - ZDifference * Math.sin(apriltagAngle)
-                                - LRDifference * Math.cos(apriltagAngle);
-                    }else {
-                        currentX = pinpoint.getPosX(CONSTANTS.unit.DU);
-                        currentY = pinpoint.getPosY(CONSTANTS.unit.DU);
-                    }
-                    //how far away we are from what it says we are
-                    double distanceDifference = Math.sqrt(
-                            Math.pow((currentX - pinpoint.getPosX(CONSTANTS.unit.DU)), 2)
-                                    + Math.pow(currentY - pinpoint.getPosY(CONSTANTS.unit.DU), 2));
-
-                    //only runs if our "actual" distance is somewhat close to what we think we are
-                    //to prevent glitches messing with our odometry
-                    if(distanceDifference < 20){
-                        //set the position to what the tag says we are, and the position to what
-                        //it already is
-                        pinpoint.setPosition(new Pose2D(CONSTANTS.unit.DU,
-                                (currentX + CONSTANTS.CAMERA_X_OFFSET),
-                                (currentY + CONSTANTS.CAMERA_Y_OFFSET),
-                                CONSTANTS.unit.AU,
-                                pinpoint.getHeading(CONSTANTS.unit.AU)));
-                    }
-
-                }
-            }
-        }catch (NullPointerException e) {
-            throw e;
-        }
+        if(!results.isValid())throw new NullPointerException();
+        List<LLResultTypes.FiducialResult> tags = get4Biggest(results);
+        if(tags.get(0).getTargetPoseCameraSpace().getOrientation().getPitch()<-70)throw new NullPointerException();
+        
     }
 }

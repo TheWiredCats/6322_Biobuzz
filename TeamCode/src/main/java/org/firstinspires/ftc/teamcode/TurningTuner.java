@@ -19,7 +19,6 @@ public class TurningTuner extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        Limelight3A limelight = Cameras.setupLimeLight(this);
         //HuskyLens huskyLens = Cameras.setupHuskyLens(this);
 
         //pinpoint, aka the odometry computer, stuff
@@ -27,6 +26,8 @@ public class TurningTuner extends LinearOpMode {
         pinpoint.resetPosAndIMU();
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
         pinpoint.update();
+
+        Limelight3A limelight = Cameras.setupLimeLight(this, pinpoint);
 
         //driving motors
         List<DcMotor> motors = Motors.setupDrivingMotors(this);
@@ -40,6 +41,6 @@ public class TurningTuner extends LinearOpMode {
 
         waitForStart();
 
-        if (opModeIsActive())PID_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0 , 180);
+        if (opModeIsActive()) Driving_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0 , 180);
     }
 }

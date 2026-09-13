@@ -13,7 +13,7 @@ public final class Led {
     }
     public static void placementScanner(Limelight3A limelight, RevBlinkinLedDriver LED){
         try{
-            LLResultTypes.FiducialResult x = Cameras.getBiggest(limelight.getLatestResult());
+            LLResultTypes.FiducialResult x = Cameras.getBiggest(limelight.getLatestResult().getFiducialResults());
             if(Math.abs(x.getTargetXDegrees()) > 7.5) LED.setPattern(CONSTANTS.ledConfig.TARGET_SIGHTED);
             else if(Math.abs(x.getTargetXDegrees()) <= 7.5 && Math.abs(x.getTargetXDegrees()) > 2.5)
                 LED.setPattern(CONSTANTS.ledConfig.CLOSE);

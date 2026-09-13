@@ -10,6 +10,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class CONSTANTS {
+    public final static class Position {
+        AprilTagPosition ForBLUE;
+        AprilTagPosition BacBLUE;
+        AprilTagPosition ForRED;
+        AprilTagPosition BacRED;
+        public Position(AprilTagPosition forblue, AprilTagPosition bacblue, AprilTagPosition forred, AprilTagPosition bacred){
+            this.ForBLUE = forblue;
+            this.BacBLUE = bacblue;
+            this.ForRED = forred;
+            this.BacRED=bacred;
+        }
+    }
+    /*
+    public static Position currentFieldPosition = new Position(
+            AprilTagPosition.UP,
+            AprilTagPosition.DOWN,
+            AprilTagPosition.DOWN,
+            AprilTagPosition.UP);
+     */
     public final static class tolerances{
         final double DError;
         final double DSpeed;
@@ -130,36 +149,21 @@ public final class CONSTANTS {
     public static final tunerHolder turningConstants = new tunerHolder(0.2, 0, 0);
 
     public static final Units unit = new Units(DistanceUnit.INCH, AngleUnit.DEGREES);
-    //used in case we switch to Radians
-    //private final double pi = Math.PI;
 
-    //replace with the position of this year's apriltags in inches
-    //except for the first one keep this one empty   V
-    public static final double[][] APRIL_TAG_POSITIONS = {{0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {0, 0, -1},
-            {12, 0, 180},
-            {12 + ((5.5 * Math.sqrt(3)) / 2), 2.75, 45},
-            {12 + ((5.5 * Math.sqrt(3)) / 2), -2.75, 135}
+    private static final double[][] tagPositions= new double[][]{
+            {0,1},
+            {1,2}
+            //added data
     };
+
+    public static final List<double[]> APRIL_TAG_POSITIONS = new ArrayList<>();
+
+    static{
+        for(int i = 0; i <= 15; i++){
+            APRIL_TAG_POSITIONS.add(tagPositions[i]);
+        }
+    }
+
     public static final double CAMERA_X_OFFSET = 5;
     public static final double CAMERA_Y_OFFSET = 6;
     public static final double CAMERA_HEIGHT = 10.375;

@@ -33,8 +33,6 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
 import java.util.ArrayList;
@@ -64,6 +62,7 @@ public class OffSeasonPrototype1I extends OpMode {
 //    private IMU imu = null;
 
     private GoBildaPinpointDriver pinpoint;
+    private AprilTagPosition position;
     double currentY=0;
     double currentX=0;
     boolean codeMissing;
@@ -76,6 +75,11 @@ public class OffSeasonPrototype1I extends OpMode {
     double lastHeading;
     List<DcMotor> motors;
 
+    //how low/high the Speed can go with both triggers down/up respectfully
+    final double MINIMUM = 0.25;
+    //maximum must be less than or equal to 1
+    final double MAXIMUM = 1;
+
     @Override
     public void init() {
 
@@ -87,10 +91,10 @@ public class OffSeasonPrototype1I extends OpMode {
         Intake = tempMotors.get(0);
         Transfer = tempMotors.get(1);
 
-//        imu = hardwareMap.get(IMU.class, "imu");
+        //imu = hardwareMap.get(IMU.class, "imu");
         pinpoint = Pinpoint.setUpPinpoint(this);
 
-        limelight=Cameras.setupLimeLight(this);
+        limelight=Cameras.setupLimeLight(this, pinpoint);
         huskyLens=Cameras.setupHuskyLens(this);
     }
     /*
@@ -121,10 +125,7 @@ public class OffSeasonPrototype1I extends OpMode {
         Intake.setPower(gamepad1.a?-1:0);
         Transfer.setPower(gamepad1.y?1:0);
 
-        //how low/high the Speed can go with both triggers down/up respectfully
-        final double MINIMUM = 0.25;
-        //maximum must be less than or equal to 1
-        final double MAXIMUM = 1;
+        limelight.updateRobotOrientation(pinpoint.getHeading(AngleUnit.DEGREES));
 
         //Calculates how far the minimum is from the middle of the 2
         // (to know how much each should affect)
@@ -150,6 +151,15 @@ public class OffSeasonPrototype1I extends OpMode {
 
 
         LLResult results = limelight.getLatestResult(); //april tag code
+        try{
+            List<LLResultTypes.FiducialResult> tags = Cameras.get4Biggest(results);
+            if(tags.get(0).getTargetPoseCameraSpace().getOrientation().getPitch()<-70)throw new NullPointerException();
+            for(int i = 0; i < 4;i++){
+                tags.get(i);
+
+            }
+        }catch (NullPointerException ignored){}
+        /*
         if (results.isValid()) {
             double captureLatency = results.getCaptureLatency();
             double targetingLatency = results.getTargetingLatency();
@@ -203,6 +213,7 @@ public class OffSeasonPrototype1I extends OpMode {
                 }
             }catch (NullPointerException ignored){}
         }
+             */
 
         HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
         telemetry.addData("HL Block Count", blocks.length);
