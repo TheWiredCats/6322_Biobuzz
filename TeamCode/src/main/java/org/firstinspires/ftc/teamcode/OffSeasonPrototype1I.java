@@ -62,7 +62,6 @@ public class OffSeasonPrototype1I extends OpMode {
 //    private IMU imu = null;
 
     private GoBildaPinpointDriver pinpoint;
-    private AprilTagPosition position;
     double currentY=0;
     double currentX=0;
     boolean codeMissing;
@@ -130,7 +129,6 @@ public class OffSeasonPrototype1I extends OpMode {
         //Calculates how far the minimum is from the middle of the 2
         // (to know how much each should affect)
         double Difference=(MAXIMUM-MINIMUM)/2;
-
         //Readability of code
         double TotalTrigger=gamepad1.right_trigger+gamepad1.left_trigger;
 

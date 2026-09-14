@@ -39,6 +39,6 @@ public class DrivingTuner extends LinearOpMode {
 
         waitForStart();
 
-        if(opModeIsActive()) Driving_Systems.goTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, 21, 12);
+        //if(opModeIsActive()) Driving_Systems.goTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, 21, 12);
     }
 }

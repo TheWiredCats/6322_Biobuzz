@@ -49,7 +49,7 @@ public class Auto_prolly_RED extends LinearOpMode {
 
         //run this code once
         if (opModeIsActive()){
-            Driving_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0, -180);
+            //Driving_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0, -180);
 
         }
 

@@ -48,7 +48,7 @@ public final class Driving_Systems {
 
             //Confirming current position using limelight
             try {
-                Cameras.confirmPosition(limelight.getLatestResult(), pinpoint);
+                //Cameras.confirmPosition(limelight.getLatestResult(), pinpoint);
             }catch(NullPointerException ignored){}
 
             //update pinpoint for some fresh data
@@ -148,6 +148,7 @@ public final class Driving_Systems {
         //brake after we arrive at our destination
         Motors.setPowers(0,0,0,0,motors);
     }
+    /*
     public static void goTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
                      LinearOpMode ll, DistanceUnit sigma, int id,
                      double distance)throws NullPointerException{
@@ -180,6 +181,7 @@ public final class Driving_Systems {
         //then turn to the direction we want to be heading
         turnTo(sigmaAng, ll, pinpoint, motors, heading);
     }
+     */
     public static boolean lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint,
                           List<DcMotor> motors, double initialHeading, double shimmy) {
 
@@ -235,14 +237,13 @@ public final class Driving_Systems {
             LLResult results = limelight.getLatestResult();
 
             //just to have some data
-            Cameras.confirmPosition(results, pinpoint);
+            //Cameras.confirmPosition(results, pinpoint);
 
             //get the closest tag cuz it's the most accurate one usually
             LLResultTypes.FiducialResult result = Cameras.getBiggest(results.getFiducialResults());
 
             //make sure that it actually exists and were not getting garbage data
-            if(0 >= result.getFiducialId() && result.getFiducialId() <
-                    CONSTANTS.APRIL_TAG_POSITIONS.length){
+            if(0 >= result.getFiducialId()){
 
             //get how many degrees above us, it is
             double ty = result.getTargetYDegrees();
