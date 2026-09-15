@@ -106,7 +106,7 @@ public final class CONSTANTS {
     /* BL */DcMotor.Direction.REVERSE,
     /* FR */DcMotor.Direction.FORWARD,
     /* BR */DcMotor.Direction.FORWARD,
-/* Intake */DcMotor.Direction.FORWARD,
+/* Intake */DcMotor.Direction.REVERSE,
 /*Transfer*/DcMotor.Direction.FORWARD,
 /* Shoots */DcMotor.Direction.FORWARD
     );

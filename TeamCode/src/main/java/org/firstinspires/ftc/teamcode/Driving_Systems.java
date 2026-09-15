@@ -179,11 +179,11 @@ public final class Driving_Systems {
     public static void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
                               LinearOpMode ll, DistanceUnit sigmaDis, AngleUnit sigmaAng,
                               double x, double y, double heading) {
-        //first turn to the direction we want to be heading
-        turnTo(sigmaAng, ll, pinpoint, motors, heading);
-
         //then drive to the location we want to go to
         driveTo(sigmaDis, pinpoint, limelight, motors, ll, x, y);
+
+        //first turn to the direction we want to be heading
+        turnTo(sigmaAng, ll, pinpoint, motors, heading);
     }
 
     public static boolean lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint,
@@ -228,51 +228,14 @@ public final class Driving_Systems {
         }
         return false;
     }
-}
-/*
+
     public static void lockIn(DistanceUnit sigma, LinearOpMode ll, Limelight3A limelight,
-                       GoBildaPinpointDriver pinpoint, List<DcMotor> motors,
-                       double Distance){
+                              GoBildaPinpointDriver pinpoint, List<DcMotor> motors,
+                              double Distance) {
         //make sure we're facing the right way
-        if(lockOn(ll,limelight,pinpoint,motors, pinpoint.getHeading(AngleUnit.DEGREES),0)) {
+        if (lockOn(ll, limelight, pinpoint, motors, pinpoint.getHeading(AngleUnit.DEGREES), 0)) {
+            double convertedDistance = CONSTANTS.unit.DU.fromUnit(sigma, Distance);
 
-            //declare it outside so we can increase the scope beyond the fore loop
-            double ZDistance;
-
-            //get fresh limelight data
-            LLResult results = limelight.getLatestResult();
-
-            //just to have some data
-            //Cameras.confirmPosition(results, pinpoint);
-
-            //get the closest tag cuz it's the most accurate one usually
-            LLResultTypes.FiducialResult result = Cameras.getBiggest(results.getFiducialResults());
-
-            //make sure that it actually exists and were not getting garbage data
-            if(0 >= result.getFiducialId()){
-
-            //get how many degrees above us, it is
-            double ty = result.getTargetYDegrees();
-
-            if(Math.abs(ty) < 60 && Math.abs(ty) > 1) {
-                //we make a right triangle to find how far a way we are and use basic trig
-                ZDistance = CONSTANTS.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(-ty));
-
-                //we subtract the total from how far we want to be from the tag to find
-                //out how far we have to move
-                double difference = ZDistance - Distance;
-
-                //we have to get the coordinates -y,x because the whole graph is rotated 90 to the left
-                double x = pinpoint.getPosX(sigma) + (difference * Math.sin(
-                        pinpoint.getHeading(AngleUnit.RADIANS)));
-                double y = pinpoint.getPosY(sigma) + (difference * Math.cos(
-                        pinpoint.getHeading(AngleUnit.RADIANS)));
-
-                //now drive there
-                driveTo(sigma, pinpoint, limelight, motors, ll, x, y);
-                }
-            }
         }
     }
 }
-*/

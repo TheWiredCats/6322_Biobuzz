@@ -25,6 +25,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 //import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -32,6 +33,9 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
 import java.util.ArrayList;
@@ -52,11 +56,11 @@ public class OffSeasonPrototype1I extends OpMode {
     /* Declare OpMode members. */
     //as soon as teleop selected
 
-    private DcMotor Intake = null;
-    private DcMotor Transfer = null;
-    private HuskyLens huskyLens = null;
+    private DcMotor Intake;
+    private DcMotor Transfer;
+    private HuskyLens huskyLens;
 
-    private Limelight3A limelight = null;
+    private Limelight3A limelight;
 
 //    private IMU imu = null;
 
@@ -67,6 +71,7 @@ public class OffSeasonPrototype1I extends OpMode {
     double FRCHeading=0;
     double lastHeading;
     List<DcMotor> motors;
+    private DcMotor Shoot;
 
     //how low/high the Speed can go with both triggers down/up respectfully
     final double MINIMUM = 0.25;
@@ -83,6 +88,7 @@ public class OffSeasonPrototype1I extends OpMode {
         List<DcMotor> tempMotors = Motors.setupMotors(this);
         Intake = tempMotors.get(0);
         Transfer = tempMotors.get(1);
+        Shoot = tempMotors.get(2);
 
         //imu = hardwareMap.get(IMU.class, "imu");
         pinpoint = Pinpoint.setUpPinpoint(this);
@@ -115,8 +121,9 @@ public class OffSeasonPrototype1I extends OpMode {
     public void loop() {
         //rateLimit.reset();
 
-        Intake.setPower(gamepad1.a?-1:0);
-        Transfer.setPower(gamepad1.y?1:0);
+        Intake.setPower(gamepad1.a? 1 : 0);
+        Transfer.setPower(gamepad1.y? 1 : 0);
+        Shoot.setPower(gamepad1.b ? 1 : 0);
 
         limelight.updateRobotOrientation(pinpoint.getHeading(AngleUnit.DEGREES));
 
@@ -141,62 +148,25 @@ public class OffSeasonPrototype1I extends OpMode {
 
         double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
+
         LLResult result = limelight.getLatestResult();
-        /*
-        if (results.isValid()) {
-            double captureLatency = results.getCaptureLatency();
-            double targetingLatency = results.getTargetingLatency();
-            //double parseLatency = result.getParseLatency();
-            telemetry.addData("LL Latency", captureLatency + targetingLatency);
-
-            try{
-                LLResultTypes.FiducialResult result = Cameras.getBiggest(results);
-                telemetry.addData("LL: April tag", "ID: %d, Family: %s, X: %.2f, Y: %.2f", result.getFiducialId(), result.getFamily(), result.getTargetXDegrees(), result.getTargetYDegrees());
-
-                // get rid of -20 after kickoff
-                id = result.getFiducialId();
-                if (id>=0&&id<CONSTANTS.APRIL_TAG_POSITIONS.length) {
-                    double tx = -result.getTargetXDegrees();
-                    double ty = -result.getTargetYDegrees();
-                    if (CONSTANTS.APRIL_TAG_POSITIONS[id][2] >= 0 && CONSTANTS.APRIL_TAG_POSITIONS[id][2] <= 3) {
-                        lastConfirmation = System.currentTimeMillis() / 1000;
-                    }
-                    if (Math.abs(tx) < 60 && Math.abs(ty) < 60) {
-                        double apriltagX = CONSTANTS.APRIL_TAG_POSITIONS[id][0];
-                        double apriltagY = CONSTANTS.APRIL_TAG_POSITIONS[id][1];
-                        //how far away the april tag is
-                        ZDifference = CONSTANTS.APRIL_TAG_HEIGHT / Math.tan(Math.toRadians(ty));
-                        //how far left or right it is, negative is left and right is positive
-                        LRDifference = ZDifference * Math.tan(Math.toRadians(tx));
-                        double apriltagAngle = AngleUnit.RADIANS.fromUnit(CONSTANTS.unit.AU, CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
-                        if (CONSTANTS.APRIL_TAG_POSITIONS[id][2] < 0) {
-                            currentX = apriltagX
-                                    - ZDifference * Math.cos(apriltagAngle)
-                                    + LRDifference * Math.sin(apriltagAngle);
-
-                            currentY = apriltagY
-                                    - ZDifference * Math.sin(apriltagAngle)
-                                    - LRDifference * Math.cos(apriltagAngle);
-                        } else {
-                            brokenId.add(id);
-                            codeMissing = true;
-                            currentX = pinpoint.getPosX(DistanceUnit.INCH) - CONSTANTS.CAMERA_X_OFFSET;
-                            currentY = pinpoint.getPosY(DistanceUnit.INCH) - CONSTANTS.CAMERA_Y_OFFSET;
-                        }
-                        if (!codeMissing) telemetry.addLine("Code Working!");
-
-                        double distanceDifference = Math.sqrt(
-                                Math.pow(currentX - pinpoint.getPosX(CONSTANTS.unit.DU), 2) +
-                                Math.pow(currentY - pinpoint.getPosY(CONSTANTS.unit.DU), 2));
-
-                        if (distanceDifference < 20) {
-                            pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, currentX + CONSTANTS.CAMERA_X_OFFSET, currentY + CONSTANTS.CAMERA_Y_OFFSET, AngleUnit.DEGREES, pinpoint.getHeading(AngleUnit.DEGREES)));
-                        }
-                    }
+        try {
+            LLResultTypes.FiducialResult tags = Cameras.getBiggest(result.getFiducialResults());
+            if (result.isValid()&&tags.getTargetPoseCameraSpace().getOrientation().getPitch()>-70){
+                limelight.pipelineSwitch(TagData.tagData.get(tags.getFiducialId()-30).value);
+                if(limelight.getStatus().getPipelineIndex()!=0){
+                    Pose3D position = limelight.getLatestResult().getBotpose_MT2();
+                    pinpoint.setPosition(new Pose2D(DistanceUnit.METER, -position.getPosition().x,
+                            -position.getPosition().y, AngleUnit.DEGREES,
+                            Cameras.wrapAngle(AngleUnit.DEGREES,
+                                    180 + position.getOrientation().getYaw())));
+                    lastConfirmation=System.currentTimeMillis();
+                    limelight.pipelineSwitch(0);
                 }
-            }catch (NullPointerException ignored){}
+            }
+        }finally {
+            if(limelight.getStatus().getPipelineIndex()!=0)limelight.pipelineSwitch(0);
         }
-             */
 
         HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
         telemetry.addData("HL Block Count", blocks.length);
@@ -256,7 +226,6 @@ public class OffSeasonPrototype1I extends OpMode {
 
         long secs=(System.currentTimeMillis()/1000)-lastConfirmation;
         long mins=secs/60;
-        if(codeMissing&&!brokenId.isEmpty())telemetry.addLine("CODE MISSING for ids "+ brokenId.toString().substring(1, brokenId.toString().length()-1) + "!!!!!!!");
         if(result.isValid()){
             telemetry.addLine("Conforming Odometry :D");
         }else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+(secs%60)+" Secs Ago");
