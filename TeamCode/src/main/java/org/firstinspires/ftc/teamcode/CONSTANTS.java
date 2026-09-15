@@ -82,7 +82,7 @@ public final class CONSTANTS {
     }
 
     //All motors should be in order FL, BL, FR, BR, Intake, Transfer
-    private static final String[] MOTORS = {"FL", "BL", "FR", "BR", "intake", "transfer"};
+    private static final String[] MOTORS = {"FL", "BL", "FR", "BR", "intake", "transfer", "shoot"};
     private static final List<DcMotor.RunMode> RUN_TYPES = List.of(
     /* FL */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
     /* BL */DcMotor.RunMode.RUN_WITHOUT_ENCODER,

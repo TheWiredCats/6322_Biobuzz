@@ -4,11 +4,14 @@ import androidx.core.math.MathUtils;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.List;
+
+@TeleOp(name = "Guitar Sigma")
 
 public class GuitarSigma extends OpMode {
 
@@ -37,7 +40,7 @@ public class GuitarSigma extends OpMode {
 
         Intake.setPower(gamepad2.a?-1:0);
         Transfer.setPower(gamepad2.y?1:0);
-        shoot.setPower(gamepad1.x?1:0);
+        shoot.setPower(gamepad2.x?1:0);
 
 
         double speedMult = 0.5+ MathUtils.clamp(gamepad1.right_stick_x, -0.4, 5);
