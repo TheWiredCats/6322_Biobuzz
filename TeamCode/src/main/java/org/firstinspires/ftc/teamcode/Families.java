@@ -1,8 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
 public enum Families {
-    RedFront,
-    BlueFront,
-    RedBack,
-    BlueBack;
+    RedFront(1),
+    RedBack(2),
+    BlueBack(3),
+    BlueFront(4);
+    final int value;
+    Families(int value){
+        this.value = value;
+    }
 }

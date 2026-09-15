@@ -6,13 +6,13 @@ import com.qualcomm.hardware.limelightvision.LLFieldMap;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +28,11 @@ public final class Cameras {
         Limelight3A limelight = op.hardwareMap.get(Limelight3A.class, CONSTANTS.LIMELIGHT);
         limelight.pipelineSwitch(0);
         limelight.start();
+        List<LLFieldMap.Fiducial> map = new ArrayList<>();
+        for(int i = 30; i <= 45;i++){
+            map.add(new LLFieldMap.Fiducial(i, 82.55, "apriltag3_36h11_classic", TagData.transforms.get(i-30), true));
+        }
+        limelight.uploadFieldmap(new LLFieldMap(map, "ftc"), null);
         limelight.updateRobotOrientation(pinpoint.getHeading(CONSTANTS.unit.AU));
         return limelight;
     }
@@ -36,8 +41,8 @@ public final class Cameras {
         //so u don't accidentally make an instance of it and only call it as needed
     }
 
-    public static List<LLResultTypes.FiducialResult> get4Biggest(LLResult results)throws NullPointerException{
-        if(!results.isValid()||results.getFiducialResults().size()<4)throw new NullPointerException();
+    public static List<LLResultTypes.FiducialResult> get4Biggest(LLResult results)throws MonkeyBuisness{
+        if(!results.isValid()||results.getFiducialResults().size()<4)throw new MonkeyBuisness();
 
         List<LLResultTypes.FiducialResult> output = new ArrayList<>(results.getFiducialResults());
 
@@ -51,13 +56,13 @@ public final class Cameras {
             }
         }
         Families checker = TagData.tagData.get(output.get(0).getFiducialId());
-        for(int i=0;i<3;i++)if (checker!=TagData.tagData.get(output.get(i).getFiducialId()))throw new NullPointerException();
+        for(int i=0;i<3;i++)if (checker!=TagData.tagData.get(output.get(i).getFiducialId()))throw new MonkeyBuisness();
 
         return List.of(output.get(0), output.get(1), output.get(2), output.get(3));
     }
 
-    public static LLResultTypes.FiducialResult getBiggest(List<LLResultTypes.FiducialResult> results)throws NullPointerException{
-        if(results.isEmpty())throw new NullPointerException();
+    public static LLResultTypes.FiducialResult getBiggest(List<LLResultTypes.FiducialResult> results)throws MonkeyBuisness{
+        if(results.isEmpty())throw new MonkeyBuisness();
         if(results.size()==1)return results.get(0);
         //make a new fiducial result that has nothing in it
         LLResultTypes.FiducialResult result = null;
@@ -99,11 +104,24 @@ public final class Cameras {
             return  fixedAdjustedAngle-Math.toRadians(179);
         }
     }
-    public static void confirmPosition(Limelight3A limelight, LLResult results, GoBildaPinpointDriver pinpoint
-    )throws NullPointerException{
-        if(!results.isValid())throw new NullPointerException();
-        List<LLResultTypes.FiducialResult> tags = get4Biggest(results);
-        if(tags.get(0).getTargetPoseCameraSpace().getOrientation().getPitch()<-70)throw new NullPointerException();
-        
+    public static void confirmPosition(Limelight3A limelight, GoBildaPinpointDriver pinpoint, LinearOpMode ll)throws MonkeyBuisness{
+        LLResult result = limelight.getLatestResult();
+        double oldTimestamp = result.getTimestamp();
+        LLResultTypes.FiducialResult tags = Cameras.getBiggest(result.getFiducialResults());
+        if(tags.getTargetPoseCameraSpace().getOrientation().getPitch()<-70)throw new MonkeyBuisness();
+        limelight.pipelineSwitch(TagData.tagData.get(tags.getFiducialId()-30).value);
+        long startTime = System.currentTimeMillis();
+        LLResult freshResult = limelight.getLatestResult();
+        while (ll.opModeIsActive() && (freshResult.getTimestamp() <= oldTimestamp)) {
+            if (System.currentTimeMillis() - startTime > 40)break;
+            ll.sleep(2);
+            freshResult = limelight.getLatestResult();
+        }
+        Pose3D position = limelight.getLatestResult().getBotpose_MT2();
+        pinpoint.setPosition(new Pose2D(DistanceUnit.METER, -position.getPosition().x,
+                -position.getPosition().y, AngleUnit.DEGREES,
+                Cameras.wrapAngle(AngleUnit.DEGREES,
+                        180+position.getOrientation().getYaw(AngleUnit.DEGREES))));
+        limelight.pipelineSwitch(0);
     }
 }

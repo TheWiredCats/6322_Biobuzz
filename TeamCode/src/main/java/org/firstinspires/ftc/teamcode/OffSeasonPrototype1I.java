@@ -29,7 +29,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
@@ -62,15 +61,10 @@ public class OffSeasonPrototype1I extends OpMode {
 //    private IMU imu = null;
 
     private GoBildaPinpointDriver pinpoint;
-    double currentY=0;
-    double currentX=0;
     boolean codeMissing;
     List<Integer> brokenId;
     long lastConfirmation;
     double FRCHeading=0;
-    int id;
-    double ZDifference;
-    double LRDifference;
     double lastHeading;
     List<DcMotor> motors;
 
@@ -147,16 +141,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
         double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
-
-        LLResult results = limelight.getLatestResult(); //april tag code
-        try{
-            List<LLResultTypes.FiducialResult> tags = Cameras.get4Biggest(results);
-            if(tags.get(0).getTargetPoseCameraSpace().getOrientation().getPitch()<-70)throw new NullPointerException();
-            for(int i = 0; i < 4;i++){
-                tags.get(i);
-
-            }
-        }catch (NullPointerException ignored){}
+        LLResult result = limelight.getLatestResult();
         /*
         if (results.isValid()) {
             double captureLatency = results.getCaptureLatency();
@@ -272,7 +257,7 @@ public class OffSeasonPrototype1I extends OpMode {
         long secs=(System.currentTimeMillis()/1000)-lastConfirmation;
         long mins=secs/60;
         if(codeMissing&&!brokenId.isEmpty())telemetry.addLine("CODE MISSING for ids "+ brokenId.toString().substring(1, brokenId.toString().length()-1) + "!!!!!!!");
-        if(results.isValid()){
+        if(result.isValid()){
             telemetry.addLine("Conforming Odometry :D");
         }else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+(secs%60)+" Secs Ago");
             else telemetry.addLine("Not yet confirmed");

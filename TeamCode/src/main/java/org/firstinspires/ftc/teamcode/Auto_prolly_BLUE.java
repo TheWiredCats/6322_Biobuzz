@@ -47,7 +47,7 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         waitForStart();
 
         //run this code once
-        /*
+
         if (opModeIsActive()){
             //drive to top left corner
             Driving_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 60, 60, 0);
@@ -65,10 +65,7 @@ public class Auto_prolly_BLUE extends LinearOpMode {
             Driving_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, -60, -60, -45);
             sleep(1000);
 
-            //look for an April tag and lock move until ur exactly 3ft away from it
-            Driving_Systems.lockIn(DistanceUnit.INCH,this, limelight, pinpoint, motors,36);
         }
-         */
 
     }
 }

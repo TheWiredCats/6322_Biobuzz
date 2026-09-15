@@ -2,10 +2,11 @@ package org.firstinspires.ftc.teamcode;
 
 import androidx.core.math.MathUtils;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.List;
 
@@ -15,10 +16,6 @@ public class GuitarSigma extends OpMode {
     private DcMotor Transfer;
     private GoBildaPinpointDriver pinpoint;
     private double frcHeading;
-    private double FL = 0;
-    private double BL = 0;
-    private double FR = 0;
-    private double BR = 0;
     List<DcMotor> motors;
     @Override
     public void init() {
@@ -42,17 +39,17 @@ public class GuitarSigma extends OpMode {
         if(gamepad1.left_bumper) frcHeading=0;
 
         double speedMult = 0.5+ MathUtils.clamp(gamepad1.right_stick_x, -0.4, 5);
-        double roboYaw = BNO055IMU.AngleUnit.RADIANS.toAngleUnit().fromUnit(CONSTANTS.unit.AU, frcHeading);
+        double roboYaw = AngleUnit.RADIANS.fromUnit(CONSTANTS.unit.AU, frcHeading);
         double lx = - (gamepad1.a?(gamepad1.b?0:1):gamepad1.b?-1:0);
         double ly = 1.1* (gamepad1.x?(gamepad1.y?0:1):gamepad1.y?-1:0);
         double rx = gamepad1.dpad_down?(gamepad1.dpad_up?0:1):gamepad1.dpad_up?-1:0;
         double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
         double y = ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw);
 
-        FL = (y + x + rx) * speedMult;
-        BL = (y - x + rx) * speedMult;
-        FR = (y - x - rx) * speedMult;
-        BR = (y - x - rx) * speedMult;
+        double FL = (y + x + rx) * speedMult;
+        double BL = (y - x + rx) * speedMult;
+        double FR = (y - x - rx) * speedMult;
+        double BR = (y + x - rx) * speedMult;
         Motors.setPowers(FL, BL, FR, BR, motors);
     }
 }
