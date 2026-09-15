@@ -12,7 +12,7 @@ public final class Motors {
     }
     public static List<DcMotor> setupMotors(OpMode op){
         List<DcMotor> motors = new ArrayList<>();
-        for(int i = 4; i < 6; i++){
+        for(int i = 4; i < 7; i++){
             if(motors.size()<=i-4)motors.add(i-4, op.hardwareMap.dcMotor.get(CONSTANTS.MOTOR_CONFIG.get(i).NAME));
             else motors.set(i-4, op.hardwareMap.dcMotor.get(CONSTANTS.MOTOR_CONFIG.get(i).NAME));
             motors.get(i-4).setMode(CONSTANTS.MOTOR_CONFIG.get(i).RUN_MODE);

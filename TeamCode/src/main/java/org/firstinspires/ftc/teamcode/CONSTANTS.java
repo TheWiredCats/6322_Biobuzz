@@ -89,7 +89,8 @@ public final class CONSTANTS {
     /* FR */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
     /* BR */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
 /* Intake */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
-/*Transfer*/DcMotor.RunMode.RUN_WITHOUT_ENCODER
+/*Transfer*/DcMotor.RunMode.RUN_WITHOUT_ENCODER,
+/* Shoots */DcMotor.RunMode.RUN_WITHOUT_ENCODER
     );
     private static final List<DcMotor.ZeroPowerBehavior> BRAKE_MODES = List.of(
     /* FL */DcMotor.ZeroPowerBehavior.BRAKE,
@@ -97,7 +98,8 @@ public final class CONSTANTS {
     /* FR */DcMotor.ZeroPowerBehavior.BRAKE,
     /* BR */DcMotor.ZeroPowerBehavior.BRAKE,
 /* Intake */DcMotor.ZeroPowerBehavior.FLOAT,
-/*Transfer*/DcMotor.ZeroPowerBehavior.FLOAT
+/*Transfer*/DcMotor.ZeroPowerBehavior.FLOAT,
+/* Shoots */DcMotor.ZeroPowerBehavior.FLOAT
     );
     private static final List<DcMotor.Direction> DIRECTIONS = List.of(
     /* FL */DcMotor.Direction.FORWARD,
@@ -105,11 +107,12 @@ public final class CONSTANTS {
     /* FR */DcMotor.Direction.FORWARD,
     /* BR */DcMotor.Direction.FORWARD,
 /* Intake */DcMotor.Direction.FORWARD,
-/*Transfer*/DcMotor.Direction.FORWARD
+/*Transfer*/DcMotor.Direction.FORWARD,
+/* Shoots */DcMotor.Direction.FORWARD
     );
     public static final List<MOTOR_CONFIGS> MOTOR_CONFIG = new ArrayList<>();
     static {
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 7; i++) {
             MOTOR_CONFIG.add(i, new MOTOR_CONFIGS(MOTORS[i],
                     RUN_TYPES.get(i),
                     BRAKE_MODES.get(i),

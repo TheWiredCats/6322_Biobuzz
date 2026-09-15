@@ -17,6 +17,7 @@ public class GuitarSigma extends OpMode {
     private GoBildaPinpointDriver pinpoint;
     private double frcHeading;
     List<DcMotor> motors;
+    private DcMotor shoot;
     @Override
     public void init() {
         motors = Motors.setupDrivingMotors(this);
@@ -25,18 +26,19 @@ public class GuitarSigma extends OpMode {
         List<DcMotor> tempMotors = Motors.setupMotors(this);
         Intake = tempMotors.get(0);
         Transfer = tempMotors.get(1);
+        shoot = tempMotors.get(2);
     }
 
     @Override
     public void loop() {
         double temp = pinpoint.getHeading(CONSTANTS.unit.AU);
         pinpoint.update();
-        frcHeading +=  (pinpoint.getHeading(CONSTANTS.unit.AU) - temp);
+        frcHeading +=  gamepad1.back?-frcHeading:(pinpoint.getHeading(CONSTANTS.unit.AU) - temp);
 
-        Intake.setPower(gamepad1.a?-1:0);
-        Transfer.setPower(gamepad1.y?1:0);
+        Intake.setPower(gamepad2.a?-1:0);
+        Transfer.setPower(gamepad2.y?1:0);
+        shoot.setPower(gamepad1.x?1:0);
 
-        if(gamepad1.left_bumper) frcHeading=0;
 
         double speedMult = 0.5+ MathUtils.clamp(gamepad1.right_stick_x, -0.4, 5);
         double roboYaw = AngleUnit.RADIANS.fromUnit(CONSTANTS.unit.AU, frcHeading);
