@@ -244,20 +244,23 @@ public final class Driving_Systems {
 
     public static void lockIn(DistanceUnit sigma, LinearOpMode ll, Limelight3A limelight,
                               GoBildaPinpointDriver pinpoint, List<DcMotor> motors,
-                              double Distance) {
+                              double distance) {
         //make sure we're facing the right way
-        if (lockOn(ll, limelight, pinpoint, motors, pinpoint.getHeading(AngleUnit.DEGREES), 0)) {
-            double convertedDistance = CONSTANTS.unit.DU.fromUnit(sigma, Distance);
+        if (lockOn(ll, limelight, pinpoint, motors, pinpoint.getHeading(CONSTANTS.unit.AU), 0)) {
+            double convertedDistance = CONSTANTS.unit.DU.fromUnit(sigma, distance);
             LLResult result = limelight.getLatestResult();
+            if(result==null)return;
             LLResultTypes.FiducialResult tags = Cameras.getBiggest(result.getFiducialResults());
-            Pose2D targetPosition = TagData.getPosition(tags.getFiducialId());
-            double currentMagnitude = Math.hypot((targetPosition.getX(CONSTANTS.unit.DU) -
-                    pinpoint.getPosX(CONSTANTS.unit.DU)), targetPosition.getY(CONSTANTS.unit.DU) -
-                    pinpoint.getPosY(CONSTANTS.unit.DU));
-            double scaler = (currentMagnitude - convertedDistance) / currentMagnitude;
+            Pose2D targetPos = TagData.getPosition(tags.getFiducialId());
+            double deltaX = targetPos.getX(CONSTANTS.unit.DU) - pinpoint.getPosX(CONSTANTS.unit.DU);
+            double deltaY = targetPos.getY(CONSTANTS.unit.DU) - pinpoint.getPosY(CONSTANTS.unit.DU);
+            double currentMagnitude = Math.hypot(deltaX, deltaY);
+            if(currentMagnitude <= 0.00001)return;
+            double targetX = pinpoint.getPosX(CONSTANTS.unit.DU) + ((deltaX / currentMagnitude) * (currentMagnitude - convertedDistance));
+            double targetY = pinpoint.getPosY(CONSTANTS.unit.DU) + ((deltaY / currentMagnitude) * (currentMagnitude - convertedDistance));
             Pose2D target = new Pose2D(CONSTANTS.unit.DU,
-                    targetPosition.getX(CONSTANTS.unit.DU) * scaler,
-                    targetPosition.getY(CONSTANTS.unit.DU) * scaler,
+                    targetX,
+                    targetY,
                     CONSTANTS.unit.AU,
                     pinpoint.getHeading(CONSTANTS.unit.AU));
             Driving_Systems.headTo(pinpoint, limelight, motors, ll, CONSTANTS.unit.DU,
