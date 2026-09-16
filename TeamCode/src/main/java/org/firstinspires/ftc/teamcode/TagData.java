@@ -1,9 +1,76 @@
 package org.firstinspires.ftc.teamcode;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+
 import java.util.List;
 
 public class TagData {
-    //FUCK WHOEVER MADE THAT GODDAMN LIMELIGHT FIELD MAKER BRO
+    private static final List<Double> xTagPos = List.of(
+            -0.3520948,
+            -0.3520948,
+            -0.3520948,
+            -0.3520948,
+            0.3520948,
+            0.3520948,
+            0.3520948,
+            0.3520948,
+            0.3520948,
+            0.3520948,
+            0.3520948,
+            0.3520948,
+            -0.3520948,
+            -0.3520948,
+            -0.3520948,
+            -0.3520948
+    );
+    private static final List<Double> yTagPos = List.of(
+            -0.1397,
+            -0.23495,
+            -0.37465,
+            -0.4699,
+            -0.4699,
+            -0.37465,
+            -0.23495,
+            -0.1397,
+            0.1397,
+            0.23495,
+            0.37465,
+            0.4699,
+            0.4699,
+            0.37465,
+            0.23495,
+            0.1397
+    );
+    private static final List<Double> hTagPos = List.of(
+            180.0,
+            180.0,
+            180.0,
+            180.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            180.0,
+            180.0,
+            180.0,
+            180.0
+    );
+    public static final double tagHeight = 43.5;
+    public static Pose2D getPosition(int index){
+        return new Pose2D(
+                DistanceUnit.METER,
+                -xTagPos.get(index-30),
+                -yTagPos.get(index-30),
+                AngleUnit.DEGREES,
+                Cameras.wrapAngle(AngleUnit.DEGREES, 180+hTagPos.get(index-30))
+        );
+    }
     public static final List<List<Double>> transforms = List.of(
             List.of(-0.5000000000000002, -6.123233995736767e-17, -0.8660254037844386, -0.3520948, 1.7053874707432438e-16, -1.0, -2.7755575615628926e-17, -0.1397, -0.8660254037844386, -1.615686751037485e-16, 0.5000000000000001, 1.1049, 0.0, 0.0, 0.0, 1.0),
             List.of(-0.5000000000000002, -6.123233995736767e-17, -0.8660254037844386, -0.3520948, 1.7053874707432438e-16, -1.0, -2.7755575615628926e-17, -0.23495, -0.8660254037844386, -1.615686751037485e-16, 0.5000000000000001, 1.1049, 0.0, 0.0, 0.0, 1.0),

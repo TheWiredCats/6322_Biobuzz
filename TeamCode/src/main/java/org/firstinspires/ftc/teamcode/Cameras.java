@@ -41,8 +41,8 @@ public final class Cameras {
         //so u don't accidentally make an instance of it and only call it as needed
     }
 
-    public static List<LLResultTypes.FiducialResult> get4Biggest(LLResult results)throws MonkeyBuisness{
-        if(!results.isValid()||results.getFiducialResults().size()<4)throw new MonkeyBuisness();
+    public static List<LLResultTypes.FiducialResult> get4Biggest(LLResult results)throws MonkeyBusiness {
+        if(!results.isValid()||results.getFiducialResults().size()<4)throw new MonkeyBusiness();
 
         List<LLResultTypes.FiducialResult> output = new ArrayList<>(results.getFiducialResults());
 
@@ -56,13 +56,13 @@ public final class Cameras {
             }
         }
         Families checker = TagData.tagData.get(output.get(0).getFiducialId());
-        for(int i=0;i<3;i++)if (checker!=TagData.tagData.get(output.get(i).getFiducialId()))throw new MonkeyBuisness();
+        for(int i=0;i<3;i++)if (checker!=TagData.tagData.get(output.get(i).getFiducialId()))throw new MonkeyBusiness();
 
         return List.of(output.get(0), output.get(1), output.get(2), output.get(3));
     }
 
-    public static LLResultTypes.FiducialResult getBiggest(List<LLResultTypes.FiducialResult> results)throws MonkeyBuisness{
-        if(results.isEmpty())throw new MonkeyBuisness();
+    public static LLResultTypes.FiducialResult getBiggest(List<LLResultTypes.FiducialResult> results)throws MonkeyBusiness {
+        if(results.isEmpty())throw new MonkeyBusiness();
         if(results.size()==1)return results.get(0);
         //make a new fiducial result that has nothing in it
         LLResultTypes.FiducialResult result = null;
@@ -104,11 +104,11 @@ public final class Cameras {
             return  fixedAdjustedAngle-Math.toRadians(179);
         }
     }
-    public static void confirmPosition(Limelight3A limelight, GoBildaPinpointDriver pinpoint, LinearOpMode ll)throws MonkeyBuisness{
+    public static void confirmPosition(Limelight3A limelight, GoBildaPinpointDriver pinpoint, LinearOpMode ll)throws MonkeyBusiness {
         LLResult result = limelight.getLatestResult();
         double oldTimestamp = result.getTimestamp();
         LLResultTypes.FiducialResult tags = Cameras.getBiggest(result.getFiducialResults());
-        if(tags.getTargetPoseCameraSpace().getOrientation().getPitch()<-70)throw new MonkeyBuisness();
+        if(tags.getTargetPoseCameraSpace().getOrientation().getPitch()<-70)throw new MonkeyBusiness();
         limelight.pipelineSwitch(TagData.tagData.get(tags.getFiducialId()-30).value);
         long startTime = System.currentTimeMillis();
         LLResult freshResult = limelight.getLatestResult();

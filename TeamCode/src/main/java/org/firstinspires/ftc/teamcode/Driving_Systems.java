@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
@@ -49,7 +50,7 @@ public final class Driving_Systems {
             //Confirming current position using limelight
             try {
                 Cameras.confirmPosition(limelight, pinpoint, ll);
-            } catch (MonkeyBuisness ignored) {
+            } catch (MonkeyBusiness ignored) {
             }
 
             //update pinpoint for some fresh data
@@ -150,6 +151,14 @@ public final class Driving_Systems {
         //brake after we arrive at our destination
         Motors.setPowers(0, 0, 0, 0, motors);
     }
+    public static void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
+                              LinearOpMode ll, DistanceUnit sigmaDis, AngleUnit sigmaAng,
+                              Pose2D targetPosition){
+        driveTo(sigmaDis, pinpoint, limelight, motors, ll, targetPosition.getX(sigmaDis),
+                targetPosition.getY(sigmaDis));
+
+        turnTo(sigmaAng, ll, pinpoint, motors, targetPosition.getHeading(sigmaAng));
+    }
 
     /*
     public static void goTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
@@ -210,12 +219,14 @@ public final class Driving_Systems {
                 //get the closest result as the result we want
                 LLResultTypes.FiducialResult result = Cameras.getBiggest(results.getFiducialResults());
 
+                limelight.pipelineSwitch(TagData.tagData.get(result.getFiducialId()-30).value);
+
                 //if its valid head towards it
                 turnTo(CONSTANTS.unit.AU, ll, pinpoint, motors,
                         pinpoint.getHeading(CONSTANTS.unit.AU) -
                                 CONSTANTS.unit.AU.fromUnit(AngleUnit.DEGREES, result.getTargetXDegrees()));
                 return true;
-            } catch (MonkeyBuisness e) {
+            } catch (MonkeyBusiness e) {
                 //recursive hehe
                 //but in serious, we're just gonna repeat the code but move a lil to the right or left
                 return lockOn(ll, limelight, pinpoint, motors, initialHeading, shimmy);
@@ -224,8 +235,10 @@ public final class Driving_Systems {
         } else if (ll.opModeIsActive()) {
             //otherwise turn to where we were at the beginning
             turnTo(CONSTANTS.unit.AU, ll, pinpoint, motors, initialHeading);
+            limelight.pipelineSwitch(0);
             return false;
         }
+        limelight.pipelineSwitch(0);
         return false;
     }
 
@@ -235,6 +248,9 @@ public final class Driving_Systems {
         //make sure we're facing the right way
         if (lockOn(ll, limelight, pinpoint, motors, pinpoint.getHeading(AngleUnit.DEGREES), 0)) {
             double convertedDistance = CONSTANTS.unit.DU.fromUnit(sigma, Distance);
+            LLResult result = limelight.getLatestResult();
+            LLResultTypes.FiducialResult tags = Cameras.getBiggest(result.getFiducialResults());
+            Pose2D targetPosition = TagData.getPosition(tags.getFiducialId());
 
         }
     }

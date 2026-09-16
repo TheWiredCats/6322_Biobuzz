@@ -17,7 +17,7 @@ public final class Led {
             else if(Math.abs(x.getTargetXDegrees()) <= 7.5 && Math.abs(x.getTargetXDegrees()) > 2.5)
                 LED.setPattern(CONSTANTS.ledConfig.CLOSE);
             else LED.setPattern(CONSTANTS.ledConfig.ON_POINT);
-        } catch (MonkeyBuisness ignored) {
+        } catch (MonkeyBusiness ignored) {
             LED.setPattern(CONSTANTS.ledConfig.NONE_SIGHTED);
         }
     }
