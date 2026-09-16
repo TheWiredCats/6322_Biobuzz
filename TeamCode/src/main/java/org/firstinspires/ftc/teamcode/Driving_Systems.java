@@ -251,7 +251,17 @@ public final class Driving_Systems {
             LLResult result = limelight.getLatestResult();
             LLResultTypes.FiducialResult tags = Cameras.getBiggest(result.getFiducialResults());
             Pose2D targetPosition = TagData.getPosition(tags.getFiducialId());
-
+            double currentMagnitude = Math.hypot((targetPosition.getX(CONSTANTS.unit.DU) -
+                    pinpoint.getPosX(CONSTANTS.unit.DU)), targetPosition.getY(CONSTANTS.unit.DU) -
+                    pinpoint.getPosY(CONSTANTS.unit.DU));
+            double scaler = (currentMagnitude - convertedDistance) / currentMagnitude;
+            Pose2D target = new Pose2D(CONSTANTS.unit.DU,
+                    targetPosition.getX(CONSTANTS.unit.DU) * scaler,
+                    targetPosition.getY(CONSTANTS.unit.DU) * scaler,
+                    CONSTANTS.unit.AU,
+                    pinpoint.getHeading(CONSTANTS.unit.AU));
+            Driving_Systems.headTo(pinpoint, limelight, motors, ll, CONSTANTS.unit.DU,
+                    CONSTANTS.unit.AU, target);
         }
     }
 }
