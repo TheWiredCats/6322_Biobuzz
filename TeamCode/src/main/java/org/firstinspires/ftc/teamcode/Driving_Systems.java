@@ -242,6 +242,25 @@ public final class Driving_Systems {
         return false;
     }
 
+    private static void lostCause(LinearOpMode ll, Limelight3A limelight,
+                                  GoBildaPinpointDriver pinpoint, List<DcMotor> motors, Pose2D park){
+        boolean belowXY = pinpoint.getPosX(CONSTANTS.unit.DU) > pinpoint.getPosY(CONSTANTS.unit.DU);
+        boolean belowNegXY = - pinpoint.getPosX(CONSTANTS.unit.DU) > pinpoint.getPosY(CONSTANTS.unit.DU);
+
+        if(belowXY){
+            if(belowNegXY){
+                headTo(pinpoint, limelight, motors, ll, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -55, 0, 0);
+            }else{
+                headTo(pinpoint, limelight, motors, ll, CONSTANTS.unit.DU, CONSTANTS.unit.AU, 0, -55, 0);
+            }
+        }else{
+            if(belowNegXY){
+                headTo(pinpoint, limelight, motors, ll, CONSTANTS.unit.DU, CONSTANTS.unit.AU, 0, 55, 0);
+            }else{
+                headTo(pinpoint, limelight, motors, ll, CONSTANTS.unit.DU, CONSTANTS.unit.AU, 55, 0, 0);
+            }
+        }
+    }
     public static void lockIn(DistanceUnit sigma, LinearOpMode ll, Limelight3A limelight,
                               GoBildaPinpointDriver pinpoint, List<DcMotor> motors,
                               double distance) {
@@ -252,9 +271,11 @@ public final class Driving_Systems {
             if(result==null)return;
             LLResultTypes.FiducialResult tags = Cameras.getBiggest(result.getFiducialResults());
             Pose2D targetPos = TagData.getPosition(tags.getFiducialId());
+
             double deltaX = targetPos.getX(CONSTANTS.unit.DU) - pinpoint.getPosX(CONSTANTS.unit.DU);
             double deltaY = targetPos.getY(CONSTANTS.unit.DU) - pinpoint.getPosY(CONSTANTS.unit.DU);
             double currentMagnitude = Math.hypot(deltaX, deltaY);
+
             if(currentMagnitude <= 0.00001)return;
             double targetX = pinpoint.getPosX(CONSTANTS.unit.DU) + ((deltaX / currentMagnitude) * (currentMagnitude - convertedDistance));
             double targetY = pinpoint.getPosY(CONSTANTS.unit.DU) + ((deltaY / currentMagnitude) * (currentMagnitude - convertedDistance));
