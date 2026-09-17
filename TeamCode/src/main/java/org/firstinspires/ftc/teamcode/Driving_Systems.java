@@ -243,21 +243,34 @@ public final class Driving_Systems {
     }
 
     private static void lostCause(LinearOpMode ll, Limelight3A limelight,
-                                  GoBildaPinpointDriver pinpoint, List<DcMotor> motors, Pose2D park){
-        boolean belowXY = pinpoint.getPosX(CONSTANTS.unit.DU) > pinpoint.getPosY(CONSTANTS.unit.DU);
-        boolean belowNegXY = - pinpoint.getPosX(CONSTANTS.unit.DU) > pinpoint.getPosY(CONSTANTS.unit.DU);
+                                  GoBildaPinpointDriver pinpoint, List<DcMotor> motors, Team team){
+        boolean left3rd = pinpoint.getPosY(CONSTANTS.unit.DU) > 48;
+        boolean right3rd = pinpoint.getPosY(CONSTANTS.unit.DU) < -48;
+        boolean top3rd = pinpoint.getPosX(CONSTANTS.unit.DU) > 48;
+        boolean bottom3rd = pinpoint.getPosX(CONSTANTS.unit.DU) < -48;
+        if(left3rd){
+            if(top3rd){
 
-        if(belowXY){
-            if(belowNegXY){
-                headTo(pinpoint, limelight, motors, ll, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -55, 0, 0);
+            }else if(bottom3rd){
+
             }else{
-                headTo(pinpoint, limelight, motors, ll, CONSTANTS.unit.DU, CONSTANTS.unit.AU, 0, -55, 0);
+
+            }
+        }else if(right3rd){
+            if(top3rd){
+
+            }else if(bottom3rd){
+
+            }else{
+
             }
         }else{
-            if(belowNegXY){
-                headTo(pinpoint, limelight, motors, ll, CONSTANTS.unit.DU, CONSTANTS.unit.AU, 0, 55, 0);
+            if(top3rd){
+
+            }else if(bottom3rd){
+
             }else{
-                headTo(pinpoint, limelight, motors, ll, CONSTANTS.unit.DU, CONSTANTS.unit.AU, 55, 0, 0);
+
             }
         }
     }
