@@ -15,12 +15,12 @@ import java.util.List;
 public class SkibidiToiletAuto extends LinearOpMode {
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode(){
         List<DcMotor> motors = Motors.setupMotors(this);
         List<DcMotor> motorTemp = Motors.setupMotors(this);
-        DcMotor Intake = motorTemp.get(0);
-        DcMotor Transfer = motorTemp.get(1);
-        DcMotor Shoot = motorTemp.get(2);
+        DcMotor intake = motorTemp.get(0);
+        DcMotor transfer = motorTemp.get(1);
+        DcMotor shoot = motorTemp.get(2);
 
         GoBildaPinpointDriver pinpoint = Pinpoint.setUpPinpoint(this);
         pinpoint.setPosition(new Pose2D(CONSTANTS.unit.DU, -63, 15, CONSTANTS.unit.AU, -90));
@@ -31,14 +31,19 @@ public class SkibidiToiletAuto extends LinearOpMode {
 
         waitForStart();
         if(opModeIsActive()){
-            Driving_Systems.headTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -63, -15, -90);
-            Intake.setPower(1);
-            Transfer.setPower(1);
+            Driving_Systems.headTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -63, -15, -90, PIDModes.DRIVING);
+            intake.setPower(1);
+            transfer.setPower(1);
             sleep(2000);
-            Intake.setPower(0);
-            Transfer.setPower(0);
-            Driving_Systems.headTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -63+(9*Math.sqrt(2)), 15, 0);
-            Driving_Systems.lockIn(CONSTANTS.unit.DU, this, limelight, pinpoint, motors, 12);
+            intake.setPower(0);
+            transfer.setPower(0);
+            Driving_Systems.headTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -63+(9*Math.sqrt(2)), 15, 0, PIDModes.DRIVING);
+            Driving_Systems.lockIn(CONSTANTS.unit.DU, this, limelight, pinpoint, motors, 18);
+            shoot.setPower(1);
+            sleep(1000);
+            shoot.setPower(0);
+            //Driving_Systems.headTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU,  );
+
         }
     }
 }

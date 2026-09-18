@@ -49,22 +49,6 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         //run this code once
 
         if (opModeIsActive()){
-            //drive to top left corner
-            Driving_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 60, 60, 0);
-            sleep(1000);
-
-            //drive to top right corner
-            Driving_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 60, -60, 0);
-            sleep(1000);
-
-            //drive to bottom right corner
-            Driving_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, 0, -45);
-            sleep(1000);
-
-            //drive back to start -45
-            Driving_Systems.headTo(pinpoint, limelight, motors, this, DistanceUnit.INCH, AngleUnit.DEGREES, -60, -60, -45);
-            sleep(1000);
-
         }
 
     }

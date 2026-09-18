@@ -187,12 +187,18 @@ public final class Driving_Systems {
     */
     public static void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
                               LinearOpMode ll, DistanceUnit sigmaDis, AngleUnit sigmaAng,
-                              double x, double y, double heading) {
-        //then drive to the location we want to go to
-        driveTo(sigmaDis, pinpoint, limelight, motors, ll, x, y);
+                              double x, double y, double heading, PIDModes pid) {
+        if(pid.equals(PIDModes.DRIVING)) {
+            //then drive to the location we want to go to
+            driveTo(sigmaDis, pinpoint, limelight, motors, ll, x, y);
 
-        //first turn to the direction we want to be heading
-        turnTo(sigmaAng, ll, pinpoint, motors, heading);
+            //first turn to the direction we want to be heading
+            turnTo(sigmaAng, ll, pinpoint, motors, heading);
+        }else{
+            turnTo(sigmaAng, ll, pinpoint, motors, heading);
+
+            driveTo(sigmaDis, pinpoint, limelight, motors, ll, x, y);
+        }
     }
 
     public static boolean lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint,
@@ -244,35 +250,6 @@ public final class Driving_Systems {
 
     private static void lostCause(LinearOpMode ll, Limelight3A limelight,
                                   GoBildaPinpointDriver pinpoint, List<DcMotor> motors, Team team){
-        boolean left3rd = pinpoint.getPosY(CONSTANTS.unit.DU) > 48;
-        boolean right3rd = pinpoint.getPosY(CONSTANTS.unit.DU) < -48;
-        boolean top3rd = pinpoint.getPosX(CONSTANTS.unit.DU) > 48;
-        boolean bottom3rd = pinpoint.getPosX(CONSTANTS.unit.DU) < -48;
-        if(left3rd){
-            if(top3rd){
-
-            }else if(bottom3rd){
-
-            }else{
-
-            }
-        }else if(right3rd){
-            if(top3rd){
-
-            }else if(bottom3rd){
-
-            }else{
-
-            }
-        }else{
-            if(top3rd){
-
-            }else if(bottom3rd){
-
-            }else{
-
-            }
-        }
     }
     public static void lockIn(DistanceUnit sigma, LinearOpMode ll, Limelight3A limelight,
                               GoBildaPinpointDriver pinpoint, List<DcMotor> motors,
