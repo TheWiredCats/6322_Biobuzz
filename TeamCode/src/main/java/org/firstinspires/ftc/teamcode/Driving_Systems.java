@@ -14,14 +14,28 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import java.util.List;
 
 public final class Driving_Systems {
-    private Driving_Systems() {
-        //so u don't accidentally make an instance of it and only call it as needed
+    private final Team team;
+    public Driving_Systems(Team team) {
+        this.team = team;
     }
 
     private final static PID_Controller pidD = new PID_Controller(PIDModes.DRIVING);
     private final static PID_Controller pidT = new PID_Controller(PIDModes.TURNING);
 
-    private static void driveTo(DistanceUnit sigma, GoBildaPinpointDriver pinpoint, Limelight3A limelight,
+    /**
+     * Driving PID Function
+     * @param verity Distance Unit
+     * @param pinpoint Actual Pinpoint
+     * @param limelight Limelight Camera
+     * @param motors List of motors, must be (FL, BL, FR, BR)
+     * @param ll Linear Op Mode, necessary to be able to check if opModeIsActive
+     * @param x X Goal Location
+     * @param y Y Goal Location
+     * @see #turnTo(AngleUnit, LinearOpMode, GoBildaPinpointDriver, List, double) Private Turner
+     * @see #headTo(GoBildaPinpointDriver, Limelight3A, List, LinearOpMode, DistanceUnit, AngleUnit, Pose2D, PIDModes) Public Mover (Position Overload)
+     * @see #headTo(GoBildaPinpointDriver, Limelight3A, List, LinearOpMode, DistanceUnit, AngleUnit, double, double, double, PIDModes) Public Mover (Double Overload)
+     */
+    private static void driveTo(DistanceUnit verity, GoBildaPinpointDriver pinpoint, Limelight3A limelight,
                                 List<DcMotor> motors, LinearOpMode ll,
                                 double x, double y) {
 
@@ -29,7 +43,7 @@ public final class Driving_Systems {
 
 
         //This tells us the angel we want to travel in
-        double startingHeading = Math.atan2(-(y - pinpoint.getPosY(sigma)), (x - pinpoint.getPosX(sigma)));
+        double startingHeading = Math.atan2(-(y - pinpoint.getPosY(verity)), (x - pinpoint.getPosX(verity)));
 
         //We cant really read 2d direction so we split it into its X and Y direction
         double directionX = Math.sin(startingHeading);
@@ -37,14 +51,14 @@ public final class Driving_Systems {
 
         pinpoint.update();
 
-        pidD.setTime(System.nanoTime(), pidD.getError(pinpoint.getPosX(sigma), pinpoint.getPosY(sigma)));
+        pidD.setTime(System.nanoTime(), pidD.getError(pinpoint.getPosX(verity), pinpoint.getPosY(verity)));
         //PID LOOP HELL
         //run until either op mode turns off or until we're both moving less than .5 inches per second
         //and also .5 inches away from the position
-        while (ll.opModeIsActive() && ((Math.sqrt(Math.pow(pinpoint.getVelX(sigma), 2) +
-                Math.pow(pinpoint.getVelY(sigma), 2)) > CONSTANTS.tolerance.DSpeed) || (pidD.getError(
-                pinpoint.getPosX(sigma),
-                pinpoint.getPosY(sigma)
+        while (ll.opModeIsActive() && ((Math.sqrt(Math.pow(pinpoint.getVelX(verity), 2) +
+                Math.pow(pinpoint.getVelY(verity), 2)) > CONSTANTS.tolerance.DSpeed) || (pidD.getError(
+                pinpoint.getPosX(verity),
+                pinpoint.getPosY(verity)
         )) < CONSTANTS.tolerance.DError)) {
 
             //Confirming current position using limelight
@@ -55,17 +69,17 @@ public final class Driving_Systems {
 
             //update pinpoint for some fresh data
             pinpoint.update();
-            double error = pidD.getError(pinpoint.getPosX(sigma), pinpoint.getPosY(sigma));
+            double error = pidD.getError(pinpoint.getPosX(verity), pinpoint.getPosY(verity));
             double P = pidD.getP(error);
-            double I = pidD.getI((x - pinpoint.getPosX(sigma)) * directionX +
-                    (y - pinpoint.getPosY(sigma)) * directionY);
+            double I = pidD.getI((x - pinpoint.getPosX(verity)) * directionX +
+                    (y - pinpoint.getPosY(verity)) * directionY);
             double D = pidD.getD(error);
 
             //For PID, we need magnitude and Direction, the heading I'm gonna use for direction,
             //and for magnitude I'm just gonna use distance formula
 
             //The angel of where I am compared to where I want to be going
-            double desiredHeading = Math.atan2((y - pinpoint.getPosY(sigma)), -(x - pinpoint.getPosX(sigma)));
+            double desiredHeading = Math.atan2((y - pinpoint.getPosY(verity)), -(x - pinpoint.getPosX(verity)));
             //where I should tell the robot we're pointing so we can go where we want to go
             double roboYaw = (pinpoint.getHeading(AngleUnit.RADIANS) - desiredHeading);
 
@@ -96,7 +110,18 @@ public final class Driving_Systems {
         Motors.setPowers(0, 0, 0, 0, motors);
     }
 
-    private static void turnTo(AngleUnit sigma, LinearOpMode ll, GoBildaPinpointDriver pinpoint,
+    /**
+     * Turning PID Function
+     * @param verity The Angle Unit
+     * @param ll LinearOpMode neccesary to check opModeIsActive
+     * @param pinpoint The Actual Pinpoint
+     * @param motors the list of Motors ordered (FL, BL, FR, BR)
+     * @param desiredHeading Goal Heading
+     * @see #driveTo(DistanceUnit, GoBildaPinpointDriver, Limelight3A, List, LinearOpMode, double, double) Private PID Driving Function
+     * @see #headTo(GoBildaPinpointDriver, Limelight3A, List, LinearOpMode, DistanceUnit, AngleUnit, double, double, double, PIDModes) Public PID Mover (Double Overload)
+     * @see #headTo(GoBildaPinpointDriver, Limelight3A, List, LinearOpMode, DistanceUnit, AngleUnit, Pose2D, PIDModes) Public PID Mover (Position Overload)
+     */
+    private static void turnTo(AngleUnit verity, LinearOpMode ll, GoBildaPinpointDriver pinpoint,
                                List<DcMotor> motors, double desiredHeading) {
 
         pidT.reset(desiredHeading);
@@ -109,14 +134,14 @@ public final class Driving_Systems {
         while (ll.opModeIsActive() &&
                 ((Math.abs((pinpoint.getHeadingVelocity(CONSTANTS.unit.AU.getUnnormalized()))) >
                         CONSTANTS.tolerance.TSpeed) ||
-                        (Math.abs(pidT.getError(pinpoint.getHeading(sigma))) >
-                                CONSTANTS.unit.AU.fromUnit(sigma, CONSTANTS.tolerance.TError)))) {
+                        (Math.abs(pidT.getError(pinpoint.getHeading(verity))) >
+                                CONSTANTS.unit.AU.fromUnit(verity, CONSTANTS.tolerance.TError)))) {
 
             //update the pinpoint for fresh data
             pinpoint.update();
 
             //error is the current difference between the 2 angels
-            double error = Cameras.wrapAngle(sigma, desiredHeading - pinpoint.getHeading(sigma));
+            double error = Cameras.wrapAngle(desiredHeading, pinpoint.getHeading(verity));
 
             //P part of PID represents how much change we still need to do
             //but is often the cause of oscillation when KP is too high
@@ -151,13 +176,37 @@ public final class Driving_Systems {
         //brake after we arrive at our destination
         Motors.setPowers(0, 0, 0, 0, motors);
     }
-    public static void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
-                              LinearOpMode ll, DistanceUnit sigmaDis, AngleUnit sigmaAng,
-                              Pose2D targetPosition){
-        driveTo(sigmaDis, pinpoint, limelight, motors, ll, targetPosition.getX(sigmaDis),
-                targetPosition.getY(sigmaDis));
 
-        turnTo(sigmaAng, ll, pinpoint, motors, targetPosition.getHeading(sigmaAng));
+    /**
+     * Public Mover (Position Overload)
+     * @param pinpoint Actual Pinpoint
+     * @param limelight Actual Limelight Camera
+     * @param motors List Of Driving Motors Orederd (FL, BL, FR, BR)
+     * @param ll LinearOpMode for checking whether we're allowed to drive
+     * @param verityDis Distance Unit
+     * @param verityAng Angle Unit
+     * @param targetPosition Pose2D Goal Position
+     * @param pid PID Function Working First
+     * @see #headTo(GoBildaPinpointDriver, Limelight3A, List, LinearOpMode, DistanceUnit, AngleUnit, double, double, double, PIDModes) Double headTo() Overload
+     * @see #driveTo(DistanceUnit, GoBildaPinpointDriver, Limelight3A, List, LinearOpMode, double, double) Private Driving Function
+     * @see #turnTo(AngleUnit, LinearOpMode, GoBildaPinpointDriver, List, double) Private Turning Function
+     */
+    public static void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
+                              LinearOpMode ll, DistanceUnit verityDis, AngleUnit verityAng,
+                              Pose2D targetPosition, PIDModes pid){
+        if(pid.equals(PIDModes.DRIVING)) {
+            //then drive to the location we want to go to
+            driveTo(verityDis, pinpoint, limelight, motors, ll, targetPosition.getX(verityDis),
+                    targetPosition.getY(verityDis));
+
+            //first turn to the direction we want to be heading
+            turnTo(verityAng, ll, pinpoint, motors, targetPosition.getHeading(verityAng));
+        }else{
+            turnTo(verityAng, ll, pinpoint, motors, targetPosition.getHeading(verityAng));
+
+            driveTo(verityDis, pinpoint, limelight, motors, ll, targetPosition.getX(verityDis),
+                    targetPosition.getY(verityDis));
+        }
     }
 
     /*
@@ -185,22 +234,53 @@ public final class Driving_Systems {
         lockIn(CONSTANTS.unit.DU, ll, limelight, pinpoint, motors, convertedDistance);
     }
     */
+
+    /**
+     * Public Mover (Double Overload)
+     * @param pinpoint Actual Pinpoint
+     * @param limelight Actual Limelight Camera
+     * @param motors List of Motors, Ordered (FL, BL, FR, BR)
+     * @param ll LinearOpMode, neccesary for checking if we can still move
+     * @param verityDis Distance Unit
+     * @param verityAng Angle Unit
+     * @param x X Goal
+     * @param y Y Goal
+     * @param heading Heading Goal
+     * @param pid Which PID Runs First
+     * @see #turnTo(AngleUnit, LinearOpMode, GoBildaPinpointDriver, List, double) Private Turning Function
+     * @see #driveTo(DistanceUnit, GoBildaPinpointDriver, Limelight3A, List, LinearOpMode, double, double) Private Driving Function
+     * @see #headTo(GoBildaPinpointDriver, Limelight3A, List, LinearOpMode, DistanceUnit, AngleUnit, Pose2D, PIDModes) Public Moving Function (Position Overload)
+     */
     public static void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
-                              LinearOpMode ll, DistanceUnit sigmaDis, AngleUnit sigmaAng,
+                              LinearOpMode ll, DistanceUnit verityDis, AngleUnit verityAng,
                               double x, double y, double heading, PIDModes pid) {
         if(pid.equals(PIDModes.DRIVING)) {
             //then drive to the location we want to go to
-            driveTo(sigmaDis, pinpoint, limelight, motors, ll, x, y);
+            driveTo(verityDis, pinpoint, limelight, motors, ll, x, y);
 
             //first turn to the direction we want to be heading
-            turnTo(sigmaAng, ll, pinpoint, motors, heading);
+            turnTo(verityAng, ll, pinpoint, motors, heading);
         }else{
-            turnTo(sigmaAng, ll, pinpoint, motors, heading);
+            turnTo(verityAng, ll, pinpoint, motors, heading);
 
-            driveTo(sigmaDis, pinpoint, limelight, motors, ll, x, y);
+            driveTo(verityDis, pinpoint, limelight, motors, ll, x, y);
         }
     }
 
+    /**
+     * <h6>Public Lock On Function</h6>
+     * <img
+     * src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO_zFVn-VRQ2MPVcFrvAdYd6VK-RYV43kkXO8qFg2jWA&s=10"
+     * \>
+     * <p></p>
+     * @param ll LinearOpMode for checking if we can still move
+     * @param limelight actual Limelight Camera
+     * @param pinpoint Actual Pinpoint
+     * @param motors List of Motors (FL, BL, FR, BR)
+     * @param initialHeading Starting Heading
+     * @param shimmy How much the robot should move to the right or left
+     * @return returns {@code true} if it works and {@code false} if it fails
+     */
     public static boolean lockOn(LinearOpMode ll, Limelight3A limelight, GoBildaPinpointDriver pinpoint,
                                  List<DcMotor> motors, double initialHeading, double shimmy) {
 
@@ -225,7 +305,7 @@ public final class Driving_Systems {
                 //get the closest result as the result we want
                 LLResultTypes.FiducialResult result = Cameras.getBiggest(results.getFiducialResults());
 
-                limelight.pipelineSwitch(TagData.tagData.get(result.getFiducialId()-30).value);
+                limelight.pipelineSwitch(TagData.tagData.get(result.getFiducialId() - 30).value);
 
                 //if its valid head towards it
                 turnTo(CONSTANTS.unit.AU, ll, pinpoint, motors,
@@ -248,15 +328,41 @@ public final class Driving_Systems {
         return false;
     }
 
-    private static void lostCause(LinearOpMode ll, Limelight3A limelight,
-                                  GoBildaPinpointDriver pinpoint, List<DcMotor> motors, Team team){
+    private void lostCause(LinearOpMode ll, Limelight3A limelight,
+                                  GoBildaPinpointDriver pinpoint, List<DcMotor> motors){
+        DistanceUnit du = CONSTANTS.unit.DU;
+        AngleUnit au = CONSTANTS.unit.AU;
+        Pose2D park = team.getPark();
+        Positions pos;
+        Pose2D currentPos = Pinpoint.getPosition(pinpoint);
+        if(currentPos.getX(du)>0){
+            pos = currentPos.getY(du)>24?Positions.TopLeft:(currentPos.getY(du)<-24)?Positions.TopRight:Positions.TopCenter;
+        }else{
+            pos = currentPos.getY(du)>24?Positions.BottomLeft:(currentPos.getY(du)<-24)?Positions.BottomRight:Positions.BottomCenter;
+        }
+        headTo(pinpoint, limelight, motors, ll, du, au, pos.getSaveStation(), PIDModes.DRIVING);
+        if(this.team.equals(Team.RED)){
+
+        }else{
+
+        }
     }
-    public static void lockIn(DistanceUnit sigma, LinearOpMode ll, Limelight3A limelight,
+
+    /**
+     *Locks on to the nearest April Tag and goes to {@code distance} away
+     * @param verity Distance Unit
+     * @param ll LinearOpMode
+     * @param limelight Actual Limeligtht Camera
+     * @param pinpoint Actual Pinpoint
+     * @param motors List of Motors Ordered (FL, BL, FR, BR)
+     * @param distance How far away you want to be from the April Tag
+     */
+    public static void lockIn(DistanceUnit verity, LinearOpMode ll, Limelight3A limelight,
                               GoBildaPinpointDriver pinpoint, List<DcMotor> motors,
                               double distance) {
         //make sure we're facing the right way
         if (lockOn(ll, limelight, pinpoint, motors, pinpoint.getHeading(CONSTANTS.unit.AU), 0)) {
-            double convertedDistance = CONSTANTS.unit.DU.fromUnit(sigma, distance);
+            double convertedDistance = CONSTANTS.unit.DU.fromUnit(verity, distance);
             LLResult result = limelight.getLatestResult();
             if(result==null)return;
             LLResultTypes.FiducialResult tags = Cameras.getBiggest(result.getFiducialResults());
@@ -275,7 +381,7 @@ public final class Driving_Systems {
                     CONSTANTS.unit.AU,
                     pinpoint.getHeading(CONSTANTS.unit.AU));
             Driving_Systems.headTo(pinpoint, limelight, motors, ll, CONSTANTS.unit.DU,
-                    CONSTANTS.unit.AU, target);
+                    CONSTANTS.unit.AU, target, PIDModes.DRIVING);
         }
     }
 }

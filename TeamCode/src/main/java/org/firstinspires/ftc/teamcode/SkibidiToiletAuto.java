@@ -27,7 +27,6 @@ public class SkibidiToiletAuto extends LinearOpMode {
         pinpoint.update();
 
         Limelight3A limelight = Cameras.setupLimeLight(this, pinpoint);
-        HuskyLens huskyLens = Cameras.setupHuskyLens(this);
 
         waitForStart();
         if(opModeIsActive()){
@@ -42,8 +41,6 @@ public class SkibidiToiletAuto extends LinearOpMode {
             shoot.setPower(1);
             sleep(1000);
             shoot.setPower(0);
-            //Driving_Systems.headTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU,  );
-
         }
     }
 }

@@ -68,7 +68,7 @@ public class TagData {
                 -xTagPos.get(index-30),
                 -yTagPos.get(index-30),
                 AngleUnit.DEGREES,
-                Cameras.wrapAngle(AngleUnit.DEGREES, 180+hTagPos.get(index-30))
+                Cameras.wrapAngle(180, -hTagPos.get(index-30))
         );
     }
     public static final List<List<Double>> transforms = List.of(

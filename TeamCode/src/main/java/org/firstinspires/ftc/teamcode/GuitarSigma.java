@@ -38,8 +38,8 @@ public class GuitarSigma extends OpMode {
     public void loop() {
         double temp = pinpoint.getHeading(CONSTANTS.unit.AU.getUnnormalized());
         pinpoint.update();
-        frcHeading +=  gamepad1.back?-frcHeading:Cameras.wrapAngle(CONSTANTS.unit.AU,
-                pinpoint.getHeading(CONSTANTS.unit.AU.getUnnormalized()) - temp);
+        frcHeading +=  gamepad1.back?-frcHeading:Cameras.wrapAngle(pinpoint.getHeading(
+                CONSTANTS.unit.AU.getUnnormalized()), temp);
 
         Intake.setPower(gamepad2.a?1:0);
         Transfer.setPower(gamepad2.y?1:0);

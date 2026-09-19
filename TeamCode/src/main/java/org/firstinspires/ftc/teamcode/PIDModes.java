@@ -6,11 +6,11 @@ public enum PIDModes {
     TURNING(CONSTANTS.turningConstants) {
         @Override
         public double getError(double[] input, double[] goal) {
-            return Cameras.wrapAngle(CONSTANTS.unit.AU, goal[0]-input[0]);
+            return Cameras.wrapAngle(goal[0], input[0]);
         }
         @Override
         public double getD(double error, double previousError, double dt){
-            return (Cameras.wrapAngle(CONSTANTS.unit.AU, error-previousError))*this.KD/dt;
+            return (Cameras.wrapAngle(error, previousError))*this.KD/dt;
         }
     },
     DRIVING(CONSTANTS.driverConstants){

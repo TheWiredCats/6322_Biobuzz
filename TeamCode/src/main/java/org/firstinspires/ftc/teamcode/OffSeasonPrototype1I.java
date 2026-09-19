@@ -158,8 +158,7 @@ public class OffSeasonPrototype1I extends OpMode {
                     Pose3D position = limelight.getLatestResult().getBotpose_MT2();
                     pinpoint.setPosition(new Pose2D(DistanceUnit.METER, -position.getPosition().x,
                             -position.getPosition().y, AngleUnit.DEGREES,
-                            Cameras.wrapAngle(AngleUnit.DEGREES,
-                                    180 + position.getOrientation().getYaw())));
+                            Cameras.wrapAngle(180, -position.getOrientation().getYaw())));
                     lastConfirmation=System.currentTimeMillis();
                     limelight.pipelineSwitch(0);
                 }

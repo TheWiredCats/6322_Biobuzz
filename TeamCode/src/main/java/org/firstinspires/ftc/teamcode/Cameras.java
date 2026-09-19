@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.core.math.MathUtils;
+
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLFieldMap;
@@ -79,30 +81,9 @@ public final class Cameras {
         //return the result
         return result;
     }
-    public static double wrapAngle(AngleUnit sigma, double currentAngle){
-        //declaring variables
-        double adjustedAngle;
-        double fixedAdjustedAngle;
-        //not have to type it over and over again
-        double pi2=2*Math.PI;
-
-        //checks if the angle is in degrees or in radians
-        if(sigma==AngleUnit.DEGREES) {
-
-            //we add right now to subtract by 179 later
-            adjustedAngle = currentAngle + 179;
-            //makes it between 0 and 360
-            fixedAdjustedAngle = ((adjustedAngle % 360) + 360) % 360;
-            //subtract the 179 to make our bounds now [-179, 180]
-            return fixedAdjustedAngle - 179;
-        }else{
-
-            //Does the exact same thing as the top one just in radians instead of degrees
-
-            adjustedAngle = currentAngle + Math.toRadians(179);
-            fixedAdjustedAngle = ((adjustedAngle % pi2) + pi2) % pi2;
-            return  fixedAdjustedAngle-Math.toRadians(179);
-        }
+    public static double wrapAngle(double angle1, double angle2){
+        double adjustedAngle1 = angle1 - Math.copySign(360, angle1);
+        return Math.min(adjustedAngle1 - angle2, angle1 - angle2);
     }
     public static void confirmPosition(Limelight3A limelight, GoBildaPinpointDriver pinpoint, LinearOpMode ll)throws MonkeyBusiness {
         LLResult result = limelight.getLatestResult();
@@ -117,11 +98,10 @@ public final class Cameras {
             ll.sleep(2);
             freshResult = limelight.getLatestResult();
         }
-        Pose3D position = limelight.getLatestResult().getBotpose_MT2();
+        Pose3D position = freshResult.getBotpose_MT2();
         pinpoint.setPosition(new Pose2D(DistanceUnit.METER, -position.getPosition().x,
                 -position.getPosition().y, AngleUnit.DEGREES,
-                Cameras.wrapAngle(AngleUnit.DEGREES,
-                        180+position.getOrientation().getYaw(AngleUnit.DEGREES))));
+                Cameras.wrapAngle(180, -position.getOrientation().getYaw(AngleUnit.DEGREES))));
         limelight.pipelineSwitch(0);
     }
 }
