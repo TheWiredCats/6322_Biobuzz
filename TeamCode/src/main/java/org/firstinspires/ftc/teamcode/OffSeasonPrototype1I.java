@@ -41,6 +41,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import java.util.ArrayList;
 import java.util.List;
 
+import RobotUtil.Robot;
+import RobotUtil.RobotUtil;
+
 /**
  * This file contains a minimal example of an iterative (Non-Linear) "OpMode". An OpMode is a
  * 'program' that runs in either the autonomous or the TeleOp period of an FTC match. The names
@@ -77,24 +80,26 @@ public class OffSeasonPrototype1I extends OpMode {
     final double MINIMUM = 0.25;
     //maximum must be less than or equal to 1
     final double MAXIMUM = 1;
+    Robot robot;
 
     @Override
     public void init() {
+        robot=Robot.getInstance(this, null);
 
-        motors = Motors.setupDrivingMotors(this);
+        motors = robot.getDrivingMotors();
 
         brokenId = new ArrayList<>();
         //runs once as soon as "init" is pressed
-        List<DcMotor> tempMotors = Motors.setupMotors(this);
+        List<DcMotor> tempMotors = robot.getUtilMotors();
         Intake = tempMotors.get(0);
         Transfer = tempMotors.get(1);
         Shoot = tempMotors.get(2);
 
         //imu = hardwareMap.get(IMU.class, "imu");
-        pinpoint = Pinpoint.setUpPinpoint(this);
+        pinpoint = robot.getPinpoint();
 
-        limelight=Cameras.setupLimeLight(this, pinpoint);
-        huskyLens=Cameras.setupHuskyLens(this);
+        limelight = robot.getLimelight();
+        huskyLens = robot.getHuskyLens();
     }
     /*
     *Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
@@ -151,14 +156,14 @@ public class OffSeasonPrototype1I extends OpMode {
 
         LLResult result = limelight.getLatestResult();
         try {
-            LLResultTypes.FiducialResult tags = Cameras.getBiggest(result.getFiducialResults());
+            LLResultTypes.FiducialResult tags = RobotUtil.getBiggest(result.getFiducialResults());
             if (result.isValid()&&tags.getTargetPoseCameraSpace().getOrientation().getPitch()>-70){
                 limelight.pipelineSwitch(TagData.tagData.get(tags.getFiducialId()-30).value);
                 if(limelight.getStatus().getPipelineIndex()!=0){
                     Pose3D position = limelight.getLatestResult().getBotpose_MT2();
                     pinpoint.setPosition(new Pose2D(DistanceUnit.METER, -position.getPosition().x,
                             -position.getPosition().y, AngleUnit.DEGREES,
-                            Cameras.wrapAngle(180, -position.getOrientation().getYaw())));
+                            RobotUtil.wrapAngle(180, -position.getOrientation().getYaw())));
                     lastConfirmation=System.currentTimeMillis();
                     limelight.pipelineSwitch(0);
                 }
@@ -217,11 +222,11 @@ public class OffSeasonPrototype1I extends OpMode {
         double FRMotorPower = ((y - x - rx) / stickTotal) * speedMultiplier;
         double BRMotorPower = ((y + x - rx) / stickTotal) * speedMultiplier;
 
-        Motors.setPowers(FLMotorPower, BLMotorPower, FRMotorPower, BRMotorPower, motors);
+        RobotUtil.setPowers(FLMotorPower, BLMotorPower, FRMotorPower, BRMotorPower, motors);
         lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
         pinpoint.update();
         FRCHeading+=(pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading);
-        Pinpoint.addTelemetry(pinpoint, this);
+        RobotUtil.addTelemetry(pinpoint, this);
 
         long secs=(System.currentTimeMillis()/1000)-lastConfirmation;
         long mins=secs/60;

@@ -2,15 +2,18 @@ package org.firstinspires.ftc.teamcode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
+import RobotUtil.CONSTANTS;
+import RobotUtil.RobotUtil;
+
 public enum PIDModes {
     TURNING(CONSTANTS.turningConstants) {
         @Override
         public double getError(double[] input, double[] goal) {
-            return Cameras.wrapAngle(goal[0], input[0]);
+            return RobotUtil.wrapAngle(goal[0], input[0]);
         }
         @Override
         public double getD(double error, double previousError, double dt){
-            return (Cameras.wrapAngle(error, previousError))*this.KD/dt;
+            return (RobotUtil.wrapAngle(error, previousError))*this.KD/dt;
         }
     },
     DRIVING(CONSTANTS.driverConstants){
@@ -61,7 +64,7 @@ public enum PIDModes {
     /**
      * Uses limit notation to find the derivative for either the normal error
      * or in turning's case, the wrapped angle error, which is just error with the bounds of {@code [-179,180]}
-     * @see Cameras#wrapAngle(AngleUnit, double) Angle Wrapper Calculator
+     * @see RobotUtil#wrapAngle(double, double) Angle Wrapper Calculator
      * @param error Current Error
      * @param previousError The Previously Calculated Error
      * @param dt Difference in time between the current and last calculations

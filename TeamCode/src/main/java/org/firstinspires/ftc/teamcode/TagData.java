@@ -6,6 +6,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
+import RobotUtil.RobotUtil;
+
 public class TagData {
     private static final List<Double> xTagPos = List.of(
             -0.3520948,
@@ -61,14 +63,14 @@ public class TagData {
             180.0,
             180.0
     );
-    public static final double tagHeight = 43.5;
+    //public static final double tagHeight = 43.5;
     public static Pose2D getPosition(int index){
         return new Pose2D(
                 DistanceUnit.METER,
                 -xTagPos.get(index-30),
                 -yTagPos.get(index-30),
                 AngleUnit.DEGREES,
-                Cameras.wrapAngle(180, -hTagPos.get(index-30))
+                RobotUtil.wrapAngle(180, -hTagPos.get(index-30))
         );
     }
     public static final List<List<Double>> transforms = List.of(

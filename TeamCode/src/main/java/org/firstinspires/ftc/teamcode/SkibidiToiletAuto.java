@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -11,22 +10,26 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
+import RobotUtil.CONSTANTS;
+import RobotUtil.Robot;
+
 @Autonomous(name="Greedy Auto Test")
 public class SkibidiToiletAuto extends LinearOpMode {
 
     @Override
     public void runOpMode(){
-        List<DcMotor> motors = Motors.setupMotors(this);
-        List<DcMotor> motorTemp = Motors.setupMotors(this);
+        Robot robot = Robot.getInstance(this, Team.RED);
+        List<DcMotor> motors = robot.getDrivingMotors();
+        List<DcMotor> motorTemp = robot.getUtilMotors();
         DcMotor intake = motorTemp.get(0);
         DcMotor transfer = motorTemp.get(1);
         DcMotor shoot = motorTemp.get(2);
 
-        GoBildaPinpointDriver pinpoint = Pinpoint.setUpPinpoint(this);
+        GoBildaPinpointDriver pinpoint = robot.getPinpoint();
         pinpoint.setPosition(new Pose2D(CONSTANTS.unit.DU, -63, 15, CONSTANTS.unit.AU, -90));
         pinpoint.update();
 
-        Limelight3A limelight = Cameras.setupLimeLight(this, pinpoint);
+        Limelight3A limelight = robot.getLimelight();
 
         waitForStart();
         if(opModeIsActive()){

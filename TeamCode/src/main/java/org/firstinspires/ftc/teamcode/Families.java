@@ -5,7 +5,7 @@ public enum Families {
     RedBack(2),
     BlueBack(3),
     BlueFront(4);
-    final int value;
+    public final int value;
     Families(int value){
         this.value = value;
     }

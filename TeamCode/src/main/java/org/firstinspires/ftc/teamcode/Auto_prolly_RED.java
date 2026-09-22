@@ -13,11 +13,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
+import RobotUtil.Robot;
+import RobotUtil.RobotUtil;
+
 @Autonomous
 public class Auto_prolly_RED extends LinearOpMode {
 
     @Override
     public void runOpMode(){
+        Robot robot = Robot.getInstance(this, Team.RED);
         //Start by initializing all the cameras, motors, and also the pinpoint
 
         //intake and transfer motor
@@ -27,21 +31,21 @@ public class Auto_prolly_RED extends LinearOpMode {
         //HuskyLens huskyLens = Cameras.setupHuskyLens(this);
 
         //pinpoint stuff
-        GoBildaPinpointDriver pinpoint = Pinpoint.setUpPinpoint(this);
+        GoBildaPinpointDriver pinpoint = robot.getPinpoint();
         pinpoint.resetPosAndIMU();
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH,9,9, AngleUnit.DEGREES,0));
 
         //camera
-        Limelight3A limelight = Cameras.setupLimeLight(this, pinpoint);
+        Limelight3A limelight = robot.getLimelight();
 
         //driving motors
-        List<DcMotor> motors = Motors.setupDrivingMotors(this);
+        List<DcMotor> motors = robot.getDrivingMotors();
 
-        RevBlinkinLedDriver LED = Led.LEDSetUP(this);
+        RevBlinkinLedDriver LED = robot.getLed();
 
         //put in all auto modes
         while(opModeInInit()){
-            Led.placementScanner(limelight, LED);
+            RobotUtil.placementScanner(limelight, LED);
         }
 
         //won't move on till u click start

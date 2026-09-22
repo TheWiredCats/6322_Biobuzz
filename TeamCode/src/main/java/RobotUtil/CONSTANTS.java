@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package RobotUtil;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,10 +11,10 @@ import java.util.List;
 
 public final class CONSTANTS {
     public final static class tolerances{
-        final double DError;
-        final double DSpeed;
-        final double TError;
-        final double TSpeed;
+        public final double DError;
+        public final double DSpeed;
+        public final double TError;
+        public final double TSpeed;
         public tolerances(double DE, double DS, double TE, double TS){
             this.DError = DE;
             this.DSpeed = DS;
@@ -24,9 +24,9 @@ public final class CONSTANTS {
     }
     public static final tolerances tolerance = new tolerances(1, 1, 5, 5);
     public final static class tunerHolder{
-        final double KP;
-        final double KI;
-        final double KD;
+        public final double KP;
+        public final double KI;
+        public final double KD;
         public tunerHolder(double kp, double ki, double kd){
             KP = kp;
             KI = ki;
@@ -81,7 +81,7 @@ public final class CONSTANTS {
         //so u don't accidentally make an instance of it and only call it as needed
     }
 
-    //All motors should be in order FL, BL, FR, BR, Intake, Transfer
+    //All motors should be in order FL, BL, FR, BR, Intake, Transfer, Shoot
     private static final String[] MOTORS = {"FL", "BL", "FR", "BR", "intake", "transfer", "shoot"};
     private static final List<DcMotor.RunMode> RUN_TYPES = List.of(
     /* FL */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
@@ -121,8 +121,8 @@ public final class CONSTANTS {
         }
     }
     public static final class Units{
-        final DistanceUnit DU;
-        final AngleUnit AU;
+        public final DistanceUnit DU;
+        public final AngleUnit AU;
         public Units(DistanceUnit du, AngleUnit au){
             DU = du;
             AU = au;
