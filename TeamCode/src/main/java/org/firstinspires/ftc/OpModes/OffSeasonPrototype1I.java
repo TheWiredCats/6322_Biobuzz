@@ -16,7 +16,7 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.OpModes;
 
 import androidx.core.math.MathUtils;
 
@@ -41,6 +41,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import java.util.ArrayList;
 import java.util.List;
 
+import RobotUtil.TagData;
 import RobotUtil.Robot;
 import RobotUtil.RobotUtil;
 
@@ -84,7 +85,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
     @Override
     public void init() {
-        robot=Robot.getInstance(this, null);
+        robot=Robot.getInstance();
 
         motors = robot.getDrivingMotors();
 
@@ -226,7 +227,7 @@ public class OffSeasonPrototype1I extends OpMode {
         lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
         pinpoint.update();
         FRCHeading+=(pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading);
-        RobotUtil.addTelemetry(pinpoint, this);
+        RobotUtil.addTelemetry();
 
         long secs=(System.currentTimeMillis()/1000)-lastConfirmation;
         long mins=secs/60;

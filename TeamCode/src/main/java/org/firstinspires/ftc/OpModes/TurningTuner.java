@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.OpModes;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -39,7 +39,7 @@ public class TurningTuner extends LinearOpMode {
 
         //put in all auto modes
         while(opModeInInit()){
-            RobotUtil.placementScanner(limelight, LED);
+            RobotUtil.placementScanner();
         }
 
         waitForStart();

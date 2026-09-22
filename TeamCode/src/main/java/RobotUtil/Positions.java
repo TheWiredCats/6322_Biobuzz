@@ -1,8 +1,6 @@
-package org.firstinspires.ftc.teamcode;
+package RobotUtil;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-
-import RobotUtil.CONSTANTS;
 
 public enum Positions {
     TopLeft(new Pose2D(CONSTANTS.unit.DU, 60, 60, CONSTANTS.unit.AU, 0)),

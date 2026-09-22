@@ -13,13 +13,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.MonkeyBusiness;
-import org.firstinspires.ftc.teamcode.TagData;
 
 import java.util.List;
 
 public class RobotUtil {
-    private RobotUtil(){}
+    private final static Robot robot  = Robot.getInstance();
     public static void setPowers(double FL, double BL, double FR, double BR, List<DcMotor> motors){
         //clipping extra could cause some problems and going in a circle
         //so we have to divide 1 by the greatest so we can multiply the rest by that
@@ -64,7 +62,10 @@ public class RobotUtil {
         double adjustedAngle1 = angle1 - Math.copySign(360, angle1);
         return Math.min(adjustedAngle1 - angle2, angle1 - angle2);
     }
-    public static void confirmPosition(Limelight3A limelight, GoBildaPinpointDriver pinpoint, LinearOpMode ll)throws MonkeyBusiness {
+    public static void confirmPosition()throws MonkeyBusiness {
+        LinearOpMode ll = robot.getLL();
+        Limelight3A limelight = robot.getLimelight();
+        GoBildaPinpointDriver pinpoint = robot.getPinpoint();
         LLResult result = limelight.getLatestResult();
         double oldTimestamp = result.getTimestamp();
         LLResultTypes.FiducialResult tags = getBiggest(result.getFiducialResults());
@@ -83,7 +84,9 @@ public class RobotUtil {
                 wrapAngle(180, -position.getOrientation().getYaw(AngleUnit.DEGREES))));
         limelight.pipelineSwitch(0);
     }
-    public static void placementScanner(Limelight3A limelight, RevBlinkinLedDriver LED){
+    public static void placementScanner(){
+        Limelight3A limelight = robot.getLimelight();
+        RevBlinkinLedDriver LED = robot.getLed();
         try{
             LLResultTypes.FiducialResult x = RobotUtil.getBiggest(limelight.getLatestResult().getFiducialResults());
             if(Math.abs(x.getTargetXDegrees()) > 7.5) LED.setPattern(CONSTANTS.ledConfig.TARGET_SIGHTED);
@@ -99,10 +102,10 @@ public class RobotUtil {
      * An upgrade of the actual pinpoint's .getPosition
      * @see GoBildaPinpointDriver#getPosition() Actual getPosition()
      * @see Robot#setUpPinpoint(OpMode)  Pinpoint Setup
-     * @param pinpoint the pinpoint being used
      * @return The Current Position in Units Described By {@linkplain CONSTANTS}
      */
-    public static Pose2D getPosition(GoBildaPinpointDriver pinpoint){
+    public static Pose2D getPosition(){
+        GoBildaPinpointDriver pinpoint = robot.getPinpoint();
         return (new Pose2D(CONSTANTS.unit.DU, pinpoint.getPosX(CONSTANTS.unit.DU),
                 pinpoint.getPosY(CONSTANTS.unit.DU), CONSTANTS.unit.AU,
                 pinpoint.getHeading(CONSTANTS.unit.AU)));
@@ -110,10 +113,10 @@ public class RobotUtil {
 
     /**
      * Adds pinpoint telemetry: Distance Units, Angle Units, X Position, Y Position, Heading
-     * @param pinpoint The pinpoint being used
-     * @param op Needed to add to telemetry
      */
-    public static void addTelemetry(GoBildaPinpointDriver pinpoint, OpMode op){
+    public static void addTelemetry(){
+        GoBildaPinpointDriver pinpoint = robot.getPinpoint();
+        OpMode op = robot.getOP();
         //adds the distance unit, angle unit, x y positions, and the heading to telemetry
         op.telemetry.addData("Odometry Data", "Distance Unit: %s, Angle Unit: %s, " +
                         "X Pos: %.2f, Y Pos: %.2f, Heading: %.2f",

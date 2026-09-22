@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.OpModes;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
+import RobotUtil.Team;
 import RobotUtil.Robot;
 import RobotUtil.RobotUtil;
 
@@ -43,7 +44,7 @@ public class Auto_prolly_BLUE extends LinearOpMode {
 
         //put in all auto modes
         while(opModeInInit()){
-            RobotUtil.placementScanner(limelight, LED);
+            RobotUtil.placementScanner();
         }
 
 

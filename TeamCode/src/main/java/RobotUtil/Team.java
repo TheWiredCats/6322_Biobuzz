@@ -1,8 +1,6 @@
-package org.firstinspires.ftc.teamcode;
+package RobotUtil;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-
-import RobotUtil.CONSTANTS;
 
 public enum Team {
     RED(new Pose2D(CONSTANTS.unit.DU, 36, 63, CONSTANTS.unit.AU, 0)),

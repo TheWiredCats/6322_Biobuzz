@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.OpModes;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -33,13 +33,9 @@ public class DrivingTuner extends LinearOpMode {
         pinpoint.setPosition(new Pose2D(CONSTANTS.unit.DU, -63, 63, CONSTANTS.unit.AU, 0));
         pinpoint.update();
 
-        Limelight3A limelight = robot.getLimelight();
-
-        RevBlinkinLedDriver LED = robot.getLed();
-
         //put in all auto modes
         while(opModeInInit()){
-            RobotUtil.placementScanner(limelight, LED);
+            RobotUtil.placementScanner();
         }
 
         waitForStart();
