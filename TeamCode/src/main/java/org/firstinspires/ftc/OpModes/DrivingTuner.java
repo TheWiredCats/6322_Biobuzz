@@ -11,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
+import RobotUtil.OPMode;
 import RobotUtil.CONSTANTS;
 import RobotUtil.Robot;
 import RobotUtil.RobotUtil;
@@ -19,7 +20,7 @@ import RobotUtil.RobotUtil;
 public class DrivingTuner extends LinearOpMode {
     @Override
     public void runOpMode() {
-        Robot robot = Robot.getInstance(this, null);
+        Robot robot = Robot.initialize(null, null, this, OPMode.AUTO);
 
         //HuskyLens huskyLens = Cameras.setupHuskyLens(this);
 

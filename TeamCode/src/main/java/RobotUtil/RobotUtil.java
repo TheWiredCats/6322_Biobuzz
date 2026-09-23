@@ -17,7 +17,19 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import java.util.List;
 
 public class RobotUtil {
-    private final static Robot robot  = Robot.getInstance();
+    private static Robot robot;
+    private static void checker(){if(robot==null)robot=Robot.getInstance();}
+
+    /**
+     * <h1>Motor Power Setter</h1>
+     * If the max power is greater than 1, then it divides all the other powers by it, essentially capping it between {@code [1,-1]},
+     * then sets each of the individual motors to those powers.
+     * @param FL Power For Front Left Motor
+     * @param BL Power For Back Left Motor
+     * @param FR Power For Front Right Motor
+     * @param BR Power For Back Right Motor
+     * @param motors List of each of the motors
+     */
     public static void setPowers(double FL, double BL, double FR, double BR, List<DcMotor> motors){
         //clipping extra could cause some problems and going in a circle
         //so we have to divide 1 by the greatest so we can multiply the rest by that
@@ -40,11 +52,19 @@ public class RobotUtil {
             motors.get(i).setPower(powers[i]);
         }
     }
+
+    /**
+     * <h1>Camera Result Calculator</h1>
+     * Runs through every single result, and returns the larget one
+     * @param results Latest camera result
+     * @return The largest April Tag
+     * @throws MonkeyBusiness If no April Tags are detected throw this error
+     */
     public static LLResultTypes.FiducialResult getBiggest(List<LLResultTypes.FiducialResult> results)throws MonkeyBusiness {
         if(results.isEmpty())throw new MonkeyBusiness();
         if(results.size()==1)return results.get(0);
         //make a new fiducial result that has nothing in it
-        LLResultTypes.FiducialResult result = null;
+        LLResultTypes.FiducialResult result = results.get(0);
 
         //run through all the April tags and checks for which one is the bigger
         //cuz that means it the closest to the robot and least likely to have errors
@@ -52,17 +72,27 @@ public class RobotUtil {
 
             //makes result equal to this new result if the new result is greater than the old
             //result, or if there is no old result
-            if(result==null||result.getTargetArea()<fr.getTargetArea())result = fr;
+            if(result.getTargetArea()<fr.getTargetArea())result = fr;
 
         }
         //return the result
         return result;
     }
+
+    /**
+     * <h1>Angle Calculator</h1>
+     * Find the coterminal angle that's closer to 0 then the original angle, and then finds both of the differences, and then finally returns the lesser of the 2 differences
+     * @param angle1 The First Angle
+     * @param angle2 The Second Angle
+     * @return The difference between the 2 angles wrapped into a [-179,180]
+     */
     public static double wrapAngle(double angle1, double angle2){
         double adjustedAngle1 = angle1 - Math.copySign(360, angle1);
-        return Math.min(adjustedAngle1 - angle2, angle1 - angle2);
+        return Math.abs(adjustedAngle1 - angle2) < Math.abs(angle1 - angle2)?
+                adjustedAngle1 - angle2 : angle1 - angle2;
     }
     public static void confirmPosition()throws MonkeyBusiness {
+        checker();
         LinearOpMode ll = robot.getLL();
         Limelight3A limelight = robot.getLimelight();
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
@@ -85,6 +115,7 @@ public class RobotUtil {
         limelight.pipelineSwitch(0);
     }
     public static void placementScanner(){
+        checker();
         Limelight3A limelight = robot.getLimelight();
         RevBlinkinLedDriver LED = robot.getLed();
         try{
@@ -105,6 +136,7 @@ public class RobotUtil {
      * @return The Current Position in Units Described By {@linkplain CONSTANTS}
      */
     public static Pose2D getPosition(){
+        checker();
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
         return (new Pose2D(CONSTANTS.unit.DU, pinpoint.getPosX(CONSTANTS.unit.DU),
                 pinpoint.getPosY(CONSTANTS.unit.DU), CONSTANTS.unit.AU,
@@ -115,6 +147,7 @@ public class RobotUtil {
      * Adds pinpoint telemetry: Distance Units, Angle Units, X Position, Y Position, Heading
      */
     public static void addTelemetry(){
+        checker();
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
         OpMode op = robot.getOP();
         //adds the distance unit, angle unit, x y positions, and the heading to telemetry

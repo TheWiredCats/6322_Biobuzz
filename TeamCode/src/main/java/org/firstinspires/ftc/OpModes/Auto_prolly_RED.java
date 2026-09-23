@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
+import RobotUtil.OPMode;
 import RobotUtil.Team;
 import RobotUtil.Robot;
 import RobotUtil.RobotUtil;
@@ -22,7 +23,7 @@ public class Auto_prolly_RED extends LinearOpMode {
 
     @Override
     public void runOpMode(){
-        Robot robot = Robot.getInstance(this, Team.RED);
+        Robot robot = Robot.initialize(Team.RED, null, this, OPMode.AUTO);
         //Start by initializing all the cameras, motors, and also the pinpoint
 
         //intake and transfer motor

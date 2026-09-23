@@ -1,6 +1,5 @@
 package RobotUtil;
 
-import com.bylazar.field.Line;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -59,6 +58,7 @@ public class Robot {
         this.limelight = setupLimeLight(op, this.pinpoint);
         this.huskyLens = setupHuskyLens(op);
         this.team = team;
+        this.op=op;
         this.ds = Driving_Systems.getInstance(team);
     }
     protected Robot(LinearOpMode ll, Team team, Boolean nu_uh){
@@ -70,24 +70,24 @@ public class Robot {
         this.huskyLens = setupHuskyLens(ll);
         this.team = team;
         this.ll=ll;
-        this.op=ll;
         this.ds = Driving_Systems.getInstance(team);
     }
 
+    public static Robot initialize(Team team, OpMode op, LinearOpMode ll, OPMode OP){
+        if(instance!=null&&instance.getOP()==null)return instance = new Robot(op, team);
+        if(instance!=null)return instance;
+        if(OP.equals(OPMode.AUTO)){
+            return instance = new Robot(ll, team, null);
+        }else{
+            return instance = new Robot(op, team);
+        }
+    }
     //public Get Instance
     public static Robot getInstance()throws MonkeyBusiness{if(instance==null) {
         throw new MonkeyBusiness();
     }else{
         return instance;
     }}
-    public static Robot getInstance(OpMode op, Team team){
-        instance = (instance==null)?new Robot(op, team):instance;
-        return instance;
-    }
-    public static Robot getInstance(LinearOpMode ll, Team team, Boolean nu_uh){
-        instance = (instance==null)?new Robot(ll, team, nu_uh):instance;
-        return instance;
-    }
 
     //Have the subclasses worry about this stuff
 

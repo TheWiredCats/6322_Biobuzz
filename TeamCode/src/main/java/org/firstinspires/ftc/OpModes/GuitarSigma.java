@@ -11,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.List;
 
+import RobotUtil.OPMode;
 import RobotUtil.CONSTANTS;
 import RobotUtil.Robot;
 import RobotUtil.RobotUtil;
@@ -28,7 +29,7 @@ public class GuitarSigma extends OpMode {
     private double speedMult;
     @Override
     public void init() {
-        Robot robot = Robot.getInstance(this, null);
+        Robot robot = Robot.initialize(null, this, null, OPMode.TELEOP);
         motors = robot.getDrivingMotors();
         pinpoint = robot.getPinpoint();
         frcHeading=pinpoint.getHeading(CONSTANTS.unit.AU);

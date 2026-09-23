@@ -60,6 +60,9 @@ public class OffSeasonPrototype1I extends OpMode {
     /* Declare OpMode members. */
     //as soon as teleop selected
 
+    private Thread locatorThread;
+    private volatile boolean locatorRunning;
+    private volatile Pose2D locatorPos;
     private DcMotor Intake;
     private DcMotor Transfer;
     private HuskyLens huskyLens;
@@ -81,6 +84,7 @@ public class OffSeasonPrototype1I extends OpMode {
     final double MINIMUM = 0.25;
     //maximum must be less than or equal to 1
     final double MAXIMUM = 1;
+    volatile LLResult result;
     Robot robot;
 
     @Override
@@ -114,10 +118,29 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void start() {
-        codeMissing=false;
-        //imu.resetYaw();
-        limelight.start();
-
+        locatorRunning=true;
+        locatorThread = new Thread(()->{while(locatorRunning) {
+            result = limelight.getLatestResult();
+            try {
+                LLResultTypes.FiducialResult tags = RobotUtil.getBiggest(result.getFiducialResults());
+                if (result.isValid() && tags.getTargetPoseCameraSpace().getOrientation().getPitch() > -70) {
+                    limelight.pipelineSwitch(TagData.tagData.get(tags.getFiducialId() - 30).value);
+                    while(limelight.getStatus().getPipelineIndex()==0)Thread.sleep(20);
+                    if (limelight.getStatus().getPipelineIndex() != 0) {
+                        Pose3D position = limelight.getLatestResult().getBotpose_MT2();
+                        locatorPos = (new Pose2D(DistanceUnit.METER, -position.getPosition().x,
+                                -position.getPosition().y, AngleUnit.DEGREES,
+                                RobotUtil.wrapAngle(180, -position.getOrientation().getYaw())));
+                        lastConfirmation = System.currentTimeMillis();
+                        limelight.pipelineSwitch(0);
+                    }
+                }
+            } catch (Exception e){
+                locatorPos=null;
+                if (limelight.getStatus().getPipelineIndex() != 0) limelight.pipelineSwitch(0);
+            }
+        }});
+        locatorThread.start();
     }
 
     /*
@@ -125,6 +148,8 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void loop() {
+        if(locatorPos!=null)pinpoint.setPosition(locatorPos);
+        locatorPos=null;
         //rateLimit.reset();
 
         Intake.setPower(gamepad1.a? 1 : 0);
@@ -155,23 +180,6 @@ public class OffSeasonPrototype1I extends OpMode {
         double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
 
-        LLResult result = limelight.getLatestResult();
-        try {
-            LLResultTypes.FiducialResult tags = RobotUtil.getBiggest(result.getFiducialResults());
-            if (result.isValid()&&tags.getTargetPoseCameraSpace().getOrientation().getPitch()>-70){
-                limelight.pipelineSwitch(TagData.tagData.get(tags.getFiducialId()-30).value);
-                if(limelight.getStatus().getPipelineIndex()!=0){
-                    Pose3D position = limelight.getLatestResult().getBotpose_MT2();
-                    pinpoint.setPosition(new Pose2D(DistanceUnit.METER, -position.getPosition().x,
-                            -position.getPosition().y, AngleUnit.DEGREES,
-                            RobotUtil.wrapAngle(180, -position.getOrientation().getYaw())));
-                    lastConfirmation=System.currentTimeMillis();
-                    limelight.pipelineSwitch(0);
-                }
-            }
-        }finally {
-            if(limelight.getStatus().getPipelineIndex()!=0)limelight.pipelineSwitch(0);
-        }
 
         HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
         telemetry.addData("HL Block Count", blocks.length);
@@ -237,12 +245,13 @@ public class OffSeasonPrototype1I extends OpMode {
             else telemetry.addLine("Not yet confirmed");
         telemetry.addData("stickLeftX", x);
         telemetry.addData("turn speed", rx);
-        //after the camera code rx might have been altered
         telemetry.addData("SpeedMult", speedMultiplier);
         telemetry.addData("Robot Yaw", roboYaw);
-        LLStatus status = limelight.getStatus();
-        telemetry.addData("LL STATS", "Temp: %.1fC, CPU: %.1f%%, FPS: %d", status.getTemp(), status.getCpu(),(int)status.getFps());
-        telemetry.addData("LL Pipeline", "Index: %d, Type: %s", status.getPipelineIndex(), status.getPipelineType());
         telemetry.update();
     }
+
+    @Override
+    public void stop(){
+        locatorRunning=false;
+    };
 }

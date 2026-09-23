@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
+import RobotUtil.OPMode;
 import RobotUtil.Robot;
 import RobotUtil.RobotUtil;
 
@@ -21,7 +22,7 @@ public class TurningTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Robot robot = Robot.getInstance(this , null);
+        Robot robot = Robot.initialize(null, null, this, OPMode.AUTO);
         //HuskyLens huskyLens = Cameras.setupHuskyLens(this);
 
         //pinpoint, aka the odometry computer, stuff
