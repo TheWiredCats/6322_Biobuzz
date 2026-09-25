@@ -17,8 +17,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import java.util.List;
 
 public class RobotUtil {
-    private static Robot robot;
-    private static void checker(){if(robot==null)robot=Robot.getInstance();}
+    private final Robot robot;
+    private static RobotUtil instance;
+    private RobotUtil(Robot robot){
+        this.robot = robot;
+    }
+
+    protected static RobotUtil initialize(Robot robot){
+        return instance==null? instance = new RobotUtil(robot): instance;
+    }
 
     /**
      * <h1>Motor Power Setter</h1>
@@ -30,7 +37,7 @@ public class RobotUtil {
      * @param BR Power For Back Right Motor
      * @param motors List of each of the motors
      */
-    public static void setPowers(double FL, double BL, double FR, double BR, List<DcMotor> motors){
+    public void setPowers(double FL, double BL, double FR, double BR, List<DcMotor> motors){
         //clipping extra could cause some problems and going in a circle
         //so we have to divide 1 by the greatest so we can multiply the rest by that
         //we can only do that if the greatest is over 1 tho
@@ -60,22 +67,26 @@ public class RobotUtil {
      * @return The largest April Tag
      * @throws MonkeyBusiness If no April Tags are detected throw this error
      */
-    public static LLResultTypes.FiducialResult getBiggest(List<LLResultTypes.FiducialResult> results)throws MonkeyBusiness {
-        if(results.isEmpty())throw new MonkeyBusiness();
+    public LLResultTypes.FiducialResult getBiggest(List<LLResultTypes.FiducialResult> results)throws MonkeyBusiness {
+        OpMode op = robot.getOP();
+        if(results.isEmpty())throw new MonkeyBusiness("List Empty", op);
         if(results.size()==1)return results.get(0);
-        //make a new fiducial result that has nothing in it
+        //return the result
+        return getResult(results);
+    }
+
+    private LLResultTypes.FiducialResult getResult(List<LLResultTypes.FiducialResult> results) {
         LLResultTypes.FiducialResult result = results.get(0);
 
         //run through all the April tags and checks for which one is the bigger
         //cuz that means it the closest to the robot and least likely to have errors
-        for(LLResultTypes.FiducialResult fr:results){
+        for(LLResultTypes.FiducialResult fr: results){
 
             //makes result equal to this new result if the new result is greater than the old
             //result, or if there is no old result
             if(result.getTargetArea()<fr.getTargetArea())result = fr;
 
         }
-        //return the result
         return result;
     }
 
@@ -86,13 +97,12 @@ public class RobotUtil {
      * @param angle2 The Second Angle
      * @return The difference between the 2 angles wrapped into a [-179,180]
      */
-    public static double wrapAngle(double angle1, double angle2){
+    public double wrapAngle(double angle1, double angle2){
         double adjustedAngle1 = angle1 - Math.copySign(360, angle1);
         return Math.abs(adjustedAngle1 - angle2) < Math.abs(angle1 - angle2)?
                 adjustedAngle1 - angle2 : angle1 - angle2;
     }
-    public static void confirmPosition()throws MonkeyBusiness {
-        checker();
+    public void confirmPosition()throws MonkeyBusiness {
         LinearOpMode ll = robot.getLL();
         Limelight3A limelight = robot.getLimelight();
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
@@ -114,12 +124,11 @@ public class RobotUtil {
                 wrapAngle(180, -position.getOrientation().getYaw(AngleUnit.DEGREES))));
         limelight.pipelineSwitch(0);
     }
-    public static void placementScanner(){
-        checker();
+    public void placementScanner()throws MonkeyBusiness{
         Limelight3A limelight = robot.getLimelight();
         RevBlinkinLedDriver LED = robot.getLed();
         try{
-            LLResultTypes.FiducialResult x = RobotUtil.getBiggest(limelight.getLatestResult().getFiducialResults());
+            LLResultTypes.FiducialResult x = getBiggest(limelight.getLatestResult().getFiducialResults());
             if(Math.abs(x.getTargetXDegrees()) > 7.5) LED.setPattern(CONSTANTS.ledConfig.TARGET_SIGHTED);
             else if(Math.abs(x.getTargetXDegrees()) <= 7.5 && Math.abs(x.getTargetXDegrees()) > 2.5)
                 LED.setPattern(CONSTANTS.ledConfig.CLOSE);
@@ -130,13 +139,13 @@ public class RobotUtil {
     }
 
     /**
+     * <h1>Pinpoint Position Getter</h1>
      * An upgrade of the actual pinpoint's .getPosition
      * @see GoBildaPinpointDriver#getPosition() Actual getPosition()
      * @see Robot#setUpPinpoint(OpMode)  Pinpoint Setup
      * @return The Current Position in Units Described By {@linkplain CONSTANTS}
      */
-    public static Pose2D getPosition(){
-        checker();
+    public Pose2D getPosition()throws MonkeyBusiness{
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
         return (new Pose2D(CONSTANTS.unit.DU, pinpoint.getPosX(CONSTANTS.unit.DU),
                 pinpoint.getPosY(CONSTANTS.unit.DU), CONSTANTS.unit.AU,
@@ -144,10 +153,10 @@ public class RobotUtil {
     }
 
     /**
+     * <h1>Auto Pinpoint Telemetry Adder</h1>
      * Adds pinpoint telemetry: Distance Units, Angle Units, X Position, Y Position, Heading
      */
-    public static void addTelemetry(){
-        checker();
+    public void addTelemetry(){
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
         OpMode op = robot.getOP();
         //adds the distance unit, angle unit, x y positions, and the heading to telemetry

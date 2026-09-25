@@ -21,10 +21,10 @@ import java.util.List;
  */
 public class Robot {
 
-    //Driving Motors
+    //List Of Driving Motors
     private final List<DcMotor> drivingMotors;
 
-    //Utility Motors
+    //List Of Utility Motors
     private final List<DcMotor> utilMotors;
 
     //Led Controller
@@ -41,16 +41,30 @@ public class Robot {
 
     //Team (Red or Blue)
     //Useful for most autos
-    private final Team team;
+    private Team team;
+
+    //Auto specific Op Mode
+    //(useful for things like sleep())
     private LinearOpMode ll;
+
+    //Generic OpMode, for both Auto & TeleOp
     private OpMode op;
-    private final Driving_Systems ds;
+
+    //Driving System were gonna use
+    //(Dependent on team because the parking is slightly different)
+    private Driving_Systems ds;
+
+    //Auto Or Tele Mode
+    private OPMode currentMode;
+
+    private final RobotUtil calc;
 
     //Helpful for singleton -ing
     private static Robot instance;
 
     //Initialize all the variables in the singleton instance
-    protected Robot(OpMode op, Team team){
+    protected Robot(LinearOpMode ll, Team team){
+        this.op=ll;
         this.drivingMotors = setupDrivingMotors(op);
         this.utilMotors = setupMotors(op);
         this.led = LEDSetUP(op);
@@ -58,33 +72,50 @@ public class Robot {
         this.limelight = setupLimeLight(op, this.pinpoint);
         this.huskyLens = setupHuskyLens(op);
         this.team = team;
-        this.op=op;
-        this.ds = Driving_Systems.getInstance(team);
-    }
-    protected Robot(LinearOpMode ll, Team team, Boolean nu_uh){
-        this.drivingMotors = setupDrivingMotors(ll);
-        this.utilMotors = setupMotors(ll);
-        this.led = LEDSetUP(ll);
-        this.pinpoint = setUpPinpoint(ll);
-        this.limelight = setupLimeLight(ll, this.pinpoint);
-        this.huskyLens = setupHuskyLens(ll);
-        this.team = team;
-        this.ll=ll;
-        this.ds = Driving_Systems.getInstance(team);
+        this.currentMode = OPMode.AUTO;
+        this.ll = ll;
+        this.ds = Driving_Systems.getInstance(team, this);
+        this.calc = RobotUtil.initialize(this);
     }
 
-    public static Robot initialize(Team team, OpMode op, LinearOpMode ll, OPMode OP){
-        if(instance!=null&&instance.getOP()==null)return instance = new Robot(op, team);
-        if(instance!=null)return instance;
-        if(OP.equals(OPMode.AUTO)){
-            return instance = new Robot(ll, team, null);
-        }else{
-            return instance = new Robot(op, team);
-        }
+    //catcher
+    protected Robot(OpMode op){
+        //Auto only things
+        this.ds=null;
+        this.ll=null;
+        this.team=null;
+
+        this.op = op;
+        this.drivingMotors = setupDrivingMotors(op);
+        this.utilMotors = setupMotors(op);
+        this.led = LEDSetUP(op);
+        this.pinpoint = setUpPinpoint(op);
+        this.limelight = setupLimeLight(op, pinpoint);
+        this.huskyLens = setupHuskyLens(op);
+        this.currentMode = OPMode.TELEOP;
+        this.calc = RobotUtil.initialize(this);
     }
+
+
+    public static Robot startAuto(Team team, LinearOpMode ll)throws MonkeyBusiness{
+        if(instance!=null)throw new MonkeyBusiness("Already started an auto asshole", ll);
+        return instance = new Robot(ll, team);
+    }
+
+    public static Robot startTele(OpMode op){
+        if(instance==null) return instance = new Robot(op);
+        instance.op = op;
+        instance.ll = null;
+        instance.team = null;
+        instance.ds = null;
+        instance.currentMode=OPMode.TELEOP;
+        return instance;
+    }
+
     //public Get Instance
-    public static Robot getInstance()throws MonkeyBusiness{if(instance==null) {
-        throw new MonkeyBusiness();
+    public static Robot getInstance()throws MonkeyBusiness{
+    if(instance==null) {
+        throw new MonkeyBusiness("No OpMode to get.  Fix this");
     }else{
         return instance;
     }}
@@ -110,4 +141,6 @@ public class Robot {
     public Driving_Systems getDSInstance(){return this.ds;}
     public LinearOpMode getLL(){return this.ll;}
     public OpMode getOP(){return this.op;}
+    public OPMode getMode(){return this.currentMode;}
+    public RobotUtil getCalc(){return this.calc;}
 }

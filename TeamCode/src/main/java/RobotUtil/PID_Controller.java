@@ -23,8 +23,11 @@ public class PID_Controller implements PIDInterface{
 
     /**Stores the goal position as a global variable and an array to be able to handle the 2D driving position goals as well as the heading goal*/
     double[] goal;
-    public PID_Controller(PIDModes mode){
+
+
+    public PID_Controller(PIDModes mode, RobotUtil calc){
         this.mode = mode;
+        this.mode.calc = calc;
         this.input = new double[mode.ordinal()+1];
         this.goal = new double[mode.ordinal()+1];
     }

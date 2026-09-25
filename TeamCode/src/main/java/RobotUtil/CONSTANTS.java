@@ -65,6 +65,9 @@ public final class CONSTANTS {
         }
     }
 
+    public static final double MAXIMUM = 1;
+    public static final double MINIMUM = 0.25;
+
     //change the colors based on what colors u want for each setting
     public static final LED_CONFIGS ledConfig = new LED_CONFIGS(
             RevBlinkinLedDriver.BlinkinPattern.RED,

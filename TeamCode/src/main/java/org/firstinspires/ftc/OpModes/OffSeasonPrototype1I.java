@@ -24,13 +24,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-//import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -41,9 +39,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import java.util.ArrayList;
 import java.util.List;
 
-import RobotUtil.TagData;
-import RobotUtil.Robot;
-import RobotUtil.RobotUtil;
+import RobotUtil.*;
 
 /**
  * This file contains a minimal example of an iterative (Non-Linear) "OpMode". An OpMode is a
@@ -60,48 +56,40 @@ public class OffSeasonPrototype1I extends OpMode {
     /* Declare OpMode members. */
     //as soon as teleop selected
 
-    private Thread locatorThread;
     private volatile boolean locatorRunning;
     private volatile Pose2D locatorPos;
     private DcMotor Intake;
     private DcMotor Transfer;
     private HuskyLens huskyLens;
-
     private Limelight3A limelight;
-
-//    private IMU imu = null;
-
     private GoBildaPinpointDriver pinpoint;
-    boolean codeMissing;
     List<Integer> brokenId;
     long lastConfirmation;
-    double FRCHeading=0;
+    double FRCHeading;
     double lastHeading;
     List<DcMotor> motors;
     private DcMotor Shoot;
-
-    //how low/high the Speed can go with both triggers down/up respectfully
-    final double MINIMUM = 0.25;
-    //maximum must be less than or equal to 1
-    final double MAXIMUM = 1;
     volatile LLResult result;
-    Robot robot;
+    private Robot robot;
+    private RobotUtil calc;
 
     @Override
     public void init() {
-        robot=Robot.getInstance();
+        robot=Robot.startTele(this);
+
+        calc = robot.getCalc();
 
         motors = robot.getDrivingMotors();
 
         brokenId = new ArrayList<>();
         //runs once as soon as "init" is pressed
-        List<DcMotor> tempMotors = robot.getUtilMotors();
-        Intake = tempMotors.get(0);
-        Transfer = tempMotors.get(1);
-        Shoot = tempMotors.get(2);
+        Intake = robot.getUtilMotors().get(0);
+        Transfer = robot.getUtilMotors().get(1);
+        Shoot = robot.getUtilMotors().get(2);
 
         //imu = hardwareMap.get(IMU.class, "imu");
         pinpoint = robot.getPinpoint();
+        FRCHeading=0;
 
         limelight = robot.getLimelight();
         huskyLens = robot.getHuskyLens();
@@ -119,27 +107,7 @@ public class OffSeasonPrototype1I extends OpMode {
     @Override
     public void start() {
         locatorRunning=true;
-        locatorThread = new Thread(()->{while(locatorRunning) {
-            result = limelight.getLatestResult();
-            try {
-                LLResultTypes.FiducialResult tags = RobotUtil.getBiggest(result.getFiducialResults());
-                if (result.isValid() && tags.getTargetPoseCameraSpace().getOrientation().getPitch() > -70) {
-                    limelight.pipelineSwitch(TagData.tagData.get(tags.getFiducialId() - 30).value);
-                    while(limelight.getStatus().getPipelineIndex()==0)Thread.sleep(20);
-                    if (limelight.getStatus().getPipelineIndex() != 0) {
-                        Pose3D position = limelight.getLatestResult().getBotpose_MT2();
-                        locatorPos = (new Pose2D(DistanceUnit.METER, -position.getPosition().x,
-                                -position.getPosition().y, AngleUnit.DEGREES,
-                                RobotUtil.wrapAngle(180, -position.getOrientation().getYaw())));
-                        lastConfirmation = System.currentTimeMillis();
-                        limelight.pipelineSwitch(0);
-                    }
-                }
-            } catch (Exception e){
-                locatorPos=null;
-                if (limelight.getStatus().getPipelineIndex() != 0) limelight.pipelineSwitch(0);
-            }
-        }});
+        Thread locatorThread = new Thread(this::runCamera);
         locatorThread.start();
     }
 
@@ -148,23 +116,24 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void loop() {
-        if(locatorPos!=null)pinpoint.setPosition(locatorPos);
-        locatorPos=null;
-        //rateLimit.reset();
+        if(locatorPos!=null){
+            pinpoint.setPosition(locatorPos);
+            locatorPos=null;
+        }
 
-        Intake.setPower(gamepad1.a? 1 : 0);
-        Transfer.setPower(gamepad1.y? 1 : 0);
+        Intake.setPower(gamepad1.a ? 1 : 0);
+        Transfer.setPower(gamepad1.y ? 1 : 0);
         Shoot.setPower(gamepad1.b ? 1 : 0);
 
         limelight.updateRobotOrientation(pinpoint.getHeading(AngleUnit.DEGREES));
 
         //Calculates how far the minimum is from the middle of the 2
         // (to know how much each should affect)
-        double Difference=(MAXIMUM-MINIMUM)/2;
+        double Difference=(CONSTANTS.MAXIMUM-CONSTANTS.MINIMUM)/2;
         //Readability of code
         double TotalTrigger=gamepad1.right_trigger+gamepad1.left_trigger;
 
-        double speedMultiplier = (MAXIMUM-(Difference*TotalTrigger));
+        double speedMultiplier = (CONSTANTS.MAXIMUM-(Difference*TotalTrigger));
 
         if(gamepad1.start)FRCHeading=0;
 
@@ -231,11 +200,11 @@ public class OffSeasonPrototype1I extends OpMode {
         double FRMotorPower = ((y - x - rx) / stickTotal) * speedMultiplier;
         double BRMotorPower = ((y + x - rx) / stickTotal) * speedMultiplier;
 
-        RobotUtil.setPowers(FLMotorPower, BLMotorPower, FRMotorPower, BRMotorPower, motors);
+        calc.setPowers(FLMotorPower, BLMotorPower, FRMotorPower, BRMotorPower, motors);
         lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
         pinpoint.update();
         FRCHeading+=(pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading);
-        RobotUtil.addTelemetry();
+        calc.addTelemetry();
 
         long secs=(System.currentTimeMillis()/1000)-lastConfirmation;
         long mins=secs/60;
@@ -253,5 +222,33 @@ public class OffSeasonPrototype1I extends OpMode {
     @Override
     public void stop(){
         locatorRunning=false;
-    };
+    }
+
+    private void runCamera(){
+        while (locatorRunning) {
+            result = limelight.getLatestResult();
+            if(!result.isValid()){
+                try{Thread.sleep(50);} catch (InterruptedException ignored) {}
+                continue;
+            }
+            try {
+                LLResultTypes.FiducialResult tags = calc.getBiggest(result.getFiducialResults());
+                if (result.isValid() && tags.getTargetPoseCameraSpace().getOrientation().getPitch() > -70) {
+                    limelight.pipelineSwitch(TagData.tagData.get(tags.getFiducialId() - 30).value);
+                    while (limelight.getStatus().getPipelineIndex() == 0) Thread.sleep(20);
+                    if (limelight.getStatus().getPipelineIndex() != 0) {
+                        Pose3D position = limelight.getLatestResult().getBotpose_MT2();
+                        locatorPos = (new Pose2D(DistanceUnit.METER, -position.getPosition().x,
+                                -position.getPosition().y, AngleUnit.DEGREES,
+                                calc.wrapAngle(180, -position.getOrientation().getYaw())));
+                        lastConfirmation = System.currentTimeMillis();
+                        limelight.pipelineSwitch(0);
+                    }
+                }
+            } catch (Exception e) {
+                locatorPos = null;
+                if (limelight.getStatus().getPipelineIndex() != 0) limelight.pipelineSwitch(0);
+            }
+        }
+    }
 }

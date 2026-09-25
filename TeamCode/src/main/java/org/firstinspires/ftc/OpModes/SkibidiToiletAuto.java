@@ -10,19 +10,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
-import RobotUtil.CONSTANTS;
-import RobotUtil.Driving_Systems;
-import RobotUtil.OPMode;
-import RobotUtil.PIDModes;
-import RobotUtil.Robot;
-import RobotUtil.Team;
+import RobotUtil.*;
 
 @Autonomous(name="Greedy Auto Test")
 public class SkibidiToiletAuto extends LinearOpMode {
 
     @Override
     public void runOpMode(){
-        Robot robot = Robot.initialize(Team.RED, null, this, OPMode.AUTO);
+        Robot robot = Robot.startAuto(Team.RED, this);
         Driving_Systems ds = robot.getDSInstance();
         List<DcMotor> motors = robot.getDrivingMotors();
         List<DcMotor> motorTemp = robot.getUtilMotors();

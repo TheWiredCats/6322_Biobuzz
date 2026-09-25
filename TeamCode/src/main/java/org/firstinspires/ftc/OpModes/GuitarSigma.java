@@ -11,10 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.List;
 
-import RobotUtil.OPMode;
-import RobotUtil.CONSTANTS;
-import RobotUtil.Robot;
-import RobotUtil.RobotUtil;
+import RobotUtil.*;
 
 @TeleOp(name = "Guitar Sigma")
 
@@ -27,16 +24,17 @@ public class GuitarSigma extends OpMode {
     List<DcMotor> motors;
     private DcMotor Shoot;
     private double speedMult;
+    private RobotUtil calc;
     @Override
     public void init() {
-        Robot robot = Robot.initialize(null, this, null, OPMode.TELEOP);
+        Robot robot = Robot.startTele(this);
+        calc = robot.getCalc();
         motors = robot.getDrivingMotors();
         pinpoint = robot.getPinpoint();
         frcHeading=pinpoint.getHeading(CONSTANTS.unit.AU);
-        List<DcMotor> tempMotors = robot.getUtilMotors();
-        Intake = tempMotors.get(0);
-        Transfer = tempMotors.get(1);
-        Shoot = tempMotors.get(2);
+        Intake = robot.getUtilMotors().get(0);
+        Transfer = robot.getUtilMotors().get(1);
+        Shoot = robot.getUtilMotors().get(2);
         speedMult = 0.5+ MathUtils.clamp(gamepad1.right_stick_x, -0.4, 5);
     }
 
@@ -44,7 +42,7 @@ public class GuitarSigma extends OpMode {
     public void loop() {
         double temp = pinpoint.getHeading(CONSTANTS.unit.AU.getUnnormalized());
         pinpoint.update();
-        frcHeading +=  gamepad1.back?-frcHeading: RobotUtil.wrapAngle(pinpoint.getHeading(
+        frcHeading +=  gamepad1.back?-frcHeading: calc.wrapAngle(pinpoint.getHeading(
                 CONSTANTS.unit.AU.getUnnormalized()), temp);
 
         Intake.setPower(gamepad2.a?1:0);
@@ -64,6 +62,6 @@ public class GuitarSigma extends OpMode {
         double BL = (y - x + rx) * speedMult;
         double FR = (y - x - rx) * speedMult;
         double BR = (y + x - rx) * speedMult;
-        RobotUtil.setPowers(FL, BL, FR, BR, motors);
+        calc.setPowers(FL, BL, FR, BR, motors);
     }
 }

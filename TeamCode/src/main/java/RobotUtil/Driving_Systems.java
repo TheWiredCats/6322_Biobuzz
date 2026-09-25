@@ -14,18 +14,25 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import java.util.List;
 
 public final class Driving_Systems{
-    private static final Driving_Systems redInstance = new Driving_Systems(Team.RED);
-    private static final Driving_Systems blueInstance = new Driving_Systems(Team.BLUE);
+    private static final Driving_Systems redInstance = new Driving_Systems(Team.RED, null);
+    private static final Driving_Systems blueInstance = new Driving_Systems(Team.BLUE, null);
     private final Team team;
-    private Driving_Systems(Team team) {
+    private static RobotUtil calc;
+    private Driving_Systems(Team team, RobotUtil calc) {
         this.team = team;
+        Driving_Systems.calc = calc;
     }
-    static Driving_Systems getInstance(Team team){return team.equals(Team.BLUE)?blueInstance:redInstance;}
-    private final static PID_Controller pidD = new PID_Controller(PIDModes.DRIVING);
-    private final static PID_Controller pidT = new PID_Controller(PIDModes.TURNING);
+    private static PID_Controller pidD;
+    private static PID_Controller pidT = new PID_Controller(PIDModes.TURNING, calc);
+    static Driving_Systems getInstance(Team team, Robot robot){
+        Driving_Systems.calc=robot.getCalc();
+        pidD = new PID_Controller(PIDModes.DRIVING, calc);
+        pidT = new PID_Controller(PIDModes.TURNING, calc);
+        return team.equals(Team.RED)?redInstance:blueInstance;
+    }
 
     /**
-     * Driving PID Function
+     * <h1>Driving PID Function</h1>
      * @param verity Distance Unit
      * @param pinpoint Actual Pinpoint
      * @param limelight Limelight Camera
@@ -65,7 +72,7 @@ public final class Driving_Systems{
 
             //Confirming current position using limelight
             try {
-                RobotUtil.confirmPosition();
+                calc.confirmPosition();
             } catch (MonkeyBusiness ignored) {}
 
             //update pinpoint for some fresh data
@@ -95,7 +102,7 @@ public final class Driving_Systems{
                     error);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f", P, I, D, output);
-            RobotUtil.addTelemetry();
+            calc.addTelemetry();
             ll.telemetry.update();
 
 
@@ -105,14 +112,14 @@ public final class Driving_Systems{
             double yPower = -output * Math.cos(roboYaw);// - OutputX * Math.sin(roboYaw);
 
             //We set the power to each motor using this math, and the motors list
-            RobotUtil.setPowers((yPower + xPower), (yPower - xPower), (yPower - xPower), (yPower + xPower), motors);
+            calc.setPowers((yPower + xPower), (yPower - xPower), (yPower - xPower), (yPower + xPower), motors);
         }
         //brake after we get to the x y positions
-        RobotUtil.setPowers(0, 0, 0, 0, motors);
+        calc.setPowers(0, 0, 0, 0, motors);
     }
 
     /**
-     * Turning PID Function
+     * <h1>Turning PID Function</h1>
      * @param verity The Angle Unit
      * @param ll LinearOpMode neccesary to check opModeIsActive
      * @param pinpoint The Actual Pinpoint
@@ -142,7 +149,7 @@ public final class Driving_Systems{
             pinpoint.update();
 
             //error is the current difference between the 2 angels
-            double error = RobotUtil.wrapAngle(desiredHeading, pinpoint.getHeading(verity));
+            double error = calc.wrapAngle(desiredHeading, pinpoint.getHeading(verity));
 
             //P part of PID represents how much change we still need to do
             //but is often the cause of oscillation when KP is too high
@@ -168,18 +175,19 @@ public final class Driving_Systems{
                     CONSTANTS.turningConstants.KD, error);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f", P, I, D, total);
-            RobotUtil.addTelemetry();
+            calc.addTelemetry();
             ll.telemetry.update();
 
             //set the motors to either positive or negative motors
-            RobotUtil.setPowers(-total, -total, total, total, motors);
+            calc.setPowers(-total, -total, total, total, motors);
         }
         //brake after we arrive at our destination
-       RobotUtil.setPowers(0, 0, 0, 0, motors);
+       calc.setPowers(0, 0, 0, 0, motors);
     }
 
     /**
-     * Public Mover (Position Overload)
+     * <h1>Public Mover</h1>
+     * <i><h6>Position Overload</j6></i>
      * @param pinpoint Actual Pinpoint
      * @param limelight Actual Limelight Camera
      * @param motors List Of Driving Motors Orederd (FL, BL, FR, BR)
@@ -210,31 +218,6 @@ public final class Driving_Systems{
         }
     }
 
-    /*
-    public static void goTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, List<DcMotor> motors,
-                     LinearOpMode ll, DistanceUnit sigma, int id,
-                     double distance)throws NullPointerException{
-        //turn the distance from whatever it is to the standardized one
-        double convertedDistance = (CONSTANTS.unit.DU).fromUnit(sigma, distance);
-
-        //how far away we should be given a certain angle pretty sure this is right could be wrong tho
-        //idrk lol
-        double x = CONSTANTS.APRIL_TAG_POSITIONS[id][0] - convertedDistance * Math.sin(
-                AngleUnit.RADIANS.fromUnit(CONSTANTS.unit.AU, CONSTANTS.APRIL_TAG_POSITIONS[id][2]));
-        //same thing as x just a lil different still should be right do
-        double y = CONSTANTS.APRIL_TAG_POSITIONS[id][1] - convertedDistance * Math.cos(
-                AngleUnit.RADIANS.fromUnit(CONSTANTS.unit.AU, CONSTANTS.APRIL_TAG_POSITIONS[id][2]));
-
-        //go towards that position, and then look towards the id
-        headTo(pinpoint, limelight, motors, ll , CONSTANTS.unit.DU,
-                CONSTANTS.unit.AU, x, y, (CONSTANTS.unit.AU==AngleUnit.RADIANS?
-                        Math.PI:180) + CONSTANTS.APRIL_TAG_POSITIONS[id][2]);
-
-        //make sure we are looking at it and then move until we are the exact distance away
-        //that we want to be
-        lockIn(CONSTANTS.unit.DU, ll, limelight, pinpoint, motors, convertedDistance);
-    }
-    */
 
     /**
      * Public Mover (Double Overload)
@@ -304,7 +287,7 @@ public final class Driving_Systems{
             try {
 
                 //get the closest result as the result we want
-                LLResultTypes.FiducialResult result = RobotUtil.getBiggest(results.getFiducialResults());
+                LLResultTypes.FiducialResult result = calc.getBiggest(results.getFiducialResults());
 
                 limelight.pipelineSwitch(TagData.tagData.get(result.getFiducialId() - 30).value);
 
@@ -335,18 +318,13 @@ public final class Driving_Systems{
         AngleUnit au = CONSTANTS.unit.AU;
         Pose2D park = team.getPark();
         Positions pos;
-        Pose2D currentPos = RobotUtil.getPosition();
+        Pose2D currentPos = calc.getPosition();
         if(currentPos.getX(du)>0){
             pos = currentPos.getY(du)>24?Positions.TopLeft:(currentPos.getY(du)<-24)?Positions.TopRight:Positions.TopCenter;
         }else{
             pos = currentPos.getY(du)>24?Positions.BottomLeft:(currentPos.getY(du)<-24)?Positions.BottomRight:Positions.BottomCenter;
         }
         headTo(pinpoint, limelight, motors, ll, du, au, pos.getSaveStation(), PIDModes.DRIVING);
-        if(this.team.equals(Team.RED)){
-
-        }else{
-
-        }
     }
 
     /**
@@ -366,7 +344,7 @@ public final class Driving_Systems{
             double convertedDistance = CONSTANTS.unit.DU.fromUnit(verity, distance);
             LLResult result = limelight.getLatestResult();
             if(result==null)return;
-            LLResultTypes.FiducialResult tags = RobotUtil.getBiggest(result.getFiducialResults());
+            LLResultTypes.FiducialResult tags = calc.getBiggest(result.getFiducialResults());
             Pose2D targetPos = TagData.getPosition(tags.getFiducialId());
 
             double deltaX = targetPos.getX(CONSTANTS.unit.DU) - pinpoint.getPosX(CONSTANTS.unit.DU);
