@@ -7,9 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 final class Motors extends Robot{
-    private Motors(){
-        super(null, null);
+    private Motors(OpMode op){
+        super(op);
     }
+    private static Motors instance;
+    static Motors getMotors(OpMode op){return instance==null?instance=new Motors(op):instance;}
     @Override
     protected List<DcMotor> setupMotors(OpMode op){
         List<DcMotor> motors = new ArrayList<>();

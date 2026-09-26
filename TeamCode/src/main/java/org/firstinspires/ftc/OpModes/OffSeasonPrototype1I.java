@@ -125,7 +125,7 @@ public class OffSeasonPrototype1I extends OpMode {
         Transfer.setPower(gamepad1.y ? 1 : 0);
         Shoot.setPower(gamepad1.b ? 1 : 0);
 
-        limelight.updateRobotOrientation(pinpoint.getHeading(AngleUnit.DEGREES));
+        result = robot.updateLimelight();
 
         //Calculates how far the minimum is from the middle of the 2
         // (to know how much each should affect)
@@ -226,7 +226,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
     private void runCamera(){
         while (locatorRunning) {
-            result = limelight.getLatestResult();
+            result = robot.updateLimelight();
             if(!result.isValid()){
                 try{Thread.sleep(50);} catch (InterruptedException ignored) {}
                 continue;

@@ -65,7 +65,9 @@ public class RobotUtil {
      * Runs through every single result, and returns the larget one
      * @param results Latest camera result
      * @return The largest April Tag
-     * @throws MonkeyBusiness If no April Tags are detected throw this error
+     * @throws MonkeyBusiness If no April Tags are detected throw an advanced error
+     * @see MonkeyBusiness#MonkeyBusiness(String, OpMode)  Advanced Error
+     * @see #getResult(List) Actual Logic Parts
      */
     public LLResultTypes.FiducialResult getBiggest(List<LLResultTypes.FiducialResult> results)throws MonkeyBusiness {
         OpMode op = robot.getOP();
@@ -102,6 +104,13 @@ public class RobotUtil {
         return Math.abs(adjustedAngle1 - angle2) < Math.abs(angle1 - angle2)?
                 adjustedAngle1 - angle2 : angle1 - angle2;
     }
+
+    /**
+     * <h1>Limelight/Pinpoint Position Confirmer</h1>
+     * <h6><i>Why Be Sure When You Can Be HIV Positive</i></h6>
+     * Confirms position by using different pipelines to filter for the 4 nearest tags and then do a lil bit of math to find the position of the robot and then setting the pinpoint to the new position
+     * @throws MonkeyBusiness Will throw a base error if no tag is detected, or if the pitch of the tag is less than -70
+     */
     public void confirmPosition()throws MonkeyBusiness {
         LinearOpMode ll = robot.getLL();
         Limelight3A limelight = robot.getLimelight();
@@ -124,7 +133,15 @@ public class RobotUtil {
                 wrapAngle(180, -position.getOrientation().getYaw(AngleUnit.DEGREES))));
         limelight.pipelineSwitch(0);
     }
-    public void placementScanner()throws MonkeyBusiness{
+
+    /**
+     * <h1>Robot Placement Scanner</h1>
+     * <h6><i>No Not <u>There</u> I Meant <u>There</u></i></h6>
+     * Scans AprilTag's in front of it and changes the color based on the pre-set led-configs<br>
+     * <h5><b><u><i>Warning: Must Be Put In A</i></u></b> {@code while(opModeInInit)} <b><u><i>Loop</i></u></b></h5>
+     * @see LinearOpMode#opModeInInit() opModeInInit (boolean)
+     */
+    public void placementScanner(){
         Limelight3A limelight = robot.getLimelight();
         RevBlinkinLedDriver LED = robot.getLed();
         try{
@@ -140,7 +157,8 @@ public class RobotUtil {
 
     /**
      * <h1>Pinpoint Position Getter</h1>
-     * An upgrade of the actual pinpoint's .getPosition
+     * <h6><i>3.4 What, Inches? Feet? Autistic Camels?!</i></h6>
+     * An upgrade of the actual pinpoint's .getPosition(), which gets a position with more specific units
      * @see GoBildaPinpointDriver#getPosition() Actual getPosition()
      * @see Robot#setUpPinpoint(OpMode)  Pinpoint Setup
      * @return The Current Position in Units Described By {@linkplain CONSTANTS}
@@ -154,7 +172,9 @@ public class RobotUtil {
 
     /**
      * <h1>Auto Pinpoint Telemetry Adder</h1>
+     * <h6><i>I'm Tired of Adding Telemetry Grandpa</i></h6>
      * Adds pinpoint telemetry: Distance Units, Angle Units, X Position, Y Position, Heading
+     * @see CONSTANTS Unit Data
      */
     public void addTelemetry(){
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();

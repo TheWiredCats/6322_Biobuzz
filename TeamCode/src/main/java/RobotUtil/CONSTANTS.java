@@ -9,6 +9,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * <h1>Constants Class</h1>
+ * <h6><i>Here. Right Here All Your Data Needs Will Be Me-. I Need Angle Units!</i></h6>
+ * <h4><u>IN A MINUTE!</u></h4>
+ * <br>
+ * Makes sure that all of your data can be found in one place, which is located right here
+ */
 public final class CONSTANTS {
     public final static class tolerances{
         public final double DError;

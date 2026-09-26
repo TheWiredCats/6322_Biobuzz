@@ -2,6 +2,7 @@ package RobotUtil;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -22,22 +23,22 @@ import java.util.List;
 public class Robot {
 
     //List Of Driving Motors
-    private final List<DcMotor> drivingMotors;
+    private List<DcMotor> drivingMotors;
 
     //List Of Utility Motors
-    private final List<DcMotor> utilMotors;
+    private List<DcMotor> utilMotors;
 
     //Led Controller
-    private final RevBlinkinLedDriver led;
+    private RevBlinkinLedDriver led;
 
     //Pinpoint Controller
-    private final GoBildaPinpointDriver pinpoint;
+    private GoBildaPinpointDriver pinpoint;
 
     //Limelight Camera
-    private final Limelight3A limelight;
+    private Limelight3A limelight;
 
     //HuskyLens Camera
-    private final HuskyLens huskyLens;
+    private HuskyLens huskyLens;
 
     //Team (Red or Blue)
     //Useful for most autos
@@ -65,37 +66,25 @@ public class Robot {
     //Initialize all the variables in the singleton instance
     protected Robot(LinearOpMode ll, Team team){
         this.op=ll;
-        this.drivingMotors = setupDrivingMotors(op);
-        this.utilMotors = setupMotors(op);
-        this.led = LEDSetUP(op);
-        this.pinpoint = setUpPinpoint(op);
-        this.limelight = setupLimeLight(op, this.pinpoint);
-        this.huskyLens = setupHuskyLens(op);
         this.team = team;
         this.currentMode = OPMode.AUTO;
         this.ll = ll;
         this.ds = Driving_Systems.getInstance(team, this);
         this.calc = RobotUtil.initialize(this);
+        setUpHardware(op);
     }
 
-    //catcher
+    //catcher in case starting with teleop
     protected Robot(OpMode op){
         //Auto only things
         this.ds=null;
         this.ll=null;
         this.team=null;
-
         this.op = op;
-        this.drivingMotors = setupDrivingMotors(op);
-        this.utilMotors = setupMotors(op);
-        this.led = LEDSetUP(op);
-        this.pinpoint = setUpPinpoint(op);
-        this.limelight = setupLimeLight(op, pinpoint);
-        this.huskyLens = setupHuskyLens(op);
         this.currentMode = OPMode.TELEOP;
         this.calc = RobotUtil.initialize(this);
+        setUpHardware(op);
     }
-
 
     public static Robot startAuto(Team team, LinearOpMode ll)throws MonkeyBusiness{
         if(instance!=null)throw new MonkeyBusiness("Already started an auto asshole", ll);
@@ -111,6 +100,14 @@ public class Robot {
         instance.currentMode=OPMode.TELEOP;
         return instance;
     }
+    private void setUpHardware(OpMode op){
+        this.drivingMotors = setupDrivingMotors(op);
+        this.utilMotors = setupMotors(op);
+        this.led = LEDSetUP(op);
+        this.pinpoint = setUpPinpoint(op);
+        this.limelight = setupLimeLight(op, this.pinpoint);
+        this.huskyLens = setupHuskyLens(op);
+    }
 
     //public Get Instance
     public static Robot getInstance()throws MonkeyBusiness{
@@ -122,16 +119,16 @@ public class Robot {
 
     //Have the subclasses worry about this stuff
 
-    protected List<DcMotor> setupDrivingMotors(OpMode op){return null;}
-    protected List<DcMotor> setupMotors(OpMode op){return null;}
-    protected RevBlinkinLedDriver LEDSetUP(OpMode op){return null;}
-    protected GoBildaPinpointDriver setUpPinpoint(OpMode op){return null;}
-    protected Limelight3A setupLimeLight(OpMode op, GoBildaPinpointDriver pinpoint){return null;}
-    protected HuskyLens setupHuskyLens(OpMode op){return null;}
+    protected List<DcMotor> setupDrivingMotors(OpMode op){return Motors.getMotors(op).setupDrivingMotors(op);}
+    protected List<DcMotor> setupMotors(OpMode op){return Motors.getMotors(op).setupMotors(op);}
+    protected RevBlinkinLedDriver LEDSetUP(OpMode op){return Led.getLed(op).LEDSetUP(op);}
+    protected GoBildaPinpointDriver setUpPinpoint(OpMode op){return Pinpoint.getPinpoint(op).setUpPinpoint(op);}
+    protected Limelight3A setupLimeLight(OpMode op, GoBildaPinpointDriver pinpoint){return Cameras.getCameras(op).setupLimeLight(op, pinpoint);}
+    protected HuskyLens setupHuskyLens(OpMode op){return Cameras.getCameras(op).setupHuskyLens(op);}
 
     //Actual Getters
-
     public List<DcMotor> getDrivingMotors(){return this.drivingMotors;}
+
     public List<DcMotor> getUtilMotors(){return this.utilMotors;}
     public RevBlinkinLedDriver getLed(){return this.led;}
     public GoBildaPinpointDriver getPinpoint(){return this.pinpoint;}
@@ -143,4 +140,5 @@ public class Robot {
     public OpMode getOP(){return this.op;}
     public OPMode getMode(){return this.currentMode;}
     public RobotUtil getCalc(){return this.calc;}
+    public synchronized LLResult updateLimelight(){return null;}
 }
