@@ -6,7 +6,20 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
+//V1.1
+//Moved Families enum inside
 public class TagData {
+    public enum Families {
+        RedFront(1),
+        RedBack(2),
+        BlueBack(3),
+        BlueFront(4);
+        public final int value;
+        Families(int value){
+            this.value = value;
+        }
+    }
+
     private static final List<Double> xTagPos = List.of(
             -0.3520948,
             -0.3520948,

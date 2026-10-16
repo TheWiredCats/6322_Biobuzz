@@ -1,14 +1,10 @@
 package org.firstinspires.ftc.OpModes;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-
-import java.util.List;
 
 import RobotUtil.*;
 @Disabled
@@ -17,12 +13,12 @@ public class DrivingTuner extends LinearOpMode {
     @Override
     public void runOpMode() {
         Robot robot = Robot.startAuto(null, this);
-        RobotUtil calc = robot.getCalc();
+        //RobotUtil calc = robot.getCalc();
 
         //HuskyLens huskyLens = Cameras.setupHuskyLens(this);
 
         //driving motors
-        List<DcMotor> motors = robot.getDrivingMotors();
+        //List<DcMotor> motors = robot.getDrivingMotors();
 
 
 
@@ -32,9 +28,7 @@ public class DrivingTuner extends LinearOpMode {
         pinpoint.update();
 
         //put in all auto modes
-        while(opModeInInit()){
-            calc.placementScanner();
-        }
+        //while(opModeInInit()){}
 
         waitForStart();
 

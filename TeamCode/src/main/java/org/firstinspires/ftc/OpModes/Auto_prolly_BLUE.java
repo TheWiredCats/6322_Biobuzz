@@ -39,13 +39,9 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         //driving motors
         List<DcMotor> motors = robot.getDrivingMotors();
 
-        //led setup
-        RevBlinkinLedDriver LED = robot.getLed();
 
         //put in all auto modes
-        while(opModeInInit()){
-            calc.placementScanner();
-        }
+        //while(opModeInInit()){}
 
 
         //won't move on till u click start

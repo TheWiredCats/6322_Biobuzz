@@ -76,18 +76,15 @@ public class TemporaryTest extends OpMode {
 
         if(gamepad1.y)RHD=0;
         float roboYaw = (float)Math.toRadians(RHD);
-        float y = -gamepad1.left_stick_y;
-        float x = gamepad1.left_stick_x*1.1f;
-        float rx = gamepad1.right_stick_x;
-        float xPower = (float) (x * Math.cos(roboYaw) + y * Math.sin(roboYaw));
-        float yPower = (float) (y * Math.cos(roboYaw) - x * Math.sin(roboYaw));
-        float denominator = Math.max(Math.abs(y) + Math.abs(x)+Math.abs(rx), 1);
+        float xPower = (float) (gamepad1.left_stick_x * 1.1f * Math.cos(roboYaw) + gamepad1.left_stick_y * Math.sin(roboYaw));
+        float yPower = (float) -(gamepad1.left_stick_y * Math.cos(roboYaw) + gamepad1.left_stick_x * 1.1f * Math.sin(roboYaw));
+        float denominator = Math.max(Math.abs(gamepad1.left_stick_y) + Math.abs(1.1f* gamepad1.left_stick_x)+Math.abs(gamepad1.right_stick_x), 1);
         float slower = ((0.75f)*(2-gamepad1.left_trigger-gamepad1.right_trigger)/2)+0.25f;
 
-        float flPower = slower*(yPower+xPower+rx) / denominator;
-        float blPower = slower*(yPower-xPower+rx) / denominator;
-        float frPower = slower*(yPower-xPower-rx) / denominator;
-        float brPower = slower*(yPower+xPower-rx) / denominator;
+        float flPower = slower*(yPower+xPower+gamepad1.right_stick_x) / denominator;
+        float blPower = slower*(yPower-xPower+gamepad1.right_stick_x) / denominator;
+        float frPower = slower*(yPower-xPower-gamepad1.right_stick_x) / denominator;
+        float brPower = slower*(yPower+xPower-gamepad1.right_stick_x) / denominator;
 
         fl.setPower(flPower);
         bl.setPower(blPower);

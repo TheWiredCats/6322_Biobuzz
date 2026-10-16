@@ -4,7 +4,6 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -15,7 +14,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.List;
-
+//V3.0
+//Removed LED's
 public class RobotUtil {
     private final Robot robot;
     private static RobotUtil instance;
@@ -131,50 +131,30 @@ public class RobotUtil {
         LLResult result = limelight.getLatestResult();
         double oldTimestamp = result.getTimestamp();
         LLResultTypes.FiducialResult tags = getBiggest(result.getFiducialResults());
-        if(tags.getTargetPoseCameraSpace().getOrientation().getPitch()<-25)throw new MonkeyBusiness();
-        limelight.pipelineSwitch(TagData.tagData.get(tags.getFiducialId()-30).value);
+        if(tags.getTargetPoseCameraSpace().getOrientation().getPitch()<-25)
+            throw new MonkeyBusiness();
+        limelight.pipelineSwitch(TagData.tagData.get(tags.getFiducialId() - 30).value);
         long startTime = System.currentTimeMillis();
         LLResult freshResult = limelight.getLatestResult();
-        while (ll.opModeIsActive() && (freshResult.getTimestamp() <= oldTimestamp)) {
-            if (System.currentTimeMillis() - startTime > 40)break;
+        while(ll.opModeIsActive() && (freshResult.getTimestamp()<=oldTimestamp)) {
+            if(System.currentTimeMillis() - startTime>40) break;
             ll.sleep(2);
             freshResult = limelight.getLatestResult();
         }
         Pose3D position = freshResult.getBotpose_MT2();
         pinpoint.setPosition(new Pose2D(DistanceUnit.METER, -position.getPosition().x,
-                -position.getPosition().y, AngleUnit.DEGREES,
-                wrapAngle(180, -position.getOrientation().getYaw(AngleUnit.DEGREES))));
+                                        -position.getPosition().y, AngleUnit.DEGREES,
+                                        wrapAngle(180, -position.getOrientation().getYaw(AngleUnit.DEGREES))));
         limelight.pipelineSwitch(0);
-    }
-
-    /**
-     * <h1>Robot Placement Scanner</h1>
-     * <h6><i>No Not <u>There</u> I Meant <u>There</u></i></h6>
-     * Scans AprilTag's in front of it and changes the color based on the pre-set led-configs<br>
-     * <h5><b><u><i>Warning: Must Be Put In A</i></u></b> {@code while(opModeInInit)} <b><u><i>Loop</i></u></b></h5>
-     * @see LinearOpMode#opModeInInit() opModeInInit (boolean)
-     */
-    public void placementScanner(){
-        Limelight3A limelight = robot.getLimelight();
-        RevBlinkinLedDriver LED = robot.getLed();
-        try{
-            LLResultTypes.FiducialResult x = getBiggest(limelight.getLatestResult().getFiducialResults());
-            if(Math.abs(x.getTargetXDegrees()) > 7.5) LED.setPattern(CONSTANTS.ledConfig.TARGET_SIGHTED);
-            else if(Math.abs(x.getTargetXDegrees()) <= 7.5 && Math.abs(x.getTargetXDegrees()) > 2.5)
-                LED.setPattern(CONSTANTS.ledConfig.CLOSE);
-            else LED.setPattern(CONSTANTS.ledConfig.ON_POINT);
-        } catch (MonkeyBusiness ignored) {
-            LED.setPattern(CONSTANTS.ledConfig.NONE_SIGHTED);
-        }
     }
 
     /**
      * <h1>Pinpoint Position Getter</h1>
      * <h6><i>3.4 What, Inches? Feet? Autistic Camels?!</i></h6>
-     * An upgrade of the actual pinpoint's .getPosition(), which gets a position with more specific units
+     * An upgrade of the actual pinpoint's .getPosition(), which gets a position with more specific units rather
+     * than just millimeters
      * @see GoBildaPinpointDriver#getPosition() Actual getPosition()
-     * @see Robot#setUpPinpoint(OpMode)  Pinpoint Setup
-     * @return The Current Position in Units Described By {@linkplain CONSTANTS}
+     * @return The Current Position in Units Described By {@linkplain CONSTANTS Constants File}
      */
     public Pose2D getPosition()throws MonkeyBusiness{
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
