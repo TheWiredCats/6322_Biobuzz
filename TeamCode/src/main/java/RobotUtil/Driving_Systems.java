@@ -345,7 +345,7 @@ public final class Driving_Systems{
             LLResult result = limelight.getLatestResult();
             if(result==null)return;
             LLResultTypes.FiducialResult tags = calc.getBiggest(result.getFiducialResults());
-            Pose2D targetPos = TagData.getPosition(tags.getFiducialId());
+            Pose2D targetPos = TagData.getPosition(tags.getFiducialId(), calc);
 
             double deltaX = targetPos.getX(CONSTANTS.unit.DU) - pinpoint.getPosX(CONSTANTS.unit.DU);
             double deltaY = targetPos.getY(CONSTANTS.unit.DU) - pinpoint.getPosY(CONSTANTS.unit.DU);

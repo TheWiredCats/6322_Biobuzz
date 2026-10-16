@@ -2,6 +2,7 @@ package org.firstinspires.ftc.OpModes;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -10,8 +11,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import java.util.List;
 
 import RobotUtil.*;
-
-@Autonomous
+@Disabled
+//@Autonomous
 public class DrivingTuner extends LinearOpMode {
     @Override
     public void runOpMode() {

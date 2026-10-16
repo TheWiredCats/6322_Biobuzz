@@ -13,7 +13,7 @@ import java.util.List;
 
 import RobotUtil.*;
 
-@TeleOp(name = "Guitar Sigma")
+@TeleOp(name = "Guitar Op")
 
 public class GuitarSigma extends OpMode {
 

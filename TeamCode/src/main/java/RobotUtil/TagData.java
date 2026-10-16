@@ -62,13 +62,13 @@ public class TagData {
             180.0
     );
     //public static final double tagHeight = 43.5;
-    public static Pose2D getPosition(int index){
+    public static Pose2D getPosition(int index, RobotUtil calc){
         return new Pose2D(
                 DistanceUnit.METER,
                 -xTagPos.get(index-30),
                 -yTagPos.get(index-30),
                 AngleUnit.DEGREES,
-                RobotUtil.wrapAngle(180, -hTagPos.get(index-30))
+                calc.wrapAngle(180, -hTagPos.get(index-30))
         );
     }
     public static final List<List<Double>> transforms = List.of(

@@ -50,7 +50,7 @@ import RobotUtil.*;
  * Driver Station OpMode list, or add a @Disabled annotation to prevent this OpMode from being
  * added to the Driver Station.
  */
-@TeleOp(name = "OffSeason Prototype 1I")
+@TeleOp(name = "Control Op")
 
 public class OffSeasonPrototype1I extends OpMode {
     /* Declare OpMode members. */
@@ -129,11 +129,11 @@ public class OffSeasonPrototype1I extends OpMode {
 
         //Calculates how far the minimum is from the middle of the 2
         // (to know how much each should affect)
-        double Difference=(CONSTANTS.MAXIMUM-CONSTANTS.MINIMUM)/2;
+        float Difference=(float)(CONSTANTS.MAXIMUM-CONSTANTS.MINIMUM)/2;
         //Readability of code
-        double TotalTrigger=gamepad1.right_trigger+gamepad1.left_trigger;
+        float TotalTrigger=gamepad1.right_trigger+gamepad1.left_trigger;
 
-        double speedMultiplier = (CONSTANTS.MAXIMUM-(Difference*TotalTrigger));
+        float speedMultiplier = (float)(CONSTANTS.MAXIMUM-(Difference*TotalTrigger));
 
         if(gamepad1.start)FRCHeading=0;
 

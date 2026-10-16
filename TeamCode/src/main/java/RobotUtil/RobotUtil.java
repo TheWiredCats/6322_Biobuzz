@@ -94,15 +94,28 @@ public class RobotUtil {
 
     /**
      * <h1>Angle Calculator</h1>
+     *
      * Find the coterminal angle that's closer to 0 then the original angle, and then finds both of the differences, and then finally returns the lesser of the 2 differences
-     * @param angle1 The First Angle
-     * @param angle2 The Second Angle
+     * @param a1 The First Angle
+     * @param a2 The Second Angle
+     * @throws MonkeyBusiness On the off chance theirs an error in the math somehow will throw a super error
      * @return The difference between the 2 angles wrapped into a [-179,180]
      */
-    public double wrapAngle(double angle1, double angle2){
-        double adjustedAngle1 = angle1 - Math.copySign(360, angle1);
-        return Math.abs(adjustedAngle1 - angle2) < Math.abs(angle1 - angle2)?
-                adjustedAngle1 - angle2 : angle1 - angle2;
+    public double wrapAngle(double a1, double a2)throws MonkeyBusiness{
+        double normalizedA1 = a1 % 360;
+        double normalizedA2 = a2 % 360;
+        double result = compareAngles(normalizedA1-360, normalizedA1, normalizedA1+360, normalizedA2);
+        return -((int) (100 * result)) / 100.0;
+    }
+    private double compareAngles(double left, double first, double right, double ref)throws MonkeyBusiness{
+        double leftDistance = Math.abs(left - ref);
+        double firstDistance = Math.abs(first - ref);
+        double rightDistance = Math.abs(right - ref);
+        double min = Math.min(Math.min(leftDistance, firstDistance), rightDistance);
+        if(min == leftDistance) return left-ref;
+        if(min == firstDistance) return first-ref;
+        if(min == rightDistance) return right-ref;
+        throw new MonkeyBusiness("How Did This Even Happen");
     }
 
     /**
@@ -118,7 +131,7 @@ public class RobotUtil {
         LLResult result = limelight.getLatestResult();
         double oldTimestamp = result.getTimestamp();
         LLResultTypes.FiducialResult tags = getBiggest(result.getFiducialResults());
-        if(tags.getTargetPoseCameraSpace().getOrientation().getPitch()<-70)throw new MonkeyBusiness();
+        if(tags.getTargetPoseCameraSpace().getOrientation().getPitch()<-25)throw new MonkeyBusiness();
         limelight.pipelineSwitch(TagData.tagData.get(tags.getFiducialId()-30).value);
         long startTime = System.currentTimeMillis();
         LLResult freshResult = limelight.getLatestResult();
