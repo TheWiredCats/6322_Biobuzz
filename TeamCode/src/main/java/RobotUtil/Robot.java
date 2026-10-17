@@ -7,7 +7,6 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -21,28 +20,28 @@ import java.util.List;
  * <body>
  * <h1><b>Robot Super Class</b></h1>
  * <h4><strong><i>Save the trouble of having to repeat code in every OpMode</i></strong></h4>
- * <p>V2, Moved all subclasses to be nested to remove file spam</p>
+ * <p>V3, Added Telemetry throughout building for testing, also fixed major problem</p>
  * </body>
  * </html>
  */
 public class Robot {
     enum OPMode {
         AUTO,
-        TELEOP;
+        TELEOP
     }
     //Sub Classes Logic
-    static final class Motors extends Robot{
-
+    static final class Motors{
+        private final OpMode op;
         private Motors(OpMode op) {
-            super(op);
+            this.op=op;
         }
 
         List<DcMotor> setupMotors(){
             List<DcMotor> motors = new ArrayList<>();
             for(int i = 4; i < 7; i++){
                 CONSTANTS.MOTOR_CONFIGS motorData = CONSTANTS.MOTOR_CONFIG.get(i);
-                if(motors.size()<=i-4)motors.add(i-4, super.op.hardwareMap.dcMotor.get(motorData.NAME));
-                else motors.set(i-4, super.op.hardwareMap.dcMotor.get(motorData.NAME));
+                if(motors.size()<=i-4)motors.add(i-4, this.op.hardwareMap.dcMotor.get(motorData.NAME));
+                else motors.set(i-4, this.op.hardwareMap.dcMotor.get(motorData.NAME));
                 motors.get(i-4).setMode(motorData.RUN_MODE);
                 motors.get(i-4).setZeroPowerBehavior(motorData.BRAKE_MODE);
                 motors.get(i-4).setDirection(motorData.DIRECTION);
@@ -54,8 +53,8 @@ public class Robot {
             List<DcMotor> motors = new ArrayList<>();
             for (int i = 0; i < 4; i++) {
                 CONSTANTS.MOTOR_CONFIGS motorData = CONSTANTS.MOTOR_CONFIG.get(i);
-                if (motors.size() <= i) motors.add(i, super.op.hardwareMap.dcMotor.get(motorData.NAME));
-                else motors.set(i, super.op.hardwareMap.dcMotor.get(motorData.NAME));
+                if (motors.size() <= i) motors.add(i, this.op.hardwareMap.dcMotor.get(motorData.NAME));
+                else motors.set(i, this.op.hardwareMap.dcMotor.get(motorData.NAME));
                 motors.get(i).setMode(motorData.RUN_MODE);
                 motors.get(i).setZeroPowerBehavior(motorData.BRAKE_MODE);
                 motors.get(i).setDirection(motorData.DIRECTION);
@@ -63,22 +62,25 @@ public class Robot {
             return motors;
         }
         Servo setupServo(){
-            return super.op.hardwareMap.servo.get("servo");
+            return this.op.hardwareMap.servo.get("servo");
         }
     }
-    static final class Cameras extends Robot {
+    static final class Cameras{
+        private final OpMode op;
+        private Limelight3A limelight;
+        private GoBildaPinpointDriver pinpoint;
         private Cameras(OpMode op){
-            super(op);
+            this.op = op;
         }
 
         HuskyLens setupHuskyLens(){
-            HuskyLens huskyLens = super.op.hardwareMap.get(HuskyLens.class, CONSTANTS.HUSKY_LENS);
+            HuskyLens huskyLens = this.op.hardwareMap.get(HuskyLens.class, CONSTANTS.HUSKY_LENS);
             huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
             return huskyLens;
         }
 
-        Limelight3A setupLimeLight(){
-            Limelight3A limelight = super.op.hardwareMap.get(Limelight3A.class, CONSTANTS.LIMELIGHT);
+        Limelight3A setupLimeLight(GoBildaPinpointDriver pinpoint){
+            Limelight3A limelight = this.op.hardwareMap.get(Limelight3A.class, CONSTANTS.LIMELIGHT);
             limelight.pipelineSwitch(0);
             limelight.start();
             List<LLFieldMap.Fiducial> map = new ArrayList<>();
@@ -86,24 +88,28 @@ public class Robot {
                 map.add(new LLFieldMap.Fiducial(i, 82.55, "apriltag3_36h11_classic", TagData.transforms.get(i-30), true));
             }
             limelight.uploadFieldmap(new LLFieldMap(map, "ftc"), null);
-            limelight.updateRobotOrientation(super.pinpoint.getHeading(CONSTANTS.unit.AU));
+            limelight.updateRobotOrientation(pinpoint.getHeading(CONSTANTS.unit.AU));
+            this.pinpoint=pinpoint;
+            this.limelight=limelight;
             return limelight;
         }
 
         public synchronized LLResult updateLimelight() {
-            super.getLimelight().updateRobotOrientation(super.getPinpoint().getHeading(AngleUnit.DEGREES));
-            return super.getLimelight().getLatestResult();
+            if(this.limelight==null||this.pinpoint==null)throw new MonkeyBusiness("Please Setup Limelight Before Calling This Method");
+            limelight.updateRobotOrientation(this.pinpoint.getHeading(AngleUnit.DEGREES));
+            return this.limelight.getLatestResult();
         }
     }
-    static final class Pinpoint extends Robot{
-        private Pinpoint(OpMode op){super(op);}
+    static final class Pinpoint{
+        private final OpMode op;
+        private Pinpoint(OpMode op){this.op=op;}
 
         /**
          * Sets up Pinpoint and gives it's default data
          * @return The Complete Pinpoint
          */
         GoBildaPinpointDriver setUpPinpoint(){
-            GoBildaPinpointDriver pinpoint = super.op.hardwareMap.get(GoBildaPinpointDriver.class, CONSTANTS.PINPOINT);
+            GoBildaPinpointDriver pinpoint = this.op.hardwareMap.get(GoBildaPinpointDriver.class, CONSTANTS.PINPOINT);
             pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD,
                                           GoBildaPinpointDriver.EncoderDirection.REVERSED);
             pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
@@ -233,7 +239,7 @@ public class Robot {
         ll.telemetry.addLine("Pinpoint Built");
         ll.telemetry.update();
         ll.sleep(1000);
-        this.limelight = cameraSub.setupLimeLight();
+        this.limelight = cameraSub.setupLimeLight(this.pinpoint);
         ll.telemetry.addLine("Limelight Built");
         ll.telemetry.update();
         ll.sleep(1000);
@@ -244,13 +250,15 @@ public class Robot {
     }
 
     //public Get Instance
+    /*
     public static Robot getInstance()throws MonkeyBusiness{
         if(instance==null) {
-            throw new MonkeyBusiness("No OpMode to get. Fix this");
+            throw new MonkeyBusiness("No Robot to get. Fix this");
         }else{
             return instance;
         }
     }
+     */
 
 
     //Actual Getters
@@ -262,10 +270,10 @@ public class Robot {
     public HuskyLens getHuskyLens(){return this.huskyLens;}
     public Team getTeam(){return this.team;}
     public Driving_Systems getDSInstance(){return this.ds;}
-    public LinearOpMode getLL(){return this.ll;}
+    //public LinearOpMode getLL(){return this.ll;}
     public OpMode getOP(){return this.op;}
-    public OPMode getMode(){return this.currentMode;}
+    //public OPMode getMode(){return this.currentMode;}
     public RobotUtil getCalc(){return this.calc;}
     public synchronized LLResult updateLimelight(){return cameraSub.updateLimelight();}
-    public Servo getServo(){return this.servo;}
+    //public Servo getServo(){return this.servo;}
 }
