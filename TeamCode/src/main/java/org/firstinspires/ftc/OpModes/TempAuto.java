@@ -1,28 +1,39 @@
 package org.firstinspires.ftc.OpModes;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@Autonomous(name = "test auto v1.1")
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+
+import RobotUtil.*;
+
+@Autonomous(name = "Red auto v2.0")
 public class TempAuto extends LinearOpMode {
     @Override
     public void runOpMode() {
+        telemetry.addLine("INIT Started");
+        telemetry.update();
+        sleep(1000);
+        Robot robot = Robot.startAuto(Team.RED,this);
+        telemetry.addLine("Robot Built");
+        telemetry.update();
+        sleep(1000);
+        Driving_Systems ds = robot.getDSInstance();
+        Limelight3A limelight = robot.getLimelight();
+        GoBildaPinpointDriver pinpoint = robot.getPinpoint();
+        telemetry.addLine("Sub Clases Built");
+        telemetry.update();
+        sleep(1000);
+        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, -63, AngleUnit.DEGREES,90));
+        telemetry.addLine("Pinpoint's Position Set");
         waitForStart();
-        DcMotor transfer = hardwareMap.dcMotor.get("transfer");
-        DcMotor intake = hardwareMap.dcMotor.get("intake");
-        DcMotor shoot = hardwareMap.dcMotor.get("shoot");
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        transfer.setPower(1);
-        intake.setPower(1);
-        shoot.setPower(1);
-        while(!isStopRequested()){
-            //wait until its time
-            sleep(10);
-        }
-        transfer.setPower(0);
-        intake.setPower(0);
-        shoot.setPower(0);
+        //ds.headTo(pinpoint, limelight, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, -50, 90, PIDModes.DRIVING);
+        //ds.headTo(pinpoint, limelight, this, DistanceUnit.INCH, AngleUnit.DEGREES, -55, -50, 180, PIDModes.TURNING);
+        //ds.headTo(pinpoint, limelight, this, DistanceUnit.INCH, AngleUnit.DEGREES, -55, -63, 90, PIDModes.TURNING);
     }
 }

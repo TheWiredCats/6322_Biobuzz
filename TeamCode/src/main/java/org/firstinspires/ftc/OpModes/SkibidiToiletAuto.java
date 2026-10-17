@@ -12,7 +12,7 @@ import java.util.List;
 
 import RobotUtil.*;
 
-@Autonomous(name="Greedy Auto Test")
+@Autonomous(name="Greedy Auto")
 public class SkibidiToiletAuto extends LinearOpMode {
 
     @Override
@@ -33,14 +33,14 @@ public class SkibidiToiletAuto extends LinearOpMode {
 
         waitForStart();
         if(opModeIsActive()){
-            ds.headTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -63, -15, -90, PIDModes.DRIVING);
+            ds.headTo(pinpoint, limelight, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -63, -15, -90, PIDModes.DRIVING);
             intake.setPower(1);
             transfer.setPower(1);
             sleep(2000);
             intake.setPower(0);
             transfer.setPower(0);
-            ds.headTo(pinpoint, limelight, motors, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -63+(9*Math.sqrt(2)), 15, 0, PIDModes.DRIVING);
-            ds.lockIn(CONSTANTS.unit.DU, this, limelight, pinpoint, motors, 18);
+            ds.headTo(pinpoint, limelight, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -63+(9*Math.sqrt(2)), 15, 0, PIDModes.DRIVING);
+            ds.lockIn(CONSTANTS.unit.DU, this, limelight, pinpoint, 18);
             shoot.setPower(1);
             sleep(1000);
             shoot.setPower(0);

@@ -7,7 +7,9 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -24,6 +26,10 @@ import java.util.List;
  * </html>
  */
 public class Robot {
+    enum OPMode {
+        AUTO,
+        TELEOP;
+    }
     //Sub Classes Logic
     static final class Motors extends Robot{
 
@@ -55,6 +61,9 @@ public class Robot {
                 motors.get(i).setDirection(motorData.DIRECTION);
             }
             return motors;
+        }
+        Servo setupServo(){
+            return super.op.hardwareMap.servo.get("servo");
         }
     }
     static final class Cameras extends Robot {
@@ -98,6 +107,10 @@ public class Robot {
             pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD,
                                           GoBildaPinpointDriver.EncoderDirection.REVERSED);
             pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+            pinpoint.setErrorDetectionType(GoBildaPinpointDriver.ErrorDetectionType.CRC);
+            pinpoint.setBulkReadScope(GoBildaPinpointDriver.Register.X_POSITION, GoBildaPinpointDriver.Register.X_VELOCITY,
+                                      GoBildaPinpointDriver.Register.Y_POSITION, GoBildaPinpointDriver.Register.Y_VELOCITY,
+                                      GoBildaPinpointDriver.Register.H_ORIENTATION, GoBildaPinpointDriver.Register.H_VELOCITY);
             return pinpoint;
         }
     }
@@ -106,39 +119,42 @@ public class Robot {
     private final Pinpoint pinpointSub;
 
     //List Of Driving Motors
-    private List<DcMotor> drivingMotors;
+    List<DcMotor> drivingMotors;
 
     //List Of Utility Motors
-    private List<DcMotor> utilMotors;
+    List<DcMotor> utilMotors;
+
+    //Servo
+    Servo servo;
 
     //Pinpoint Controller
-    private GoBildaPinpointDriver pinpoint;
+    GoBildaPinpointDriver pinpoint;
 
     //Limelight Camera
-    private Limelight3A limelight;
+    Limelight3A limelight;
 
     //HuskyLens Camera
-    private HuskyLens huskyLens;
+    HuskyLens huskyLens;
 
     //Team (Red or Blue)
     //Useful for most autos
-    private Team team;
+    Team team;
 
     //Auto specific Op Mode
     //(useful for things like sleep())
-    private LinearOpMode ll;
+    LinearOpMode ll;
 
     //Generic OpMode, for both Auto & TeleOp
-    private OpMode op;
+    OpMode op;
 
     //Driving System were gonna use
     //(Dependent on team because the parking is slightly different)
-    private Driving_Systems ds;
+    Driving_Systems ds;
 
     //Auto Or Tele Mode
-    private OPMode currentMode;
+    OPMode currentMode;
 
-    private final RobotUtil calc;
+    final RobotUtil calc;
 
     //Helpful for singleton -ing
     private static Robot instance;
@@ -149,11 +165,20 @@ public class Robot {
         motorSub=new Motors(op);
         cameraSub=new Cameras(op);
         pinpointSub=new Pinpoint(op);
+        ll.telemetry.addLine("SubClasses Built");
+        ll.telemetry.update();
+        ll.sleep(1000);
         this.team = team;
         this.currentMode = OPMode.AUTO;
         this.ll = ll;
-        this.ds = Driving_Systems.getInstance(team, this);
         this.calc = RobotUtil.initialize(this);
+        ll.telemetry.addLine("Calculator Built");
+        ll.telemetry.update();
+        ll.sleep(1000);
+        this.ds = Driving_Systems.getInstance(team, this);
+        ll.telemetry.addLine("Driver Station Built");
+        ll.telemetry.update();
+        ll.sleep(1000);
         setUpHardware();
     }
 
@@ -175,11 +200,15 @@ public class Robot {
 
     public static Robot startAuto(Team team, LinearOpMode ll)throws MonkeyBusiness{
         if(instance!=null)throw new MonkeyBusiness("Already started an auto", ll);
-        return instance = new Robot(ll, team);
+        instance = new Robot(ll, team);
+        return instance;
     }
 
     public static Robot startTele(OpMode op){
-        if(instance==null) return instance = new Robot(op);
+        if(instance==null){
+            instance = new Robot(op);
+            return instance;
+        }
         instance.op = op;
         instance.ll = null;
         instance.team = null;
@@ -189,10 +218,29 @@ public class Robot {
     }
     private void setUpHardware(){
         this.drivingMotors = motorSub.setupDrivingMotors();
+        ll.telemetry.addLine("Driving Motor Built");
+        ll.telemetry.update();
+        ll.sleep(1000);
         this.utilMotors = motorSub.setupMotors();
+        ll.telemetry.addLine("Util Motors Built");
+        ll.telemetry.update();
+        ll.sleep(1000);
+        this.servo = motorSub.setupServo();
+        ll.telemetry.addLine("Servo Built");
+        ll.telemetry.update();
+        ll.sleep(1000);
         this.pinpoint = pinpointSub.setUpPinpoint();
+        ll.telemetry.addLine("Pinpoint Built");
+        ll.telemetry.update();
+        ll.sleep(1000);
         this.limelight = cameraSub.setupLimeLight();
+        ll.telemetry.addLine("Limelight Built");
+        ll.telemetry.update();
+        ll.sleep(1000);
         this.huskyLens = cameraSub.setupHuskyLens();
+        ll.telemetry.addLine("DONE!");
+        ll.telemetry.update();
+        ll.sleep(1000);
     }
 
     //public Get Instance
@@ -219,4 +267,5 @@ public class Robot {
     public OPMode getMode(){return this.currentMode;}
     public RobotUtil getCalc(){return this.calc;}
     public synchronized LLResult updateLimelight(){return cameraSub.updateLimelight();}
+    public Servo getServo(){return this.servo;}
 }

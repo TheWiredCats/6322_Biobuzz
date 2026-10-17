@@ -1,5 +1,7 @@
 package RobotUtil;
 
+import android.util.ArrayMap;
+
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
@@ -13,7 +15,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 //V3.0
 //Removed LED's
 public class RobotUtil {
@@ -35,9 +40,8 @@ public class RobotUtil {
      * @param BL Power For Back Left Motor
      * @param FR Power For Front Right Motor
      * @param BR Power For Back Right Motor
-     * @param motors List of each of the motors
      */
-    public void setPowers(double FL, double BL, double FR, double BR, List<DcMotor> motors){
+    public void setPowers(double FL, double BL, double FR, double BR){
         //clipping extra could cause some problems and going in a circle
         //so we have to divide 1 by the greatest so we can multiply the rest by that
         //we can only do that if the greatest is over 1 tho
@@ -56,7 +60,7 @@ public class RobotUtil {
         //FLMotor, BLMotor, FRMotor, BRMotor
         //So we can set their power directly
         for(int i = 0; i < 4; i++){
-            motors.get(i).setPower(powers[i]);
+            robot.drivingMotors.get(i).setPower(powers[i]);
         }
     }
 
@@ -125,6 +129,7 @@ public class RobotUtil {
      * @throws MonkeyBusiness Will throw a base error if no tag is detected, or if the pitch of the tag is less than -70
      */
     public void confirmPosition()throws MonkeyBusiness {
+        /*
         LinearOpMode ll = robot.getLL();
         Limelight3A limelight = robot.getLimelight();
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
@@ -146,6 +151,7 @@ public class RobotUtil {
                                         -position.getPosition().y, AngleUnit.DEGREES,
                                         wrapAngle(180, -position.getOrientation().getYaw(AngleUnit.DEGREES))));
         limelight.pipelineSwitch(0);
+         */
     }
 
     /**
@@ -181,5 +187,18 @@ public class RobotUtil {
                 pinpoint.getPosY(CONSTANTS.unit.DU),
                 pinpoint.getHeading(CONSTANTS.unit.AU)
         );
+    }
+
+    public void brakeMotors(){
+        Map<DcMotor, DcMotor.ZeroPowerBehavior> before= new ArrayMap<>(robot.drivingMotors.size());
+        for(DcMotor motor : robot.drivingMotors){
+            before.put(motor, motor.getZeroPowerBehavior());
+            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            motor.setPower(0);
+        }
+        try{Thread.sleep(10);}catch(Exception ignored){}
+        for(DcMotor motor : before.keySet()){
+            motor.setZeroPowerBehavior(before.get(motor));
+        }
     }
 }

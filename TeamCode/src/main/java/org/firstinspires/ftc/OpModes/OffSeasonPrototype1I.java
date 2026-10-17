@@ -200,7 +200,7 @@ public class OffSeasonPrototype1I extends OpMode {
         double FRMotorPower = ((y - x - rx) / stickTotal) * speedMultiplier;
         double BRMotorPower = ((y + x - rx) / stickTotal) * speedMultiplier;
 
-        calc.setPowers(FLMotorPower, BLMotorPower, FRMotorPower, BRMotorPower, motors);
+        calc.setPowers(FLMotorPower, BLMotorPower, FRMotorPower, BRMotorPower);
         lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
         pinpoint.update();
         FRCHeading+=(pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading);
