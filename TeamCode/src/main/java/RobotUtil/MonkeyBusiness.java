@@ -18,6 +18,6 @@ public class MonkeyBusiness extends RuntimeException {
         op.requestOpModeStop();
     }
     public MonkeyBusiness(String str){
-        super(str);
+        throw new RuntimeException(str);
     }
 }

@@ -197,10 +197,9 @@ public class Robot {
         setUpHardware();
     }
 
-    public static Robot startAuto(Team team, LinearOpMode ll)throws MonkeyBusiness{
-        if(instance!=null)throw new MonkeyBusiness("Already started an auto", ll);
-        instance = new Robot(ll, team);
-        return instance;
+    public static Robot startAuto(Team team, LinearOpMode ll){
+        if(instance!=null)return instance;
+        return instance = new Robot(ll, team);
     }
 
     public static Robot startTele(OpMode op){
