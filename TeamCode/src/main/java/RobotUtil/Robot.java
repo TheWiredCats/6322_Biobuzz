@@ -173,20 +173,11 @@ public class Robot {
         motorSub=new Motors(op);
         cameraSub=new Cameras(op);
         pinpointSub=new Pinpoint(op);
-        ll.telemetry.addLine("SubClasses Built");
-        ll.telemetry.update();
-        ll.sleep(1000);
         this.team = team;
         this.currentMode = OPMode.AUTO;
         this.ll = ll;
         this.calc = RobotUtil.initialize(this);
-        ll.telemetry.addLine("Calculator Built");
-        ll.telemetry.update();
-        ll.sleep(1000);
         this.ds = Driving_Systems.getInstance(team, this);
-        ll.telemetry.addLine("Driver Station Built");
-        ll.telemetry.update();
-        ll.sleep(1000);
         setUpHardware();
     }
 
@@ -226,29 +217,13 @@ public class Robot {
     }
     private void setUpHardware(){
         this.drivingMotors = motorSub.setupDrivingMotors();
-        ll.telemetry.addLine("Driving Motor Built");
-        ll.telemetry.update();
-        ll.sleep(1000);
         this.utilMotors = motorSub.setupMotors();
-        ll.telemetry.addLine("Util Motors Built");
-        ll.telemetry.update();
-        ll.sleep(1000);
         this.servo = motorSub.setupServo();
-        ll.telemetry.addLine("Servo Built");
-        ll.telemetry.update();
-        ll.sleep(1000);
         this.pinpoint = pinpointSub.setUpPinpoint();
-        ll.telemetry.addLine("Pinpoint Built");
-        ll.telemetry.update();
-        ll.sleep(1000);
         this.limelight = cameraSub.setupLimeLight(this.pinpoint);
-        ll.telemetry.addLine("Limelight Built");
-        ll.telemetry.update();
-        ll.sleep(1000);
-        this.huskyLens = cameraSub.setupHuskyLens();
-        ll.telemetry.addLine("DONE!");
-        ll.telemetry.update();
-        ll.sleep(1000);
+        //this.huskyLens = cameraSub.setupHuskyLens();
+        op.telemetry.addLine("DONE!");
+        op.telemetry.update();
     }
 
     //public Get Instance

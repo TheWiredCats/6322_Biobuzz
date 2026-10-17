@@ -1,6 +1,5 @@
 package RobotUtil;
 
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -41,14 +40,14 @@ public final class Constants {
             KD = kd;
         }
     }
-    public static final class MOTOR_CONFIGS{
+    public static final class MOTOR_CONFIGS {
         final String NAME;
         final DcMotor.RunMode RUN_MODE;
         final DcMotor.ZeroPowerBehavior BRAKE_MODE;
         final DcMotor.Direction DIRECTION;
 
         public MOTOR_CONFIGS(String name, DcMotor.RunMode runMode,
-                             DcMotor.ZeroPowerBehavior brakeMode, DcMotor.Direction direction) {
+                DcMotor.ZeroPowerBehavior brakeMode, DcMotor.Direction direction) {
             NAME = name;
             RUN_MODE = runMode;
             BRAKE_MODE = brakeMode;
@@ -56,34 +55,9 @@ public final class Constants {
         }
     }
 
-    public static final class LED_CONFIGS{
-        final RevBlinkinLedDriver.BlinkinPattern NONE_SIGHTED;
-        final RevBlinkinLedDriver.BlinkinPattern TARGET_SIGHTED;
-        final RevBlinkinLedDriver.BlinkinPattern CLOSE;
-        final RevBlinkinLedDriver.BlinkinPattern ON_POINT;
-
-        public LED_CONFIGS(RevBlinkinLedDriver.BlinkinPattern none,
-                           RevBlinkinLedDriver.BlinkinPattern targetFound,
-                           RevBlinkinLedDriver.BlinkinPattern close,
-                           RevBlinkinLedDriver.BlinkinPattern found) {
-            NONE_SIGHTED = none;
-            TARGET_SIGHTED = targetFound;
-            CLOSE = close;
-            ON_POINT = found;
-        }
-    }
-
     public static final double MAXIMUM = 1;
     public static final double MINIMUM = 0.25;
 
-    //change the colors based on what colors u want for each setting
-    public static final LED_CONFIGS ledConfig = new LED_CONFIGS(
-            RevBlinkinLedDriver.BlinkinPattern.RED,
-            RevBlinkinLedDriver.BlinkinPattern.YELLOW,
-            RevBlinkinLedDriver.BlinkinPattern.GREEN,
-            RevBlinkinLedDriver.BlinkinPattern.BLUE
-    );
-    public static final String LED = "led";
     public static final String PINPOINT = "pinpoint";
     public static final String LIMELIGHT = "limelight";
     public static final String HUSKY_LENS = "huskylens";
