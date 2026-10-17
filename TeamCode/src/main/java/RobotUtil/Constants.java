@@ -15,8 +15,9 @@ import java.util.List;
  * <h4><u>IN A MINUTE!</u></h4>
  * <br>
  * Makes sure that all of your data can be found in one place, which is located right here
+ * V1.1
  */
-public final class CONSTANTS {
+public final class Constants {
     public final static class tolerances{
         public final double DError;
         public final double DSpeed;
@@ -87,12 +88,13 @@ public final class CONSTANTS {
     public static final String LIMELIGHT = "limelight";
     public static final String HUSKY_LENS = "huskylens";
 
-    private CONSTANTS(){
+    private Constants(){
         //so u don't accidentally make an instance of it and only call it as needed
     }
+    public static final String SERVO_NAME = "servo";
 
     //All motors should be in order FL, BL, FR, BR, Intake, Transfer, Shoot
-    private static final String[] MOTORS = {"FL", "BL", "FR", "BR", "intake", "transfer", "shoot"};
+    private static final String[] MOTORS = {"fl", "bl", "fr", "br", "intake", "transfer", "shoot"};
     private static final List<DcMotor.RunMode> RUN_TYPES = List.of(
     /* FL */DcMotor.RunMode.RUN_WITHOUT_ENCODER,
     /* BL */DcMotor.RunMode.RUN_WITHOUT_ENCODER,

@@ -39,7 +39,7 @@ public class Robot {
         List<DcMotor> setupMotors(){
             List<DcMotor> motors = new ArrayList<>();
             for(int i = 4; i < 7; i++){
-                CONSTANTS.MOTOR_CONFIGS motorData = CONSTANTS.MOTOR_CONFIG.get(i);
+                Constants.MOTOR_CONFIGS motorData = Constants.MOTOR_CONFIG.get(i);
                 if(motors.size()<=i-4)motors.add(i-4, this.op.hardwareMap.dcMotor.get(motorData.NAME));
                 else motors.set(i-4, this.op.hardwareMap.dcMotor.get(motorData.NAME));
                 motors.get(i-4).setMode(motorData.RUN_MODE);
@@ -52,7 +52,7 @@ public class Robot {
         List<DcMotor> setupDrivingMotors() {
             List<DcMotor> motors = new ArrayList<>();
             for (int i = 0; i < 4; i++) {
-                CONSTANTS.MOTOR_CONFIGS motorData = CONSTANTS.MOTOR_CONFIG.get(i);
+                Constants.MOTOR_CONFIGS motorData = Constants.MOTOR_CONFIG.get(i);
                 if (motors.size() <= i) motors.add(i, this.op.hardwareMap.dcMotor.get(motorData.NAME));
                 else motors.set(i, this.op.hardwareMap.dcMotor.get(motorData.NAME));
                 motors.get(i).setMode(motorData.RUN_MODE);
@@ -62,7 +62,9 @@ public class Robot {
             return motors;
         }
         Servo setupServo(){
-            return this.op.hardwareMap.servo.get("servo");
+            Servo servo = this.op.hardwareMap.servo.get(Constants.SERVO_NAME);
+            servo.setDirection(Servo.Direction.FORWARD);
+            return servo;
         }
     }
     static final class Cameras{
@@ -74,13 +76,13 @@ public class Robot {
         }
 
         HuskyLens setupHuskyLens(){
-            HuskyLens huskyLens = this.op.hardwareMap.get(HuskyLens.class, CONSTANTS.HUSKY_LENS);
+            HuskyLens huskyLens = this.op.hardwareMap.get(HuskyLens.class, Constants.HUSKY_LENS);
             huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
             return huskyLens;
         }
 
         Limelight3A setupLimeLight(GoBildaPinpointDriver pinpoint){
-            Limelight3A limelight = this.op.hardwareMap.get(Limelight3A.class, CONSTANTS.LIMELIGHT);
+            Limelight3A limelight = this.op.hardwareMap.get(Limelight3A.class, Constants.LIMELIGHT);
             limelight.pipelineSwitch(0);
             limelight.start();
             List<LLFieldMap.Fiducial> map = new ArrayList<>();
@@ -88,7 +90,7 @@ public class Robot {
                 map.add(new LLFieldMap.Fiducial(i, 82.55, "apriltag3_36h11_classic", TagData.transforms.get(i-30), true));
             }
             limelight.uploadFieldmap(new LLFieldMap(map, "ftc"), null);
-            limelight.updateRobotOrientation(pinpoint.getHeading(CONSTANTS.unit.AU));
+            limelight.updateRobotOrientation(pinpoint.getHeading(Constants.unit.AU));
             this.pinpoint=pinpoint;
             this.limelight=limelight;
             return limelight;
@@ -109,7 +111,7 @@ public class Robot {
          * @return The Complete Pinpoint
          */
         GoBildaPinpointDriver setUpPinpoint(){
-            GoBildaPinpointDriver pinpoint = this.op.hardwareMap.get(GoBildaPinpointDriver.class, CONSTANTS.PINPOINT);
+            GoBildaPinpointDriver pinpoint = this.op.hardwareMap.get(GoBildaPinpointDriver.class, Constants.PINPOINT);
             pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD,
                                           GoBildaPinpointDriver.EncoderDirection.REVERSED);
             pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);

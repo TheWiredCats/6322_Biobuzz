@@ -129,11 +129,11 @@ public class OffSeasonPrototype1I extends OpMode {
 
         //Calculates how far the minimum is from the middle of the 2
         // (to know how much each should affect)
-        float Difference=(float)(CONSTANTS.MAXIMUM-CONSTANTS.MINIMUM)/2;
+        float Difference=(float)(Constants.MAXIMUM- Constants.MINIMUM)/2;
         //Readability of code
         float TotalTrigger=gamepad1.right_trigger+gamepad1.left_trigger;
 
-        float speedMultiplier = (float)(CONSTANTS.MAXIMUM-(Difference*TotalTrigger));
+        float speedMultiplier = (float)(Constants.MAXIMUM-(Difference*TotalTrigger));
 
         if(gamepad1.start)FRCHeading=0;
 

@@ -16,12 +16,12 @@ import java.util.List;
 //V1.1 Moved Positions enum inside as a nested class
 public final class Driving_Systems{
     private enum Positions {
-        TopLeft(new Pose2D(CONSTANTS.unit.DU, 60, 60, CONSTANTS.unit.AU, 0)),
-        BottomLeft(new Pose2D(CONSTANTS.unit.DU, -60, 60, CONSTANTS.unit.AU, 0)),
-        TopCenter(new Pose2D(CONSTANTS.unit.DU, 60, 0, CONSTANTS.unit.AU, 0)),
-        BottomCenter(new Pose2D(CONSTANTS.unit.DU, -60, 0, CONSTANTS.unit.AU, 0)),
-        TopRight(new Pose2D(CONSTANTS.unit.DU, 60, -60, CONSTANTS.unit.AU, 0)),
-        BottomRight(new Pose2D(CONSTANTS.unit.DU, +60, -60, CONSTANTS.unit.AU, 0));
+        TopLeft(new Pose2D(Constants.unit.DU, 60, 60, Constants.unit.AU, 0)),
+        BottomLeft(new Pose2D(Constants.unit.DU, -60, 60, Constants.unit.AU, 0)),
+        TopCenter(new Pose2D(Constants.unit.DU, 60, 0, Constants.unit.AU, 0)),
+        BottomCenter(new Pose2D(Constants.unit.DU, -60, 0, Constants.unit.AU, 0)),
+        TopRight(new Pose2D(Constants.unit.DU, 60, -60, Constants.unit.AU, 0)),
+        BottomRight(new Pose2D(Constants.unit.DU, +60, -60, Constants.unit.AU, 0));
 
         private final Pose2D saveStation;
         Positions(Pose2D sigma){
@@ -86,10 +86,10 @@ public final class Driving_Systems{
         //run until either op mode turns off or until we're both moving less than .5 inches per second
         //and also .5 inches away from the position
         while (ll.opModeIsActive() && ((Math.sqrt(Math.pow(pinpoint.getVelX(verity), 2) +
-                Math.pow(pinpoint.getVelY(verity), 2)) > CONSTANTS.tolerance.DSpeed) || (pidD.getError(
+                Math.pow(pinpoint.getVelY(verity), 2)) > Constants.tolerance.DSpeed) || (pidD.getError(
                 pinpoint.getPosX(verity),
                 pinpoint.getPosY(verity)
-        )) > CONSTANTS.tolerance.DError)) {
+        )) > Constants.tolerance.DError)) {
 
             //Confirming current position using limelight
             try {
@@ -117,10 +117,10 @@ public final class Driving_Systems{
 
             //telemetry data being added
             ll.telemetry.addData("PID DATA", "KP: %.2f, KI: %.2f, KD: %.2f, " +
-                            "error: %.2f", CONSTANTS.driverConstants.KP,
-                    CONSTANTS.driverConstants.KI,
-                    CONSTANTS.driverConstants.KD,
-                    error);
+                            "error: %.2f", Constants.driverConstants.KP,
+                                 Constants.driverConstants.KI,
+                                 Constants.driverConstants.KD,
+                                 error);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f", P, I, D, output);
             calc.addTelemetry();
@@ -156,19 +156,19 @@ public final class Driving_Systems{
         //update pinpoint before we start loop for fresh data
         pinpoint.update();
 
-        pidT.setTime(System.nanoTime(), pidT.getError(pinpoint.getHeading(CONSTANTS.unit.AU)));
+        pidT.setTime(System.nanoTime(), pidT.getError(pinpoint.getHeading(Constants.unit.AU)));
 
         while (ll.opModeIsActive() &&
-                ((Math.abs((pinpoint.getHeadingVelocity(CONSTANTS.unit.AU.getUnnormalized()))) >
-                        CONSTANTS.tolerance.TSpeed) ||
+                ((Math.abs((pinpoint.getHeadingVelocity(Constants.unit.AU.getUnnormalized()))) >
+                        Constants.tolerance.TSpeed) ||
                         (Math.abs(pidT.getError(pinpoint.getHeading(verity))) >
-                                CONSTANTS.unit.AU.fromUnit(verity, CONSTANTS.tolerance.TError)))) {
+                                Constants.unit.AU.fromUnit(verity, Constants.tolerance.TError)))) {
 
             //update the pinpoint for fresh data
             pinpoint.update();
 
             //error is the current difference between the 2 angels
-            double error = pidT.getError(pinpoint.getHeading(CONSTANTS.unit.AU));
+            double error = pidT.getError(pinpoint.getHeading(Constants.unit.AU));
 
             //P part of PID represents how much change we still need to do
             //but is often the cause of oscillation when KP is too high
@@ -189,9 +189,9 @@ public final class Driving_Systems{
             //telemetry data for tuning and testing
             ll.telemetry.addData("PID DATA", "KP: %.2f, KI: %.2f, KD: %.2f, error: " +
                             "%.2f",
-                    CONSTANTS.turningConstants.KP,
-                    CONSTANTS.turningConstants.KI,
-                    CONSTANTS.turningConstants.KD, error);
+                                 Constants.turningConstants.KP,
+                                 Constants.turningConstants.KI,
+                                 Constants.turningConstants.KD, error);
             ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
                     "Total: %.2f", P, I, D, total);
             calc.addTelemetry();
@@ -289,8 +289,8 @@ public final class Driving_Systems{
         if (ll.opModeIsActive() && Math.abs(shimmy) < 50) {
 
             //if this isn't our first time looping then move a lil to the right or left
-            if (shimmy != 0) turnTo(CONSTANTS.unit.AU, ll, pinpoint,
-                    initialHeading + CONSTANTS.unit.AU.fromUnit(AngleUnit.DEGREES, shimmy));
+            if (shimmy != 0) turnTo(Constants.unit.AU, ll, pinpoint,
+                                    initialHeading + Constants.unit.AU.fromUnit(AngleUnit.DEGREES, shimmy));
 
             //increment shimmy by 5 or make it negative
             shimmy = (shimmy < 0 ? 5 - shimmy : (shimmy > 0 ? -shimmy : 5));
@@ -309,9 +309,9 @@ public final class Driving_Systems{
                 limelight.pipelineSwitch(TagData.tagData.get(result.getFiducialId() - 30).value);
 
                 //if its valid head towards it
-                turnTo(CONSTANTS.unit.AU, ll, pinpoint,
-                        pinpoint.getHeading(CONSTANTS.unit.AU) -
-                                CONSTANTS.unit.AU.fromUnit(AngleUnit.DEGREES, result.getTargetXDegrees()));
+                turnTo(Constants.unit.AU, ll, pinpoint,
+                       pinpoint.getHeading(Constants.unit.AU) -
+                                Constants.unit.AU.fromUnit(AngleUnit.DEGREES, result.getTargetXDegrees()));
                 return true;
             } catch (MonkeyBusiness e) {
                 //recursive hehe
@@ -321,7 +321,7 @@ public final class Driving_Systems{
             }
         } else if (ll.opModeIsActive()) {
             //otherwise turn to where we were at the beginning
-            turnTo(CONSTANTS.unit.AU, ll, pinpoint, initialHeading);
+            turnTo(Constants.unit.AU, ll, pinpoint, initialHeading);
             limelight.pipelineSwitch(0);
             return false;
         }
@@ -331,8 +331,8 @@ public final class Driving_Systems{
 
     private void lostCause(LinearOpMode ll, Limelight3A limelight,
                                   GoBildaPinpointDriver pinpoint, List<DcMotor> motors){
-        DistanceUnit du = CONSTANTS.unit.DU;
-        AngleUnit au = CONSTANTS.unit.AU;
+        DistanceUnit du = Constants.unit.DU;
+        AngleUnit au = Constants.unit.AU;
         Pose2D park = team.getPark();
         Positions pos;
         Pose2D currentPos = calc.getPosition();
@@ -356,27 +356,27 @@ public final class Driving_Systems{
                               GoBildaPinpointDriver pinpoint,
                               double distance) {
         //make sure we're facing the right way
-        if (lockOn(ll, limelight, pinpoint, pinpoint.getHeading(CONSTANTS.unit.AU), 0)) {
-            double convertedDistance = CONSTANTS.unit.DU.fromUnit(verity, distance);
+        if (lockOn(ll, limelight, pinpoint, pinpoint.getHeading(Constants.unit.AU), 0)) {
+            double convertedDistance = Constants.unit.DU.fromUnit(verity, distance);
             LLResult result = limelight.getLatestResult();
             if(result==null)return;
             LLResultTypes.FiducialResult tags = calc.getBiggest(result.getFiducialResults());
             Pose2D targetPos = TagData.getPosition(tags.getFiducialId(), calc);
 
-            double deltaX = targetPos.getX(CONSTANTS.unit.DU) - pinpoint.getPosX(CONSTANTS.unit.DU);
-            double deltaY = targetPos.getY(CONSTANTS.unit.DU) - pinpoint.getPosY(CONSTANTS.unit.DU);
+            double deltaX = targetPos.getX(Constants.unit.DU) - pinpoint.getPosX(Constants.unit.DU);
+            double deltaY = targetPos.getY(Constants.unit.DU) - pinpoint.getPosY(Constants.unit.DU);
             double currentMagnitude = Math.hypot(deltaX, deltaY);
 
             if(currentMagnitude <= 0.00001)return;
-            double targetX = pinpoint.getPosX(CONSTANTS.unit.DU) + ((deltaX / currentMagnitude) * (currentMagnitude - convertedDistance));
-            double targetY = pinpoint.getPosY(CONSTANTS.unit.DU) + ((deltaY / currentMagnitude) * (currentMagnitude - convertedDistance));
-            Pose2D target = new Pose2D(CONSTANTS.unit.DU,
-                    targetX,
-                    targetY,
-                    CONSTANTS.unit.AU,
-                    pinpoint.getHeading(CONSTANTS.unit.AU));
-            headTo(pinpoint, limelight, ll, CONSTANTS.unit.DU,
-                    CONSTANTS.unit.AU, target, PIDModes.DRIVING);
+            double targetX = pinpoint.getPosX(Constants.unit.DU) + ((deltaX / currentMagnitude) * (currentMagnitude - convertedDistance));
+            double targetY = pinpoint.getPosY(Constants.unit.DU) + ((deltaY / currentMagnitude) * (currentMagnitude - convertedDistance));
+            Pose2D target = new Pose2D(Constants.unit.DU,
+                                       targetX,
+                                       targetY,
+                                       Constants.unit.AU,
+                                       pinpoint.getHeading(Constants.unit.AU));
+            headTo(pinpoint, limelight, ll, Constants.unit.DU,
+                   Constants.unit.AU, target, PIDModes.DRIVING);
         }
     }
 }

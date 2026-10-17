@@ -1,7 +1,7 @@
 package RobotUtil;
 
 public enum PIDModes {
-    TURNING(CONSTANTS.turningConstants) {
+    TURNING(Constants.turningConstants) {
         @Override
         public double getError(double[] input, double[] goal) {
             return calc.wrapAngle(goal[0], input[0]);
@@ -11,7 +11,7 @@ public enum PIDModes {
             return (calc.wrapAngle(error, previousError))*this.KD/dt;
         }
     },
-    DRIVING(CONSTANTS.driverConstants){
+    DRIVING(Constants.driverConstants){
         @Override
         public double getError(double[] input, double[] goal) {
             return Math.hypot(goal[0]-input[0], goal[1]-input[1]);
@@ -24,26 +24,26 @@ public enum PIDModes {
 
     /**
      * P Constant for Either Driving or Turning PID System
-     * @see CONSTANTS#driverConstants Driving Constants
-     * @see CONSTANTS#turningConstants Turning Constants
+     * @see Constants#driverConstants Driving Constants
+     * @see Constants#turningConstants Turning Constants
      */
 
     final double KP;
     /**I Constant for Either Driving or Turning PID System
-     * @see CONSTANTS#driverConstants Driving Constants
-     * @see CONSTANTS#turningConstants Turning Constants
+     * @see Constants#driverConstants Driving Constants
+     * @see Constants#turningConstants Turning Constants
      */
     final double KI;
 
     /**D Constant for Either Driving or Turning PID System
-     * @see CONSTANTS#driverConstants Driving Constants
-     * @see CONSTANTS#turningConstants Turning Constants
+     * @see Constants#driverConstants Driving Constants
+     * @see Constants#turningConstants Turning Constants
      */
     final double KD;
 
     RobotUtil calc;
 
-    PIDModes(CONSTANTS.tunerHolder constants){
+    PIDModes(Constants.tunerHolder constants){
         KP=constants.KP;
         KI=constants.KI;
         KD=constants.KD;

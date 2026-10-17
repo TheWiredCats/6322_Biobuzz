@@ -35,7 +35,7 @@ public class GuitarSigma extends OpMode {
         Robot robot = Robot.startTele(this);
         calc = robot.getCalc();
         pinpoint = robot.getPinpoint();
-        frcHeading = (float)pinpoint.getHeading(CONSTANTS.unit.AU);
+        frcHeading = (float)pinpoint.getHeading(Constants.unit.AU);
         Intake = robot.getUtilMotors().get(0);
         Transfer = robot.getUtilMotors().get(1);
         Shoot = robot.getUtilMotors().get(2);
@@ -67,15 +67,15 @@ public class GuitarSigma extends OpMode {
                                   GoBildaPinpointDriver.Register.H_VELOCITY, GoBildaPinpointDriver.Register.H_ORIENTATION);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.setErrorDetectionType(GoBildaPinpointDriver.ErrorDetectionType.CRC);
-        //frcHeading =(float)pinpoint.getHeading(CONSTANTS.unit.AU);
+        //frcHeading =(float)pinpoint.getHeading(Constants.unit.AU);
         speedMult = 0.5f + MathUtils.clamp(gamepad1.right_stick_x, -0.4f, 5f);
     }
 
     @Override
     public void loop() {
-        //float temp = (float)pinpoint.getHeading(CONSTANTS.unit.AU.getUnnormalized());
+        //float temp = (float)pinpoint.getHeading(Constants.unit.AU.getUnnormalized());
         pinpoint.update();
-        //frcHeading += gamepad1.back?-frcHeading: AngleUnit.normalizeDegrees((float) pinpoint.getHeading(CONSTANTS.unit.AU.getUnnormalized())-temp);
+        //frcHeading += gamepad1.back?-frcHeading: AngleUnit.normalizeDegrees((float) pinpoint.getHeading(Constants.unit.AU.getUnnormalized())-temp);
         int pow = gamepad2.left_stick_button?-1:1;
         float shootMult = 0.5f + MathUtils.clamp(gamepad2.right_stick_x, -0.4f, 0.4f);
         Intake.setPower(gamepad2.a?pow:0);
@@ -89,7 +89,7 @@ public class GuitarSigma extends OpMode {
 
 
         speedMult = 0.5f + MathUtils.clamp(gamepad1.right_stick_x, -0.4f, 5f);
-        //float roboYaw = AngleUnit.RADIANS.fromUnit(CONSTANTS.unit.AU, frcHeading);
+        //float roboYaw = AngleUnit.RADIANS.fromUnit(Constants.unit.AU, frcHeading);
         float y = - (gamepad1.a?(gamepad1.b?0:1):gamepad1.b?-1:0);
         float x = -1.1f* (gamepad1.x?(gamepad1.y?0:1):gamepad1.y?-1:0);
         float rx = -(gamepad1.dpad_down?(gamepad1.dpad_up?0:1):gamepad1.dpad_up?-1:0);

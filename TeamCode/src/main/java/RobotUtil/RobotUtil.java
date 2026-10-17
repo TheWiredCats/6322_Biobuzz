@@ -3,19 +3,12 @@ package RobotUtil;
 import android.util.ArrayMap;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -160,20 +153,20 @@ public class RobotUtil {
      * An upgrade of the actual pinpoint's .getPosition(), which gets a position with more specific units rather
      * than just millimeters
      * @see GoBildaPinpointDriver#getPosition() Actual getPosition()
-     * @return The Current Position in Units Described By {@linkplain CONSTANTS Constants File}
+     * @return The Current Position in Units Described By {@linkplain Constants Constants File}
      */
     public Pose2D getPosition()throws MonkeyBusiness{
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
-        return (new Pose2D(CONSTANTS.unit.DU, pinpoint.getPosX(CONSTANTS.unit.DU),
-                pinpoint.getPosY(CONSTANTS.unit.DU), CONSTANTS.unit.AU,
-                pinpoint.getHeading(CONSTANTS.unit.AU)));
+        return (new Pose2D(Constants.unit.DU, pinpoint.getPosX(Constants.unit.DU),
+                           pinpoint.getPosY(Constants.unit.DU), Constants.unit.AU,
+                           pinpoint.getHeading(Constants.unit.AU)));
     }
 
     /**
      * <h1>Auto Pinpoint Telemetry Adder</h1>
      * <h6><i>I'm Tired of Adding Telemetry Grandpa</i></h6>
      * Adds pinpoint telemetry: Distance Units, Angle Units, X Position, Y Position, Heading
-     * @see CONSTANTS Unit Data
+     * @see Constants Unit Data
      */
     public void addTelemetry(){
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
@@ -181,11 +174,11 @@ public class RobotUtil {
         //adds the distance unit, angle unit, x y positions, and the heading to telemetry
         op.telemetry.addData("Odometry Data", "Distance Unit: %s, Angle Unit: %s, " +
                         "X Pos: %.2f, Y Pos: %.2f, Heading: %.2f",
-                CONSTANTS.unit.DU,
-                CONSTANTS.unit.AU,
-                pinpoint.getPosX(CONSTANTS.unit.DU),
-                pinpoint.getPosY(CONSTANTS.unit.DU),
-                pinpoint.getHeading(CONSTANTS.unit.AU)
+                             Constants.unit.DU,
+                             Constants.unit.AU,
+                             pinpoint.getPosX(Constants.unit.DU),
+                             pinpoint.getPosY(Constants.unit.DU),
+                             pinpoint.getHeading(Constants.unit.AU)
         );
     }
 

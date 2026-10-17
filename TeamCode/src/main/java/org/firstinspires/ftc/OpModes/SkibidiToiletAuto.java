@@ -26,21 +26,21 @@ public class SkibidiToiletAuto extends LinearOpMode {
         DcMotor shoot = motorTemp.get(2);
 
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
-        pinpoint.setPosition(new Pose2D(CONSTANTS.unit.DU, -63, 15, CONSTANTS.unit.AU, -90));
+        pinpoint.setPosition(new Pose2D(Constants.unit.DU, -63, 15, Constants.unit.AU, -90));
         pinpoint.update();
 
         Limelight3A limelight = robot.getLimelight();
 
         waitForStart();
         if(opModeIsActive()){
-            ds.headTo(pinpoint, limelight, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -63, -15, -90, PIDModes.DRIVING);
+            ds.headTo(pinpoint, limelight, this, Constants.unit.DU, Constants.unit.AU, -63, -15, -90, PIDModes.DRIVING);
             intake.setPower(1);
             transfer.setPower(1);
             sleep(2000);
             intake.setPower(0);
             transfer.setPower(0);
-            ds.headTo(pinpoint, limelight, this, CONSTANTS.unit.DU, CONSTANTS.unit.AU, -63+(9*Math.sqrt(2)), 15, 0, PIDModes.DRIVING);
-            ds.lockIn(CONSTANTS.unit.DU, this, limelight, pinpoint, 18);
+            ds.headTo(pinpoint, limelight, this, Constants.unit.DU, Constants.unit.AU, -63+(9*Math.sqrt(2)), 15, 0, PIDModes.DRIVING);
+            ds.lockIn(Constants.unit.DU, this, limelight, pinpoint, 18);
             shoot.setPower(1);
             sleep(1000);
             shoot.setPower(0);
