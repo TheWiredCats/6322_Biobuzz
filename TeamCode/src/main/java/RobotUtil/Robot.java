@@ -10,8 +10,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,10 +18,11 @@ import java.util.List;
  * <body>
  * <h1><b>Robot Super Class</b></h1>
  * <h4><strong><i>Save the trouble of having to repeat code in every OpMode</i></strong></h4>
- * <p>V3, Added Telemetry throughout building for testing, also fixed major problem</p>
+ * <p>V3.1 Added a warning suppresor got rid of temprary telemetry, and changed OPmode getter to package private</p>
  * </body>
  * </html>
  */
+@SuppressWarnings("unused")
 public class Robot {
     enum OPMode {
         AUTO,
@@ -98,7 +97,7 @@ public class Robot {
 
         public synchronized LLResult updateLimelight() {
             if(this.limelight==null||this.pinpoint==null)throw new MonkeyBusiness("Please Setup Limelight Before Calling This Method");
-            limelight.updateRobotOrientation(this.pinpoint.getHeading(AngleUnit.DEGREES));
+            limelight.updateRobotOrientation(this.pinpoint.getHeading(Constants.unit.AU));
             return this.limelight.getLatestResult();
         }
     }
@@ -220,13 +219,11 @@ public class Robot {
         this.servo = motorSub.setupServo();
         this.pinpoint = pinpointSub.setUpPinpoint();
         this.limelight = cameraSub.setupLimeLight(this.pinpoint);
-        //this.huskyLens = cameraSub.setupHuskyLens();
-        op.telemetry.addLine("DONE!");
-        op.telemetry.update();
+        this.huskyLens = cameraSub.setupHuskyLens();
     }
 
     //public Get Instance
-    /*
+
     public static Robot getInstance()throws MonkeyBusiness{
         if(instance==null) {
             throw new MonkeyBusiness("No Robot to get. Fix this");
@@ -234,7 +231,7 @@ public class Robot {
             return instance;
         }
     }
-     */
+
 
 
     //Actual Getters
@@ -246,10 +243,10 @@ public class Robot {
     public HuskyLens getHuskyLens(){return this.huskyLens;}
     public Team getTeam(){return this.team;}
     public Driving_Systems getDSInstance(){return this.ds;}
-    //public LinearOpMode getLL(){return this.ll;}
+    public LinearOpMode getLL(){return this.ll;}
     public OpMode getOP(){return this.op;}
-    //public OPMode getMode(){return this.currentMode;}
+    OPMode getMode(){return this.currentMode;}
     public RobotUtil getCalc(){return this.calc;}
     public synchronized LLResult updateLimelight(){return cameraSub.updateLimelight();}
-    //public Servo getServo(){return this.servo;}
+    public Servo getServo(){return this.servo;}
 }

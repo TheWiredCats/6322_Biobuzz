@@ -1,14 +1,12 @@
 package RobotUtil;
 
 
-public interface PIDInterface {
-    double getError(double a, double b);
-    double getError(double Heading);
+interface PIDInterface {
+    double getError(double...input);
     double getP(double error);
     double getI(double error);
     double getD(double error);
     void setTime(long time, double error);
-    void reset(double x, double y);
-    void reset(double heading);
+    void reset(double...input);
 
 }

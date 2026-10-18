@@ -57,16 +57,14 @@ public final class Driving_Systems{
      * <h1>Driving PID Function</h1>
      * @param verity Distance Unit
      * @param pinpoint Actual Pinpoint
-     * @param limelight Limelight Camera
      * @param ll Linear Op Mode, necessary to be able to check if opModeIsActive
      * @param x X Goal Location
      * @param y Y Goal Location
      * @see #turnTo(AngleUnit, LinearOpMode, GoBildaPinpointDriver, double) Private Turner
-     * @see #headTo(GoBildaPinpointDriver, Limelight3A, LinearOpMode, DistanceUnit, AngleUnit, Pose2D, PIDModes) Public Mover (Position Overload)
-     * @see #headTo(GoBildaPinpointDriver, Limelight3A, LinearOpMode, DistanceUnit, AngleUnit, double, double, double, PIDModes) Public Mover (Double Overload)
+     * @see #headTo(GoBildaPinpointDriver, LinearOpMode, DistanceUnit, AngleUnit, Pose2D, PIDModes) Public Mover (Position Overload)
+     * @see #headTo(GoBildaPinpointDriver, LinearOpMode, DistanceUnit, AngleUnit, double, double, double, PIDModes) Public Mover (Double Overload)
      */
-    private void driveTo(DistanceUnit verity, GoBildaPinpointDriver pinpoint, Limelight3A limelight,
-                                LinearOpMode ll,
+    private void driveTo(DistanceUnit verity, GoBildaPinpointDriver pinpoint, LinearOpMode ll,
                                 double x, double y) {
 
         pidD.reset(x, y);
@@ -145,9 +143,9 @@ public final class Driving_Systems{
      * @param ll LinearOpMode neccesary to check opModeIsActive
      * @param pinpoint The Actual Pinpoint
      * @param desiredHeading Goal Heading
-     * @see #driveTo(DistanceUnit, GoBildaPinpointDriver, Limelight3A, LinearOpMode, double, double) Private PID Driving Function
-     * @see #headTo(GoBildaPinpointDriver, Limelight3A, LinearOpMode, DistanceUnit, AngleUnit, double, double, double, PIDModes) Public PID Mover (Double Overload)
-     * @see #headTo(GoBildaPinpointDriver, Limelight3A, LinearOpMode, DistanceUnit, AngleUnit, Pose2D, PIDModes) Public PID Mover (Position Overload)
+     * @see #driveTo(DistanceUnit, GoBildaPinpointDriver, LinearOpMode, double, double) Private PID Driving Function
+     * @see #headTo(GoBildaPinpointDriver, LinearOpMode, DistanceUnit, AngleUnit, double, double, double, PIDModes) Public PID Mover (Double Overload)
+     * @see #headTo(GoBildaPinpointDriver, LinearOpMode, DistanceUnit, AngleUnit, Pose2D, PIDModes) Public PID Mover (Position Overload)
      */
     private void turnTo(AngleUnit verity, LinearOpMode ll, GoBildaPinpointDriver pinpoint,double desiredHeading) {
 
@@ -207,24 +205,23 @@ public final class Driving_Systems{
 
     /**
      * <h1>Public Mover</h1>
-     * <i><h6>Position Overload</j6></i>
+     * <i><h6>Position Overload</h6></i>
      * @param pinpoint Actual Pinpoint
-     * @param limelight Actual Limelight Camera
      * @param ll LinearOpMode for checking whether we're allowed to drive
      * @param verityDis Distance Unit
      * @param verityAng Angle Unit
      * @param targetPosition Pose2D Goal Position
      * @param pid PID Function Working First
-     * @see #headTo(GoBildaPinpointDriver, Limelight3A, LinearOpMode, DistanceUnit, AngleUnit, double, double, double, PIDModes) Double headTo() Overload
-     * @see #driveTo(DistanceUnit, GoBildaPinpointDriver, Limelight3A, LinearOpMode, double, double) Private Driving Function
+     * @see #headTo(GoBildaPinpointDriver, LinearOpMode, DistanceUnit, AngleUnit, double, double, double, PIDModes) Double headTo() Overload
+     * @see #driveTo(DistanceUnit, GoBildaPinpointDriver, LinearOpMode, double, double) Private Driving Function
      * @see #turnTo(AngleUnit, LinearOpMode, GoBildaPinpointDriver, double) Private Turning Function
      */
-    public void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, LinearOpMode ll,
+    public void headTo(GoBildaPinpointDriver pinpoint, LinearOpMode ll,
             DistanceUnit verityDis, AngleUnit verityAng,
                               Pose2D targetPosition, PIDModes pid){
         if(pid.equals(PIDModes.DRIVING)) {
             //then drive to the location we want to go to
-            driveTo(verityDis, pinpoint, limelight, ll, targetPosition.getX(verityDis),
+            driveTo(verityDis, pinpoint, ll, targetPosition.getX(verityDis),
                     targetPosition.getY(verityDis));
 
             //first turn to the direction we want to be heading
@@ -232,16 +229,16 @@ public final class Driving_Systems{
         }else{
             turnTo(verityAng, ll, pinpoint, targetPosition.getHeading(verityAng));
 
-            driveTo(verityDis, pinpoint, limelight, ll, targetPosition.getX(verityDis),
+            driveTo(verityDis, pinpoint, ll, targetPosition.getX(verityDis),
                     targetPosition.getY(verityDis));
         }
     }
 
 
     /**
-     * Public Mover (Double Overload)
+     * <h1>Public Mover</h1>
+     * (Double Overload)
      * @param pinpoint Actual Pinpoint
-     * @param limelight Actual Limelight Camera
      * @param ll LinearOpMode, neccesary for checking if we can still move
      * @param verityDis Distance Unit
      * @param verityAng Angle Unit
@@ -250,22 +247,22 @@ public final class Driving_Systems{
      * @param heading Heading Goal
      * @param pid Which PID Runs First
      * @see #turnTo(AngleUnit, LinearOpMode, GoBildaPinpointDriver, double) Private Turning Function
-     * @see #driveTo(DistanceUnit, GoBildaPinpointDriver, Limelight3A, LinearOpMode, double, double) Private Driving Function
-     * @see #headTo(GoBildaPinpointDriver, Limelight3A, LinearOpMode, DistanceUnit, AngleUnit, Pose2D, PIDModes) Public Moving Function (Position Overload)
+     * @see #driveTo(DistanceUnit, GoBildaPinpointDriver, LinearOpMode, double, double) Private Driving Function
+     * @see #headTo(GoBildaPinpointDriver, LinearOpMode, DistanceUnit, AngleUnit, Pose2D, PIDModes) Public Moving Function (Position Overload)
      */
-    public void headTo(GoBildaPinpointDriver pinpoint, Limelight3A limelight, LinearOpMode ll,
+    public void headTo(GoBildaPinpointDriver pinpoint, LinearOpMode ll,
                 DistanceUnit verityDis, AngleUnit verityAng,
                               double x, double y, double heading, PIDModes pid) {
         if(pid.equals(PIDModes.DRIVING)) {
             //then drive to the location we want to go to
-            driveTo(verityDis, pinpoint, limelight, ll, x, y);
+            driveTo(verityDis, pinpoint,ll, x, y);
 
             //first turn to the direction we want to be heading
             turnTo(verityAng, ll, pinpoint, heading);
         }else{
             turnTo(verityAng, ll, pinpoint,  heading);
 
-            driveTo(verityDis, pinpoint, limelight, ll, x, y);
+            driveTo(verityDis, pinpoint, ll, x, y);
         }
     }
 
@@ -341,7 +338,7 @@ public final class Driving_Systems{
         }else{
             pos = currentPos.getY(du)>24?Positions.BottomLeft:(currentPos.getY(du)<-24)?Positions.BottomRight:Positions.BottomCenter;
         }
-        headTo(pinpoint, limelight,  ll, du, au, pos.getSaveStation(), PIDModes.DRIVING);
+        headTo(pinpoint, ll, du, au, pos.getSaveStation(), PIDModes.DRIVING);
     }
 
     /**
@@ -375,7 +372,7 @@ public final class Driving_Systems{
                                        targetY,
                                        Constants.unit.AU,
                                        pinpoint.getHeading(Constants.unit.AU));
-            headTo(pinpoint, limelight, ll, Constants.unit.DU,
+            headTo(pinpoint, ll, Constants.unit.DU,
                    Constants.unit.AU, target, PIDModes.DRIVING);
         }
     }

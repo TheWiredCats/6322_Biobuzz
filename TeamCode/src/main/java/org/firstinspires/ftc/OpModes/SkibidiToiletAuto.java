@@ -19,7 +19,6 @@ public class SkibidiToiletAuto extends LinearOpMode {
     public void runOpMode(){
         Robot robot = Robot.startAuto(Team.RED, this);
         Driving_Systems ds = robot.getDSInstance();
-        List<DcMotor> motors = robot.getDrivingMotors();
         List<DcMotor> motorTemp = robot.getUtilMotors();
         DcMotor intake = motorTemp.get(0);
         DcMotor transfer = motorTemp.get(1);
@@ -32,18 +31,18 @@ public class SkibidiToiletAuto extends LinearOpMode {
         Limelight3A limelight = robot.getLimelight();
 
         waitForStart();
-        if(opModeIsActive()){
-            ds.headTo(pinpoint, limelight, this, Constants.unit.DU, Constants.unit.AU, -63, -15, -90, PIDModes.DRIVING);
-            intake.setPower(1);
-            transfer.setPower(1);
-            sleep(2000);
-            intake.setPower(0);
-            transfer.setPower(0);
-            ds.headTo(pinpoint, limelight, this, Constants.unit.DU, Constants.unit.AU, -63+(9*Math.sqrt(2)), 15, 0, PIDModes.DRIVING);
-            ds.lockIn(Constants.unit.DU, this, limelight, pinpoint, 18);
-            shoot.setPower(1);
-            sleep(1000);
-            shoot.setPower(0);
-        }
+
+        ds.headTo(pinpoint, this, Constants.unit.DU, Constants.unit.AU, -63, -15, -90, PIDModes.DRIVING);
+        intake.setPower(1);
+        transfer.setPower(1);
+        sleep(2000);
+        intake.setPower(0);
+        transfer.setPower(0);
+        ds.headTo(pinpoint, this, Constants.unit.DU, Constants.unit.AU, -63+(9*Math.sqrt(2)), 15, 0, PIDModes.DRIVING);
+        ds.lockIn(Constants.unit.DU, this, limelight, pinpoint, 18);
+        shoot.setPower(1);
+        sleep(1000);
+        shoot.setPower(0);
+
     }
 }

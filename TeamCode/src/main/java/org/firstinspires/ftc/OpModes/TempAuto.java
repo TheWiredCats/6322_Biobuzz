@@ -17,12 +17,11 @@ public class TempAuto extends LinearOpMode {
     public void runOpMode() {
         Robot robot = Robot.startAuto(Team.RED,this);
         Driving_Systems ds = robot.getDSInstance();
-        Limelight3A limelight = robot.getLimelight();
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, -63, AngleUnit.DEGREES,90));
         waitForStart();
-        //ds.headTo(pinpoint, limelight, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, -50, 90, PIDModes.DRIVING);
-        //ds.headTo(pinpoint, limelight, this, DistanceUnit.INCH, AngleUnit.DEGREES, -55, -50, 180, PIDModes.TURNING);
-        //ds.headTo(pinpoint, limelight, this, DistanceUnit.INCH, AngleUnit.DEGREES, -55, -63, 90, PIDModes.TURNING);
+        //ds.headTo(pinpoint, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, -50, 90, PIDModes.DRIVING);
+        //ds.headTo(pinpoint, this, DistanceUnit.INCH, AngleUnit.DEGREES, -55, -50, 180, PIDModes.TURNING);
+        //ds.headTo(pinpoint, this, DistanceUnit.INCH, AngleUnit.DEGREES, -55, -63, 90, PIDModes.TURNING);
     }
 }

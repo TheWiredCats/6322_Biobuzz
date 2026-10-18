@@ -1,6 +1,8 @@
 package RobotUtil;
 
-public class PID_Controller implements PIDInterface{
+import java.util.concurrent.TimeUnit;
+
+class PID_Controller implements PIDInterface{
     /**Stores the current PID mode using the enum as a global variable*/
     final PIDModes mode;
 
@@ -23,7 +25,7 @@ public class PID_Controller implements PIDInterface{
 
     /**Stores the goal position as a global variable and an array to be able to handle the 2D driving position goals as well as the heading goal*/
     double[] goal;
-
+    private static final float NANO_PER_SECOND = 1E9f;
 
     public PID_Controller(PIDModes mode, RobotUtil calc){
         this.mode = mode;
@@ -33,33 +35,15 @@ public class PID_Controller implements PIDInterface{
     }
     /**
      * Sets the goal variables to the inputs and resets the global variables back to 0.
-     * <p>Has an overload for turning PIDs
-     * @see #reset(double heading) Turning PID reset() Overload
      * @see #goal Goal Variable
-     * @param x takes any x between the interval [-72, 72] but should usually be between
-     *          [-63,63] to account for robot width/length
-     * @param y takes any y between the interval [-72, 72] but should usually be between
-     *          [-63,63] to account for robot width/length
+     * @param input Varg for the goal you want
      */
     @Override
-    public void reset(double x, double y){
+    public void reset(double... input){
         integral = previousError = lastCheckedI = lastCheckedD = 0;
-        this.goal[0] = x;
-        this.goal[2] = y;
+        this.goal=input.clone();
     }
 
-    /**
-     * Sets the goal variable to the input, and resets the global variables back to 0.
-     * <p>Has an overload for driving PIDs
-     * @see #reset(double, double) Driving PID reset() Overload
-     * @see #goal Goal Variable
-     * @param heading takes any heading between the interval [-179, 180] and sets it as the goal
-     */
-    @Override
-    public void reset(double heading){
-        integral = previousError = lastCheckedI = lastCheckedD = 0;
-        this.goal[0] = heading;
-    }
 
     /**
      * Sets the time and starting error to be used for calculus calculations
@@ -78,37 +62,19 @@ public class PID_Controller implements PIDInterface{
 
     /**
      * Calculates the current error using the enum specific getError() calculator for driving
-     * <p>Has an Overload version for Turning PIDs
-     * @see #getError(double heading) Turning PID getError() Overload
-     * @param x Should be the current X and uses the preset goal X variable to calculate current error
-     * @param y Should be the current Y and uses the preset goal Y variable to calculate current error
+     * @param input VArg to make it easier to use, just input the things you want to input
      * @return Current Position Error
      * @see PIDModes#getError(double[], double[]) ENUM Error Calculator
      */
     @Override
-    public double getError(double x, double y){
-        this.input[0]=x;
-        this.input[1]=y;
+    public double getError(double...input){
+        this.input=input.clone();
         return mode.getError(this.input, this.goal);
-    }
-
-    /**Calculates the current error using the enum specific getError() calculator for turning
-     * <p>Has an overload version for Driving PIDs
-     * @param heading Should be the current heading and uses the preset goal heading variable to calculate current error
-     * @return Current Heading Error
-     * @see #getError(double, double) Driving PID getError() Overload
-     * @see PIDModes#getError(double[], double[]) ENUM Error Calculator
-     */
-    @Override
-    public double getError(double heading){
-        this.input[0]=heading;
-        return mode.getError(this.input, goal);
     }
 
     /**Calculates the P part of the PID by multiplying the enum's PID specific {@linkplain PIDModes#KP P Constant} by the current error
      *@param error The Current Error
-     *@see #getError(double) Heading Error Calculator
-     *@see #getError(double, double) Position Error Calculator
+     *@see #getError(double...) Error Calculator
      *@see #getD(double) D Part of PID
      *@see #getI(double) I Part of PID
      *@return Returns the current P part of the PID
@@ -129,8 +95,7 @@ public class PID_Controller implements PIDInterface{
     @Override
     public double getI(double error) {
         long now = System.nanoTime();
-        double dt = Math.max(0.001,((now-this.lastCheckedI)/1000000000.0));
-        this.integral+=error*dt;
+        this.integral+=error*dtCalculator(now,this.lastCheckedI);
         this.lastCheckedI = now;
         return this.integral*this.mode.KI;
     }
@@ -140,8 +105,6 @@ public class PID_Controller implements PIDInterface{
      * by the {@linkplain  PIDModes#KD D Constant}, and finally saving the current time as lastCheckedD,
      * and the error as previous error
      * @param error The Current Position/Heading Error
-     * @see #getError(double) The Position Error Calculator
-     * @see #getError(double, double) The Heading Error Calculator
      * @see PIDModes#getD(double, double, double) PID Specific D Calculator
      * @see #getP(double) P Part of PID
      * @see #getI(double) I part of PID
@@ -150,10 +113,14 @@ public class PID_Controller implements PIDInterface{
     @Override
     public double getD(double error) {
         long now = System.nanoTime();
-        double dt = Math.max(0.001,((now-this.lastCheckedD)/1000000000.0));
-        double result = mode.getD(error, this.previousError, dt);
+        double result = mode.getD(error, this.previousError, dtCalculator(now,this.lastCheckedD));
         this.lastCheckedD=now;
         this.previousError = error;
         return result;
+    }
+    private float dtCalculator(long now, long last){
+        if(last>now)throw new IllegalArgumentException("Last Cant Come After Now");
+        if(last==0)throw new IllegalStateException("Make sure that you properly set last before calling this");
+        return Math.max(1E-6f,(now-last)/NANO_PER_SECOND);
     }
 }
