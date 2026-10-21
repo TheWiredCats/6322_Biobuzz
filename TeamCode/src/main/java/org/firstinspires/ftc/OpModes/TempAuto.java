@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.OpModes;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -16,7 +15,7 @@ public class TempAuto extends LinearOpMode {
     @Override
     public void runOpMode() {
         Robot robot = Robot.startAuto(Team.RED,this);
-        Driving_Systems ds = robot.getDSInstance();
+        //Driving_Systems ds = robot.getDSInstance();
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, -63, AngleUnit.DEGREES,90));
         waitForStart();

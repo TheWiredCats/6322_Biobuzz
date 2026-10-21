@@ -14,7 +14,7 @@ import java.util.List;
  * <h4><u>IN A MINUTE!</u></h4>
  * <br>
  * Makes sure that all of your data can be found in one place, which is located right here
- * V1.1
+ * V1.2(Added servo max position)
  */
 public final class Constants {
     public final static class tolerances{
@@ -55,8 +55,9 @@ public final class Constants {
         }
     }
 
-    public static final double MAXIMUM = 1;
-    public static final double MINIMUM = 0.25;
+    public static final float MAXIMUM = 1;
+    public static final float MINIMUM = 0.25f;
+    public static final float SERVO_MAX = 0.55f;
 
     public static final String PINPOINT = "pinpoint";
     public static final String LIMELIGHT = "limelight";

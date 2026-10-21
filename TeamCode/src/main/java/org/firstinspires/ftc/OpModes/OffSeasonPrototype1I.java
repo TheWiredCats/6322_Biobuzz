@@ -18,8 +18,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 package org.firstinspires.ftc.OpModes;
 
-import androidx.core.math.MathUtils;
-
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
@@ -75,7 +73,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
     @Override
     public void init() {
-        robot=Robot.startTele(this);
+        robot=Robot.startTeleOp(this);
 
         calc = robot.getCalc();
 
@@ -116,6 +114,7 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void loop() {
+        if(!huskyLens.knock()){telemetry.addLine("No HuskyLens Detected");}
         if(locatorPos!=null){
             pinpoint.setPosition(locatorPos);
             locatorPos=null;
@@ -129,11 +128,11 @@ public class OffSeasonPrototype1I extends OpMode {
 
         //Calculates how far the minimum is from the middle of the 2
         // (to know how much each should affect)
-        float Difference=(float)(Constants.MAXIMUM- Constants.MINIMUM)/2;
+        float Difference=(Constants.MAXIMUM- Constants.MINIMUM)/2;
         //Readability of code
         float TotalTrigger=gamepad1.right_trigger+gamepad1.left_trigger;
 
-        float speedMultiplier = (float)(Constants.MAXIMUM-(Difference*TotalTrigger));
+        float speedMultiplier = (Constants.MAXIMUM-(Difference*TotalTrigger));
 
         if(gamepad1.start)FRCHeading=0;
 
@@ -150,9 +149,10 @@ public class OffSeasonPrototype1I extends OpMode {
 
 
 
-        HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
-        telemetry.addData("HL Block Count", blocks.length);
+        //HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
+        //telemetry.addData("HL Block Count", blocks.length);
 
+        /*
         if (gamepad1.x) for (HuskyLens.Block block : blocks) {
             telemetry.addData("HL:", block.toString());
 
@@ -192,9 +192,8 @@ public class OffSeasonPrototype1I extends OpMode {
              * - blocks[i].id                           (Color ID)
              *
              * These values have Java type int (integer).
-             */
         }
-
+        */
         double FLMotorPower = ((y + x + rx) / stickTotal) * speedMultiplier;
         double BLMotorPower = ((y - x + rx) / stickTotal) * speedMultiplier;
         double FRMotorPower = ((y - x - rx) / stickTotal) * speedMultiplier;

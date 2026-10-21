@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +20,7 @@ import java.util.List;
  * <body>
  * <h1><b>Robot Super Class</b></h1>
  * <h4><strong><i>Save the trouble of having to repeat code in every OpMode</i></strong></h4>
- * <p>V3.1 Added a warning suppresor got rid of temprary telemetry, and changed OPmode getter to package private</p>
+ * <p>V4.0 Added ender to TeleOp/Auto, and added comments</p>
  * </body>
  * </html>
  */
@@ -167,52 +169,84 @@ public class Robot {
     private static Robot instance;
 
     //Initialize all the variables in the singleton instance
-    protected Robot(LinearOpMode ll, Team team){
+    private Robot(LinearOpMode ll, Team team){
+        //LinearOpMode is a form of OpMode so it can be used as such
         this.op=ll;
-        motorSub=new Motors(op);
-        cameraSub=new Cameras(op);
-        pinpointSub=new Pinpoint(op);
+
+        //make a new instance of each of the subclasses
+        this.motorSub=new Motors(op);
+        this.cameraSub=new Cameras(op);
+        this.pinpointSub=new Pinpoint(op);
+
+        //Set the team, the mode to Auto, and make sure LinearOpMode is set
         this.team = team;
         this.currentMode = OPMode.AUTO;
         this.ll = ll;
+
+        //Set up the calc, Auto Driving Station
         this.calc = RobotUtil.initialize(this);
         this.ds = Driving_Systems.getInstance(team, this);
+
+        //Set up all the Hardware with a simple method
         setUpHardware();
     }
 
     //catcher in case starting with teleop
-    protected Robot(OpMode op){
-        //Auto only things
+    private Robot(OpMode op){
+        //Auto only things should be set to null
         this.ds=null;
         this.ll=null;
         this.team=null;
 
+        //Set the OpMode
         this.op = op;
-        motorSub=new Motors(op);
-        cameraSub=new Cameras(op);
-        pinpointSub=new Pinpoint(op);
+
+        //Make the SubClasses Instances
+        this.motorSub=new Motors(op);
+        this.cameraSub=new Cameras(op);
+        this.pinpointSub=new Pinpoint(op);
+
+        //Set the current Mode to TeleOP
         this.currentMode = OPMode.TELEOP;
+
+        //Set Up the calc
         this.calc = RobotUtil.initialize(this);
+
+        //Setup All the Hardware Components
         setUpHardware();
     }
 
+    //Use At the Start of Auto as a sort of getter that also does some helpful logic
     public static Robot startAuto(Team team, LinearOpMode ll){
+        //if an instance already exists no need to make a new one
         if(instance!=null)return instance;
+        //otherwise you have to make a new one and then return it
         return instance = new Robot(ll, team);
     }
-
-    public static Robot startTele(OpMode op){
-        if(instance==null){
+    //Use At the Start of TeleOp as a sort of getter that also does a bunch of helpful logic
+    //using the OpMode blackBoard
+    public static Robot startTeleOp(OpMode op){
+        //if there's no instance and the blackboard is empty make a new Tele Op instance
+        if(instance==null&&OpMode.blackboard.isEmpty()){
             instance = new Robot(op);
             return instance;
+            //if it isn't empty then make the instance that and also get the position on the field
+        }else if(!OpMode.blackboard.isEmpty()){
+            instance = ((Robot) OpMode.blackboard.get("robot_instance"));
+            //If the gotten instance is null somehow it will return a Major Error
+            if(instance==null)throw new MonkeyBusiness("OpMode error in startTele");
+            instance.pinpoint.setPosition((Pose2D) OpMode.blackboard.get("position"));
         }
+        //If there is an instance then change it from auto mode to TeleOp mode
         instance.op = op;
         instance.ll = null;
         instance.team = null;
         instance.ds = null;
         instance.currentMode=OPMode.TELEOP;
+        //After it's been updated return it
         return instance;
     }
+    //Sets Up all the hardware using their respective subclasses
     private void setUpHardware(){
         this.drivingMotors = motorSub.setupDrivingMotors();
         this.utilMotors = motorSub.setupMotors();
@@ -221,13 +255,24 @@ public class Robot {
         this.limelight = cameraSub.setupLimeLight(this.pinpoint);
         this.huskyLens = cameraSub.setupHuskyLens();
     }
+    //At the End of Auto add the current instance to the blackboard aswell as the current position
+    public void endAuto(){
+        OpMode.blackboard.put("robot_instance", this);
+        OpMode.blackboard.put("position", this.pinpoint.getPosition());
+    }
+    //At the End of TeleOp clear Anything on the blackboard
+    public void endTeleOp(){
+        OpMode.blackboard.clear();
+    }
 
     //public Get Instance
 
     public static Robot getInstance()throws MonkeyBusiness{
+        //If there isn't an instance to return then it will throw a Major Error
         if(instance==null) {
-            throw new MonkeyBusiness("No Robot to get. Fix this");
+            throw new MonkeyBusiness("No Robot to get in getInstance.");
         }else{
+            //otherwise it wil return the Instance
             return instance;
         }
     }
@@ -245,8 +290,10 @@ public class Robot {
     public Driving_Systems getDSInstance(){return this.ds;}
     public LinearOpMode getLL(){return this.ll;}
     public OpMode getOP(){return this.op;}
-    OPMode getMode(){return this.currentMode;}
     public RobotUtil getCalc(){return this.calc;}
-    public synchronized LLResult updateLimelight(){return cameraSub.updateLimelight();}
     public Servo getServo(){return this.servo;}
+    //Only really need this for inside the Package
+    OPMode getMode(){return this.currentMode;}
+    //updates stuff on the limelight as well as returning the latest result from the limelight
+    public synchronized LLResult updateLimelight(){return cameraSub.updateLimelight();}
 }
