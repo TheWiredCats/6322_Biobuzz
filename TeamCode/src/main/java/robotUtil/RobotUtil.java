@@ -1,4 +1,4 @@
-package RobotUtil;
+package robotUtil;
 
 import android.util.ArrayMap;
 
@@ -121,7 +121,11 @@ public class RobotUtil {
      * Confirms position by using different pipelines to filter for the 4 nearest tags and then do a lil bit of math to find the position of the robot and then setting the pinpoint to the new position
      * @throws MonkeyBusiness Will throw a base error if no tag is detected, or if the pitch of the tag is less than -70
      */
+    // FIXME: 10/24/2026 Fix Limelight
     public void confirmPosition()throws MonkeyBusiness {
+        int a = 1;
+        a+=robot.drivingMotors.size();
+        if(a<0)throw new RuntimeException();
         /*
         LinearOpMode ll = robot.getLL();
         Limelight3A limelight = robot.getLimelight();

@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.OpModes.pedroPathing;
+package org.firstinspires.ftc.opModes.pedroPathing;
 
-import static org.firstinspires.ftc.OpModes.pedroPathing.Tuning.changes;
-import static org.firstinspires.ftc.OpModes.pedroPathing.Tuning.drawCurrent;
-import static org.firstinspires.ftc.OpModes.pedroPathing.Tuning.drawCurrentAndHistory;
-import static org.firstinspires.ftc.OpModes.pedroPathing.Tuning.follower;
-import static org.firstinspires.ftc.OpModes.pedroPathing.Tuning.stopRobot;
-import static org.firstinspires.ftc.OpModes.pedroPathing.Tuning.telemetryM;
+import static org.firstinspires.ftc.opModes.pedroPathing.Tuning.changes;
+import static org.firstinspires.ftc.opModes.pedroPathing.Tuning.drawCurrent;
+import static org.firstinspires.ftc.opModes.pedroPathing.Tuning.drawCurrentAndHistory;
+import static org.firstinspires.ftc.opModes.pedroPathing.Tuning.follower;
+import static org.firstinspires.ftc.opModes.pedroPathing.Tuning.stopRobot;
+import static org.firstinspires.ftc.opModes.pedroPathing.Tuning.telemetryM;
 
 import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.configurables.annotations.Configurable;
@@ -28,7 +28,6 @@ import android.annotation.SuppressLint;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -43,6 +42,7 @@ import java.util.List;
  */
 @Configurable
 @Disabled
+@SuppressWarnings("all")
 //@TeleOp(name = "Tuning", group = "Pedro Pathing")
 public class Tuning extends SelectableOpMode {
     public static Follower follower;
@@ -1428,6 +1428,7 @@ class Circle extends OpMode {
  * Tuning OpMode to get the min and max encoder values for swerve pods
  * @author Kabir Goyal
  */
+@SuppressWarnings("all")
 class AnalogMinMaxTuner extends OpMode {
     //populate the below with your names for the servos and encoders
     public String[] encoderNames = {"leftFrontEncoder", "rightFrontEncoder", "leftBackEncoder", "rightBackEncoder"};
@@ -1654,6 +1655,7 @@ class OffsetsTuner extends OpMode {
  * @author Lazar - 19234
  * @version 1.1, 5/19/2025
  */
+@SuppressWarnings("all")
 class Drawing {
     public static final double ROBOT_RADIUS = 9; // woah
     private static final FieldManager panelsField = PanelsField.INSTANCE.getField();

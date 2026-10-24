@@ -16,7 +16,7 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package Depreceated_OpModes;
+package deprecated_OpModes;
 
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -42,18 +42,18 @@ import java.util.List;
 /**
  * This file contains a minimal example of an iterative (Non-Linear) "OpMode". An OpMode is a
  * 'program' that runs in either the autonomous or the TeleOp period of an FTC match. The names
- * of OpModes appear on the menu of the FTC Driver Station. When an selection is made from the
+ * of OpModes appear on the menu of the FTC Driver Station. When a selection is made from the
  * menu, the corresponding OpMode class is instantiated on the Robot Controller and executed.
- *
  * Remove the @Disabled annotation on the next line or two (if present) to add this OpMode to the
  * Driver Station OpMode list, or add a @Disabled annotation to prevent this OpMode from being
  * added to the Driver Station.
  */
 @TeleOp
 @Disabled
+@SuppressWarnings("all")
 public class MTYCTWD9110 extends OpMode {
     boolean buttonDown=false;
-
+    boolean slowspeed = false;
     double dBearing = 0;
     private DcMotor frontLeftMotor = null;
     private DcMotor frontRightMotor = null;
@@ -72,10 +72,9 @@ public class MTYCTWD9110 extends OpMode {
     private IMU imu = null;
 
     private AprilTagProcessor aprilTag;
-    private VisionPortal visionPortal;
 
-    public static double power=0.8;
-    public static double powerReverse=-0.8;
+    public final static double power=0.8;
+    public final static double powerReverse=-0.8;
 
     @Override
     public void init() {
@@ -133,8 +132,7 @@ public class MTYCTWD9110 extends OpMode {
      */
     @Override
     public void loop() {
-        boolean slowspeed = false;
-        double speedmult = 1;
+        double speedmult;
 
         double powerOff=0;
 
@@ -292,7 +290,7 @@ public class MTYCTWD9110 extends OpMode {
         builder.addProcessor(aprilTag);
 
         // Build the Vision Portal.
-        visionPortal = builder.build();
+        VisionPortal visionPortal = builder.build();
 
     }
 }

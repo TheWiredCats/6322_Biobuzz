@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.OpModes;
+package org.firstinspires.ftc.opModes;
 
 import androidx.core.math.MathUtils;
 
@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import RobotUtil.*;
+import robotUtil.*;
 
 @TeleOp(name = "Guitar Op")
 

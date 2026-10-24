@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.OpModes;
+package org.firstinspires.ftc.opModes;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
-import RobotUtil.*;
+import robotUtil.*;
 
 @Autonomous(name="Greedy Auto")
 public class SkibidiToiletAuto extends LinearOpMode {

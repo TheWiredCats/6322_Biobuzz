@@ -1,4 +1,4 @@
-package Depreceated_OpModes;
+package deprecated_OpModes;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 @Disabled
 public class Decode9110 extends LinearOpMode {
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
 
         //Declare our motors
         //Make sure your ID's match your configuration on the Driver Hub

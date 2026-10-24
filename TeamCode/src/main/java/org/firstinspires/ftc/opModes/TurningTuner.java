@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.OpModes;
+package org.firstinspires.ftc.opModes;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -8,11 +8,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-import java.util.List;
-
-import RobotUtil.*;
+import robotUtil.*;
 
 @Disabled
+@SuppressWarnings("unused")
 //@Autonomous
 public class TurningTuner extends LinearOpMode {
 

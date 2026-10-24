@@ -1,4 +1,4 @@
-package RobotUtil;
+package robotUtil;
 
 public enum PIDModes {
     TURNING(Constants.turningConstants) {

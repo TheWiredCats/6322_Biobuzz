@@ -1,21 +1,17 @@
-package org.firstinspires.ftc.OpModes;
+package org.firstinspires.ftc.opModes;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-import java.util.List;
+import robotUtil.*;
 
-import RobotUtil.*;
-
+@SuppressWarnings("all")
 @Disabled
 //@Autonomous
 public class Auto_prolly_BLUE extends LinearOpMode {
@@ -45,7 +41,6 @@ public class Auto_prolly_BLUE extends LinearOpMode {
         waitForStart();
 
         //run this code once
-
         if (opModeIsActive()){
 
         }

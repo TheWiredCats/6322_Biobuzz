@@ -1,4 +1,4 @@
-package RobotUtil;
+package robotUtil;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 

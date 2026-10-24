@@ -1,4 +1,4 @@
-package RobotUtil;
+package robotUtil;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -256,7 +256,7 @@ public class Robot {
         this.limelight = cameraSub.setupLimeLight(this.pinpoint);
         this.huskyLens = cameraSub.setupHuskyLens();
     }
-    //At the End of Auto add the current instance to the blackboard aswell as the current position
+    //At the End of Auto add the current instance to the blackboard as well as the current position
     public void endAuto(){
         OpMode.blackboard.put("robot_instance", this);
         OpMode.blackboard.put("position", this.pinpoint.getPosition());

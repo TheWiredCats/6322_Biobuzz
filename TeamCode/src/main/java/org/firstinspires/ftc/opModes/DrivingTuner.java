@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.OpModes;
+package org.firstinspires.ftc.opModes;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -6,8 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-import RobotUtil.*;
+import robotUtil.*;
 @Disabled
+@SuppressWarnings("unused")
 //@Autonomous
 public class DrivingTuner extends LinearOpMode {
     @Override
@@ -26,9 +27,6 @@ public class DrivingTuner extends LinearOpMode {
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
         pinpoint.setPosition(new Pose2D(Constants.unit.DU, -63, 63, Constants.unit.AU, 0));
         pinpoint.update();
-
-        //put in all auto modes
-        //while(opModeInInit()){}
 
         waitForStart();
 

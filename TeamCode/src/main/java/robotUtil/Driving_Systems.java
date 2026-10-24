@@ -1,17 +1,14 @@
-package RobotUtil;
+package robotUtil;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-
-import java.util.List;
 
 //V1.2 Moved Positions enum inside as a nested class and added unused warning suppressor
 @SuppressWarnings("unused")
@@ -40,18 +37,24 @@ public final class Driving_Systems{
     private static final Driving_Systems redInstance = new Driving_Systems(Team.RED, null);
     private static final Driving_Systems blueInstance = new Driving_Systems(Team.BLUE, null);
     private final Team team;
-    private static RobotUtil calc;
+    private RobotUtil calc;
     private Driving_Systems(Team team, RobotUtil calc) {
         this.team = team;
-        Driving_Systems.calc = calc;
+        this.calc = calc;
     }
     private static PID_Controller pidD;
-    private static PID_Controller pidT = new PID_Controller(PIDModes.TURNING, calc);
+    private static PID_Controller pidT;
     static Driving_Systems getInstance(Team team, Robot robot){
-        Driving_Systems.calc=robot.getCalc();
+        robotUtil.RobotUtil calc = robot.getCalc();
         pidD = new PID_Controller(PIDModes.DRIVING, calc);
         pidT = new PID_Controller(PIDModes.TURNING, calc);
-        return team.equals(Team.RED)?redInstance:blueInstance;
+        if(team.equals(Team.RED)){
+            redInstance.calc=calc;
+            return redInstance;
+        }else{
+            blueInstance.calc=calc;
+            return blueInstance;
+        }
     }
 
     /**

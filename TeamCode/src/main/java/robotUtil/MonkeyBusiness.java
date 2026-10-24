@@ -1,4 +1,4 @@
-package RobotUtil;
+package robotUtil;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 

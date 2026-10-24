@@ -1,6 +1,7 @@
-package RobotUtil;
+package robotUtil;
 
 
+@SuppressWarnings("unused")
 interface PIDInterface {
     double getError(double...input);
     double getP(double error);

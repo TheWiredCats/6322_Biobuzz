@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.OpModes.pedroPathing;
+package org.firstinspires.ftc.opModes.pedroPathing;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;

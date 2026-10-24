@@ -16,7 +16,7 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package Depreceated_OpModes;
+package deprecated_OpModes;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -40,15 +40,15 @@ import java.util.List;
 /**
  * This file contains a minimal example of an iterative (Non-Linear) "OpMode". An OpMode is a
  * 'program' that runs in either the autonomous or the TeleOp period of an FTC match. The names
- * of OpModes appear on the menu of the FTC Driver Station. When an selection is made from the
+ * of OpModes appear on the menu of the FTC Driver Station. When a selection is made from the
  * menu, the corresponding OpMode class is instantiated on the Robot Controller and executed.
- *
  * Remove the @Disabled annotation on the next line or two (if present) to add this OpMode to the
  * Driver Station OpMode list, or add a @Disabled annotation to prevent this OpMode from being
  * added to the Driver Station.
  */
 @TeleOp
 @Disabled
+@SuppressWarnings("all")
 public class Decode10022 extends OpMode {
     boolean buttonDown=false;
 
@@ -81,7 +81,9 @@ public class Decode10022 extends OpMode {
     private CRServo s4 = null;
 
     private AprilTagProcessor aprilTag;
-    private VisionPortal visionPortal;
+    boolean slowspeed = false;
+    boolean reversemode = false;
+    double speedmult = 1;
 
     @Override
     public void init() {
@@ -137,9 +139,6 @@ public class Decode10022 extends OpMode {
      */
     @Override
     public void loop() {
-        boolean slowspeed = false;
-        boolean reversemode = false;
-        double speedmult = 1;
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
@@ -210,7 +209,7 @@ public class Decode10022 extends OpMode {
 
         for (AprilTagDetection detection : currentDetections) {
             if (detection.metadata != null) {
-                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                telemetry.addData("====","(ID %d) %s", detection.id, detection.metadata.name);
                 telemetry.addData("Bearing: ", detection.ftcPose.bearing);
                 telemetry.addData("Range: ", detection.ftcPose.range);
             }
@@ -223,6 +222,7 @@ public class Decode10022 extends OpMode {
         s3.setPower(on?(power?-1:1):0);
         s4.setPower(on?(power?-1:1):0);
     }
+    @SuppressWarnings("SameParameterValue")
     private void setLauncherRPM(double topSpeedTarget, double bottomSpeedTarget){
             Trpm = (topLauncher.getVelocity() / 537.7) * 60;
             DTrpm = topSpeedTarget - Trpm;
@@ -263,7 +263,7 @@ public class Decode10022 extends OpMode {
         builder.addProcessor(aprilTag);
 
         // Build the Vision Portal.
-        visionPortal = builder.build();
+        VisionPortal visionPortal = builder.build();
 
     }   // end method initAprilTag()
 }

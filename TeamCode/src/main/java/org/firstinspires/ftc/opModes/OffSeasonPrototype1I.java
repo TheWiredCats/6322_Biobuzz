@@ -16,7 +16,7 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package org.firstinspires.ftc.OpModes;
+package org.firstinspires.ftc.opModes;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -38,7 +38,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import java.util.ArrayList;
 import java.util.List;
 
-import RobotUtil.*;
+import robotUtil.*;
 
 /**
  * This file contains a minimal example of an iterative (Non-Linear) "OpMode". An OpMode is a
@@ -50,7 +50,7 @@ import RobotUtil.*;
  * added to the Driver Station.
  */
 @TeleOp(name = "Control Op")
-
+@SuppressWarnings("unused")
 public class OffSeasonPrototype1I extends OpMode {
     /* Declare OpMode members. */
     //as soon as teleop selected
@@ -208,8 +208,8 @@ public class OffSeasonPrototype1I extends OpMode {
         FRCHeading+=(pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading);
         calc.addTelemetry();
 
-        long secs=(System.currentTimeMillis()/1000)-lastConfirmation;
-        long mins=secs/60;
+        //long secs=(System.currentTimeMillis()/1000)-lastConfirmation;
+        //long mins=secs/60;
         //if(result.isValid()){
         //    telemetry.addLine("Conforming Odometry :D");
         //}else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+(secs%60)+" Secs Ago");
@@ -225,7 +225,7 @@ public class OffSeasonPrototype1I extends OpMode {
     public void stop(){
         locatorRunning=false;
     }
-
+    @SuppressWarnings("unused")
     private void runCamera(){
         while (locatorRunning) {
             result = robot.updateLimelight();
