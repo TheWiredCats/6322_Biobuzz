@@ -28,6 +28,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
@@ -65,19 +66,17 @@ public class OffSeasonPrototype1I extends OpMode {
     long lastConfirmation;
     double FRCHeading;
     double lastHeading;
-    List<DcMotor> motors;
     private DcMotor Shoot;
     volatile LLResult result;
     private Robot robot;
     private RobotUtil calc;
-
+    Servo servo;
+    private byte servoData = 0x00;
     @Override
     public void init() {
         robot=Robot.startTeleOp(this);
 
         calc = robot.getCalc();
-
-        motors = robot.getDrivingMotors();
 
         brokenId = new ArrayList<>();
         //runs once as soon as "init" is pressed
@@ -91,6 +90,7 @@ public class OffSeasonPrototype1I extends OpMode {
 
         limelight = robot.getLimelight();
         huskyLens = robot.getHuskyLens();
+        servo = robot.getServo();
     }
     /*
     *Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
@@ -104,9 +104,9 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void start() {
-        locatorRunning=true;
-        Thread locatorThread = new Thread(this::runCamera);
-        locatorThread.start();
+        locatorRunning=false;
+        //Thread locatorThread = new Thread(this::runCamera);
+        //locatorThread.start();
     }
 
     /*
@@ -123,12 +123,16 @@ public class OffSeasonPrototype1I extends OpMode {
         Intake.setPower(gamepad1.a ? 1 : 0);
         Transfer.setPower(gamepad1.y ? 1 : 0);
         Shoot.setPower(gamepad1.b ? 1 : 0);
-
-        result = robot.updateLimelight();
+        if(gamepad1.dpad_down&&((servoData&0x01)==0)){
+            servoData|=0x01;
+            servoData^=0x10;
+            servo.setPosition((float)(servoData&0x10)/0x10);
+        }else if(gamepad1.dpad_up&&(servoData&0x01)!=0)servoData &= ~0x01;
+        //result = robot.updateLimelight();
 
         //Calculates how far the minimum is from the middle of the 2
         // (to know how much each should affect)
-        float Difference=(Constants.MAXIMUM- Constants.MINIMUM)/2;
+        float Difference = (Constants.MAXIMUM - Constants.MINIMUM)/2;
         //Readability of code
         float TotalTrigger=gamepad1.right_trigger+gamepad1.left_trigger;
 
@@ -138,14 +142,13 @@ public class OffSeasonPrototype1I extends OpMode {
 
         //drive variables
         double roboYaw = Math.toRadians(FRCHeading);
-        double ly = -gamepad1.left_stick_y;
-        double lx = gamepad1.left_stick_x * 1.1;
-        double rx = gamepad1.right_stick_x; //controls turning
+        float ly = -gamepad1.left_stick_y;
+        float lx = gamepad1.left_stick_x * 1.1f;
+        float rx = gamepad1.right_stick_x; //controls turning
 
         double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
         double y = ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw);
 
-        double stickTotal = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx),1);
 
 
 
@@ -194,10 +197,10 @@ public class OffSeasonPrototype1I extends OpMode {
              * These values have Java type int (integer).
         }
         */
-        double FLMotorPower = ((y + x + rx) / stickTotal) * speedMultiplier;
-        double BLMotorPower = ((y - x + rx) / stickTotal) * speedMultiplier;
-        double FRMotorPower = ((y - x - rx) / stickTotal) * speedMultiplier;
-        double BRMotorPower = ((y + x - rx) / stickTotal) * speedMultiplier;
+        double FLMotorPower = (y + x + rx) * speedMultiplier;
+        double BLMotorPower = (y - x + rx) * speedMultiplier;
+        double FRMotorPower = (y - x - rx) * speedMultiplier;
+        double BRMotorPower = (y + x - rx) * speedMultiplier;
 
         calc.setPowers(FLMotorPower, BLMotorPower, FRMotorPower, BRMotorPower);
         lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
@@ -207,10 +210,10 @@ public class OffSeasonPrototype1I extends OpMode {
 
         long secs=(System.currentTimeMillis()/1000)-lastConfirmation;
         long mins=secs/60;
-        if(result.isValid()){
-            telemetry.addLine("Conforming Odometry :D");
-        }else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+(secs%60)+" Secs Ago");
-            else telemetry.addLine("Not yet confirmed");
+        //if(result.isValid()){
+        //    telemetry.addLine("Conforming Odometry :D");
+        //}else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+(secs%60)+" Secs Ago");
+        //    else telemetry.addLine("Not yet confirmed");
         telemetry.addData("stickLeftX", x);
         telemetry.addData("turn speed", rx);
         telemetry.addData("SpeedMult", speedMultiplier);

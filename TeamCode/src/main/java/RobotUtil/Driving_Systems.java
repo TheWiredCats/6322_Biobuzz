@@ -13,7 +13,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import java.util.List;
 
-//V1.1 Moved Positions enum inside as a nested class
+//V1.2 Moved Positions enum inside as a nested class and added unused warning suppressor
+@SuppressWarnings("unused")
 public final class Driving_Systems{
     private enum Positions {
         TopLeft(new Pose2D(Constants.unit.DU, 60, 60, Constants.unit.AU, 0)),
@@ -326,8 +327,7 @@ public final class Driving_Systems{
         return false;
     }
 
-    private void lostCause(LinearOpMode ll, Limelight3A limelight,
-                                  GoBildaPinpointDriver pinpoint, List<DcMotor> motors){
+    private void lostCause(LinearOpMode ll, GoBildaPinpointDriver pinpoint){
         DistanceUnit du = Constants.unit.DU;
         AngleUnit au = Constants.unit.AU;
         Pose2D park = team.getPark();
@@ -374,6 +374,8 @@ public final class Driving_Systems{
                                        pinpoint.getHeading(Constants.unit.AU));
             headTo(pinpoint, ll, Constants.unit.DU,
                    Constants.unit.AU, target, PIDModes.DRIVING);
+        }else{
+            lostCause(ll,pinpoint);
         }
     }
 }
