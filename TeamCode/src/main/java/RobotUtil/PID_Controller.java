@@ -118,6 +118,13 @@ class PID_Controller implements PIDInterface{
         this.previousError = error;
         return result;
     }
+
+    /**
+     * Calculates the current dt by subtracting the last
+     * @param now Current Time
+     * @param last Last Time it was checked
+     * @return The time difference
+     */
     private float dtCalculator(long now, long last){
         if(last>now)throw new IllegalArgumentException("Last Cant Come After Now");
         if(last==0)throw new IllegalStateException("Make sure that you properly set last before calling this");

@@ -27,6 +27,8 @@ public class GuitarSigma extends OpMode {
     //private float frcHeading;
     private float speedMult;
     private RobotUtil calc;
+    //doin bit flag stuff
+    byte servoData = 0;
     @Override
     public void init() {
         Robot robot = Robot.startTeleOp(this);
@@ -60,13 +62,15 @@ public class GuitarSigma extends OpMode {
         pinpoint.setErrorDetectionType(GoBildaPinpointDriver.ErrorDetectionType.CRC);
         //frcHeading =(float)pinpoint.getHeading(Constants.unit.AU);
         speedMult = 0.5f + MathUtils.clamp(gamepad1.right_stick_x, -0.4f, 5f);
+        if(servo.getPosition()!=0)servo.setPosition(0);
     }
 
     @Override
     public void loop() {
         //float temp = (float)pinpoint.getHeading(Constants.unit.AU.getUnnormalized());
         pinpoint.update();
-        //frcHeading += gamepad1.back?-frcHeading: AngleUnit.normalizeDegrees((float) pinpoint.getHeading(Constants.unit.AU.getUnnormalized())-temp);
+        //frcHeading += gamepad1.back?-frcHeading:
+        // AngleUnit.normalizeDegrees((float) pinpoint.getHeading(Constants.unit.AU.getUnnormalized())-temp);
         float shootMult;
         float maxShootSpeed = 1;
         float minShootSpeed = 0.2f;
@@ -95,21 +99,17 @@ public class GuitarSigma extends OpMode {
         Intake.setPower(gamepad2.a?1:gamepad2.left_bumper?-1:0);
         Transfer.setPower(gamepad2.b?1:gamepad2.x?-1:0);
         Shoot.setPower(shootMult*(gamepad2.y?1:0));
-        //if(gamepad2.right_stick_x>0&&servo.getPosition()!=0.55){
-        if(gamepad2.dpad_down&&servo.getPosition()!=Constants.SERVO_MAX
-        ) {
-            servo.setPosition(Constants.SERVO_MAX);
-        //}else if(gamepad2.right_stick_x<0&&servo.getPosition()!=0){
-        }else if(gamepad2.dpad_up&&servo.getPosition()!=0){
-            servo.setPosition(0);
-        }
-
+        if(gamepad1.left_bumper&&((servoData&0x01)==0)){
+            servoData|=0x01;
+            servoData^=0x10;
+            servo.setPosition((float)(servoData&0x10)/0x10);
+        }else if(!gamepad1.left_bumper&&(servoData&0x01)!=0)servoData &= ~0x01;
 
         speedMult = 0.5f + MathUtils.clamp(gamepad1.right_stick_x, -0.4f, 5f);
         //float roboYaw = AngleUnit.RADIANS.fromUnit(Constants.unit.AU, frcHeading);
         float y = - (gamepad1.a?(gamepad1.b?0:1):gamepad1.b?-1:0);
-        float x = -1.1f* (gamepad1.x?(gamepad1.y?0:1):gamepad1.y?-1:0);
-        float rx = -(gamepad1.dpad_down?(gamepad1.dpad_up?0:1):gamepad1.dpad_up?-1:0);
+        float x = 1.1f * (gamepad1.x?(gamepad1.y?0:-1):gamepad1.y?1:0);
+        float rx = (gamepad1.dpad_down?(gamepad1.dpad_up?0:-1):gamepad1.dpad_up?1:0);
         //float x =(float) (lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw));
         //float y =(float) (ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw));
 
@@ -129,5 +129,6 @@ public class GuitarSigma extends OpMode {
         fr.setPower(FR);
         br.setPower(BR);
         telemetry.addData("Position: ", calc.getPosition());
+        telemetry.addData("Servo Position: ", servo.getPosition());
     }
 }

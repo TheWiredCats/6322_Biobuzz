@@ -40,7 +40,7 @@ public class Robot {
         List<DcMotor> setupMotors(){
             List<DcMotor> motors = new ArrayList<>();
             for(int i = 4; i < 7; i++){
-                Constants.MOTOR_CONFIGS motorData = Constants.MOTOR_CONFIG.get(i);
+                Constants.MOTOR_CONFIGS motorData = Constants.MOTOR_CONFIG[i];
                 if(motors.size()<=i-4)motors.add(i-4, this.op.hardwareMap.dcMotor.get(motorData.NAME));
                 else motors.set(i-4, this.op.hardwareMap.dcMotor.get(motorData.NAME));
                 motors.get(i-4).setMode(motorData.RUN_MODE);
@@ -53,7 +53,7 @@ public class Robot {
         List<DcMotor> setupDrivingMotors() {
             List<DcMotor> motors = new ArrayList<>();
             for (int i = 0; i < 4; i++) {
-                Constants.MOTOR_CONFIGS motorData = Constants.MOTOR_CONFIG.get(i);
+                Constants.MOTOR_CONFIGS motorData = Constants.MOTOR_CONFIG[i];
                 if (motors.size() <= i) motors.add(i, this.op.hardwareMap.dcMotor.get(motorData.NAME));
                 else motors.set(i, this.op.hardwareMap.dcMotor.get(motorData.NAME));
                 motors.get(i).setMode(motorData.RUN_MODE);
@@ -65,6 +65,7 @@ public class Robot {
         Servo setupServo(){
             Servo servo = this.op.hardwareMap.servo.get(Constants.SERVO_NAME);
             servo.setDirection(Servo.Direction.FORWARD);
+            servo.scaleRange(0,Constants.SERVO_MAX);
             return servo;
         }
     }
@@ -128,22 +129,22 @@ public class Robot {
     private final Pinpoint pinpointSub;
 
     //List Of Driving Motors
-    List<DcMotor> drivingMotors;
+    volatile List<DcMotor> drivingMotors;
 
     //List Of Utility Motors
-    List<DcMotor> utilMotors;
+    volatile List<DcMotor> utilMotors;
 
     //Servo
-    Servo servo;
+    volatile Servo servo;
 
     //Pinpoint Controller
-    GoBildaPinpointDriver pinpoint;
+    volatile GoBildaPinpointDriver pinpoint;
 
     //Limelight Camera
-    Limelight3A limelight;
+    volatile Limelight3A limelight;
 
     //HuskyLens Camera
-    HuskyLens huskyLens;
+    volatile HuskyLens huskyLens;
 
     //Team (Red or Blue)
     //Useful for most autos

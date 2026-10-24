@@ -1,11 +1,13 @@
 package RobotUtil;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 /**
@@ -13,14 +15,18 @@ import java.util.List;
  * <h6><i>Here. Right Here All Your Data Needs Will Be Me-. I Need Angle Units!</i></h6>
  * <h4><u>IN A MINUTE!</u></h4>
  * <br>
- * Makes sure that all of your data can be found in one place, which is located right here
- * V1.2(Added servo max position)
+ * Makes sure that all of your data can be found in one place, which is located right here<br>
+ * V2.0 Made Motor Configs into an Array rather than an ArrayList, also reworked how it was set up
  */
 public final class Constants {
     public final static class tolerances{
+        //Distance Error Tolerance
         public final double DError;
+        //Distance Speed Tolerance
         public final double DSpeed;
+        //Turning Error Tolerance
         public final double TError;
+        //Turning Speed Tolerance
         public final double TSpeed;
         public tolerances(double DE, double DS, double TE, double TS){
             this.DError = DE;
@@ -29,8 +35,19 @@ public final class Constants {
             this.TSpeed = TS;
         }
     }
+    //For use in PID things
     public static final tolerances tolerance = new tolerances(1, 1, 5, 5);
+    public static final class Units{
+        public final DistanceUnit DU;
+        public final AngleUnit AU;
+        public Units(DistanceUnit du, AngleUnit au){
+            DU = du;
+            AU = au;
+        }
+    }
+    public static final Units unit = new Units(DistanceUnit.INCH, AngleUnit.DEGREES);
     public final static class tunerHolder{
+
         public final double KP;
         public final double KI;
         public final double KD;
@@ -40,6 +57,8 @@ public final class Constants {
             KD = kd;
         }
     }
+    public static final tunerHolder driverConstants = new tunerHolder(0.25275,  -0.075, 0.155);
+    public static final tunerHolder turningConstants = new tunerHolder(0.2, 0, 0);
     public static final class MOTOR_CONFIGS {
         final String NAME;
         final DcMotor.RunMode RUN_MODE;
@@ -53,21 +72,20 @@ public final class Constants {
             BRAKE_MODE = brakeMode;
             DIRECTION = direction;
         }
-    }
 
+    }
     public static final float MAXIMUM = 1;
     public static final float MINIMUM = 0.25f;
-    public static final float SERVO_MAX = 0.55f;
-
+    public static final float SERVO_MAX = 0.45f;
+    public static final String SERVO_NAME = "servo";
     public static final String PINPOINT = "pinpoint";
     public static final String LIMELIGHT = "limelight";
     public static final String HUSKY_LENS = "huskylens";
 
+
     private Constants(){
         //so u don't accidentally make an instance of it and only call it as needed
     }
-    public static final String SERVO_NAME = "servo";
-
     //All motors should be in order FL, BL, FR, BR, Intake, Transfer, Shoot
     private static final String[] MOTORS = {"fl", "bl", "fr", "br", "intake", "transfer", "shoot"};
     private static final List<DcMotor.RunMode> RUN_TYPES = List.of(
@@ -97,28 +115,15 @@ public final class Constants {
 /*Transfer*/DcMotor.Direction.FORWARD,
 /* Shoots */DcMotor.Direction.FORWARD
     );
-    public static final List<MOTOR_CONFIGS> MOTOR_CONFIG = new ArrayList<>();
-    static {
+    public static final MOTOR_CONFIGS[] MOTOR_CONFIG = setUpMotors();
+    @NonNull
+    private static MOTOR_CONFIGS[] setUpMotors(){
+        MOTOR_CONFIGS[] config = new MOTOR_CONFIGS[MOTORS.length];
         for (int i = 0; i < 7; i++) {
-            MOTOR_CONFIG.add(i, new MOTOR_CONFIGS(MOTORS[i],
-                    RUN_TYPES.get(i),
-                    BRAKE_MODES.get(i),
-                    DIRECTIONS.get(i))
-            );
+            config[i] = new MOTOR_CONFIGS(
+                    MOTORS[i], RUN_TYPES.get(i),
+                    BRAKE_MODES.get(i), DIRECTIONS.get(i));
         }
+        return config;
     }
-    public static final class Units{
-        public final DistanceUnit DU;
-        public final AngleUnit AU;
-        public Units(DistanceUnit du, AngleUnit au){
-            DU = du;
-            AU = au;
-        }
-    }
-
-    public static final tunerHolder driverConstants = new tunerHolder(0.25275,  -0.075, 0.155);
-    public static final tunerHolder turningConstants = new tunerHolder(0.2, 0, 0);
-
-    public static final Units unit = new Units(DistanceUnit.INCH, AngleUnit.DEGREES);
-
 }

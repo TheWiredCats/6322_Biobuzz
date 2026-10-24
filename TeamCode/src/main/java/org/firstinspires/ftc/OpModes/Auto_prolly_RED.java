@@ -39,9 +39,6 @@ public class Auto_prolly_RED extends LinearOpMode {
         //camera
         Limelight3A limelight = robot.getLimelight();
 
-        //driving motors
-        List<DcMotor> motors = robot.getDrivingMotors();
-
         //put in all auto modes
         //while(opModeInInit()){}
 
