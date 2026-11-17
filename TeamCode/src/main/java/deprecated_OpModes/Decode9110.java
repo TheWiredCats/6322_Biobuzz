@@ -58,7 +58,7 @@ public class Decode9110 extends LinearOpMode {
             double speedDecrease=1+gamepad1.right_trigger;
 
             //Creating power numbers to give to the Motors
-            double Denominator = speedDecrease*Math.max(Math.abs(y) + Math.abs(x) + Math.abs(Rx), 1);
+            double Denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(Rx), 1);
             double FrontLeftPower = (y + x + Rx) / Denominator;
             double BackLeftPower = (y - x + Rx) / Denominator;
             double FrontRightPower = (y - x - Rx) / Denominator;

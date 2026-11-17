@@ -3,6 +3,7 @@ package robotUtil;
 import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -57,8 +58,8 @@ public final class Constants {
             KD = kd;
         }
     }
-    public static final tunerHolder driverConstants = new tunerHolder(0.25275,  -0.075, 0.155);
-    public static final tunerHolder turningConstants = new tunerHolder(0.2, 0, 0);
+    public static final tunerHolder driverConstants = new tunerHolder(0.25,  0, 0);
+    public static final tunerHolder turningConstants = new tunerHolder(0.025, 0, 0.0025);
     public static final class MOTOR_CONFIGS {
         final String NAME;
         final DcMotor.RunMode RUN_MODE;
@@ -76,7 +77,8 @@ public final class Constants {
     }
     public static final float MAXIMUM = 1;
     public static final float MINIMUM = 0.25f;
-    public static final float SERVO_MAX = 0.45f;
+    public static final float SERVO_MAX = 0.995f;
+    public static final float SERVO_MIN = 0.5f;
     public static final String SERVO_NAME = "servo";
     public static final String PINPOINT = "pinpoint";
     public static final String LIMELIGHT = "limelight";
@@ -107,19 +109,20 @@ public final class Constants {
 /* Shoots */DcMotor.ZeroPowerBehavior.FLOAT
     );
     private static final List<DcMotor.Direction> DIRECTIONS = List.of(
-    /* FL */DcMotor.Direction.FORWARD,
+    /* FL */DcMotor.Direction.REVERSE,
     /* BL */DcMotor.Direction.REVERSE,
     /* FR */DcMotor.Direction.FORWARD,
     /* BR */DcMotor.Direction.FORWARD,
 /* Intake */DcMotor.Direction.REVERSE,
-/*Transfer*/DcMotor.Direction.FORWARD,
-/* Shoots */DcMotor.Direction.FORWARD
+/*Transfer*/DcMotor.Direction.REVERSE,
+/* Shoots */DcMotor.Direction.REVERSE
     );
     public static final MOTOR_CONFIGS[] MOTOR_CONFIG = setUpMotors();
+    public static final int DIVE_MOTOR_COUNT = 4;
     @NonNull
     private static MOTOR_CONFIGS[] setUpMotors(){
         MOTOR_CONFIGS[] config = new MOTOR_CONFIGS[MOTORS.length];
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < config.length; i++) {
             config[i] = new MOTOR_CONFIGS(
                     MOTORS[i], RUN_TYPES.get(i),
                     BRAKE_MODES.get(i), DIRECTIONS.get(i));

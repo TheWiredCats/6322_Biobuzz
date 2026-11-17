@@ -44,8 +44,7 @@ public final class Driving_Systems{
     }
     private static PID_Controller pidD;
     private static PID_Controller pidT;
-    static Driving_Systems getInstance(Team team, Robot robot){
-        robotUtil.RobotUtil calc = robot.getCalc();
+    static Driving_Systems getInstance(Team team, Robot robot, RobotUtil calc){
         pidD = new PID_Controller(PIDModes.DRIVING, calc);
         pidT = new PID_Controller(PIDModes.TURNING, calc);
         if(team.equals(Team.RED)){
@@ -194,8 +193,8 @@ public final class Driving_Systems{
                                  Constants.turningConstants.KP,
                                  Constants.turningConstants.KI,
                                  Constants.turningConstants.KD, error);
-            ll.telemetry.addData("PID Data", "P: %.2f, I: %.2f, D: %.2f, " +
-                    "Total: %.2f", P, I, D, total);
+            ll.telemetry.addData("PID Data", "P: %.4f, I: %.4f, D: %.4f, " +
+                    "Total: %.4f", P, I, D, total);
             calc.addTelemetry();
             ll.telemetry.update();
 
@@ -257,15 +256,18 @@ public final class Driving_Systems{
     public void headTo(GoBildaPinpointDriver pinpoint, LinearOpMode ll,
                 DistanceUnit verityDis, AngleUnit verityAng,
                               double x, double y, double heading, PIDModes pid) {
-        if(pid.equals(PIDModes.DRIVING)) {
+        Pose2D lastPos = pinpoint.getPosition();
+        if(pid==PIDModes.DRIVING) {
             //then drive to the location we want to go to
-            driveTo(verityDis, pinpoint,ll, x, y);
+            driveTo(verityDis, pinpoint, ll, x, y);
 
             //first turn to the direction we want to be heading
             turnTo(verityAng, ll, pinpoint, heading);
         }else{
             turnTo(verityAng, ll, pinpoint,  heading);
-
+            pinpoint.setPosX(lastPos.getX(DistanceUnit.MM),DistanceUnit.MM);
+            pinpoint.setPosY(lastPos.getY(DistanceUnit.MM),DistanceUnit.MM);
+            pinpoint.update();
             driveTo(verityDis, pinpoint, ll, x, y);
         }
     }

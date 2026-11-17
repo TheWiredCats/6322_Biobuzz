@@ -33,7 +33,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +58,7 @@ public class OffSeasonPrototype1I extends OpMode {
     private volatile Pose2D locatorPos;
     private DcMotor Intake;
     private DcMotor Transfer;
-    private HuskyLens huskyLens;
+    //private HuskyLens huskyLens;
     private Limelight3A limelight;
     private GoBildaPinpointDriver pinpoint;
     List<Integer> brokenId;
@@ -70,6 +69,7 @@ public class OffSeasonPrototype1I extends OpMode {
     volatile LLResult result;
     private Robot robot;
     private RobotUtil calc;
+    private List<DcMotor> motors;
     Servo servo;
     private byte servoData = 0x00;
     @Override
@@ -77,7 +77,7 @@ public class OffSeasonPrototype1I extends OpMode {
         robot=Robot.startTeleOp(this);
 
         calc = robot.getCalc();
-
+        motors = robot.getDrivingMotors();
         brokenId = new ArrayList<>();
         //runs once as soon as "init" is pressed
         Intake = robot.getUtilMotors().get(0);
@@ -89,7 +89,7 @@ public class OffSeasonPrototype1I extends OpMode {
         FRCHeading=0;
 
         limelight = robot.getLimelight();
-        huskyLens = robot.getHuskyLens();
+        //huskyLens = robot.getHuskyLens();
         servo = robot.getServo();
     }
     /*
@@ -114,7 +114,7 @@ public class OffSeasonPrototype1I extends OpMode {
      */
     @Override
     public void loop() {
-        if(!huskyLens.knock()){telemetry.addLine("No HuskyLens Detected");}
+        //if(!huskyLens.knock()){telemetry.addLine("No HuskyLens Detected");}
         if(locatorPos!=null){
             pinpoint.setPosition(locatorPos);
             locatorPos=null;
@@ -123,11 +123,11 @@ public class OffSeasonPrototype1I extends OpMode {
         Intake.setPower(gamepad1.a ? 1 : 0);
         Transfer.setPower(gamepad1.y ? 1 : 0);
         Shoot.setPower(gamepad1.b ? 1 : 0);
-        if(gamepad1.dpad_down&&((servoData&0x01)==0)){
+        if(gamepad1.left_bumper&&((servoData&0x01)==0)){
             servoData|=0x01;
             servoData^=0x10;
-            servo.setPosition((float)(servoData&0x10)/0x10);
-        }else if(gamepad1.dpad_up&&(servoData&0x01)!=0)servoData &= ~0x01;
+            servo.setPosition(1-((float)(servoData&0x10) /0x10));
+        }else if(gamepad1.right_bumper&&(servoData&0x01)!=0)servoData &= ~0x01;
         //result = robot.updateLimelight();
 
         //Calculates how far the minimum is from the middle of the 2
@@ -149,63 +149,15 @@ public class OffSeasonPrototype1I extends OpMode {
         double x = lx * Math.cos(roboYaw) + ly * Math.sin(roboYaw);
         double y = ly * Math.cos(roboYaw) - lx * Math.sin(roboYaw);
 
-
-
-
-        //HuskyLens.Block[] blocks = huskyLens.blocks(); //huskylens code
-        //telemetry.addData("HL Block Count", blocks.length);
-
-        /*
-        if (gamepad1.x) for (HuskyLens.Block block : blocks) {
-            telemetry.addData("HL:", block.toString());
-
-            // HuskyLens Constants
-            final double SCREEN_CENTER_X = 160.0;
-            final double HALF_HORIZONTAL_FOV_RAD = Math.toRadians(27.5); // 55 degrees / 2
-
-            // 1. Get your 2D data from HuskyLens
-            int blockX = block.x;
-
-            // 2. Calculate your 3D Z-distance first (from previous step)
-            double distanceZ = (2.9 * 4.6) / block.width;
-
-            // 3. Calculate pixel offset from screen center
-            double pixelOffset = blockX - SCREEN_CENTER_X;
-
-            // 4. Normalize the offset (-1.0 to 1.0) and convert to radians
-            double angleX = (pixelOffset / SCREEN_CENTER_X) * HALF_HORIZONTAL_FOV_RAD;
-
-            // 5. Calculate final physical X position (in inches or cm depending on your Z unit)
-            double positionX = distanceZ * Math.tan(angleX);
-
-            // Simple Proportional control (P-loop). Adjust Kp until it snaps to target smoothly.
-            final double Kp = 1.5;
-            //rx = headingError * Kp;
-            rx = MathUtils.clamp(positionX * Kp, -0.5, 0.5);
-
-
-            telemetry.addData("HL 3D Z (Distance)", distanceZ);
-            telemetry.addData("HL 3D X (Lateral)", positionX);
-
-            /*
-             * Here inside the FOR loop, you could save or evaluate specific info for the currently recognized Bounding Box:
-             * - blocks[i].width and blocks[i].height   (size of box, in pixels)
-             * - blocks[i].left and blocks[i].top       (edges of box)
-             * - blocks[i].x and blocks[i].y            (center location)
-             * - blocks[i].id                           (Color ID)
-             *
-             * These values have Java type int (integer).
-        }
-        */
         double FLMotorPower = (y + x + rx) * speedMultiplier;
         double BLMotorPower = (y - x + rx) * speedMultiplier;
         double FRMotorPower = (y - x - rx) * speedMultiplier;
         double BRMotorPower = (y + x - rx) * speedMultiplier;
 
         calc.setPowers(FLMotorPower, BLMotorPower, FRMotorPower, BRMotorPower);
-        lastHeading=pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES);
+        lastHeading=pinpoint.getHeading(AngleUnit.DEGREES);
         pinpoint.update();
-        FRCHeading+=(pinpoint.getHeading(UnnormalizedAngleUnit.DEGREES)-lastHeading);
+        FRCHeading+=calc.wrapAngle(pinpoint.getHeading(AngleUnit.DEGREES),lastHeading);
         calc.addTelemetry();
 
         //long secs=(System.currentTimeMillis()/1000)-lastConfirmation;
@@ -214,10 +166,11 @@ public class OffSeasonPrototype1I extends OpMode {
         //    telemetry.addLine("Conforming Odometry :D");
         //}else if (lastConfirmation>0)telemetry.addLine("Odometry Last Confirmed "+((mins>0)?(mins+"Mins and "):"")+(secs%60)+" Secs Ago");
         //    else telemetry.addLine("Not yet confirmed");
-        telemetry.addData("stickLeftX", x);
-        telemetry.addData("turn speed", rx);
+        telemetry.addData("X/Y/RX:", "\nX:%.2f,\nY:%.2f,\nRX:%.2f", x, y, rx);
         telemetry.addData("SpeedMult", speedMultiplier);
         telemetry.addData("Robot Yaw", roboYaw);
+        telemetry.addData("Motor Data maybe", "FL: %.2f,\nBL: %.2f,\nFR: %.2f,\nBR: %.2f", FLMotorPower, BLMotorPower, FRMotorPower, BRMotorPower);
+        telemetry.addData("Motor Data", "FL: %.2f,\nBL: %.2f,\nFR: %.2f,\nBR: %.2f", motors.get(0).getPower(), motors.get(1).getPower(), motors.get(2).getPower(), motors.get(3).getPower());
         telemetry.update();
     }
 

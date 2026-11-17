@@ -111,8 +111,8 @@ class PID_Controller implements PIDInterface{
     @Override
     public double getD(double error) {
         long now = System.nanoTime();
-        double result = mode.getD(error, this.previousError, dtCalculator(now,this.lastCheckedD));
-        this.lastCheckedD=now;
+        double result = mode.getD(error, this.previousError, dtCalculator(now, this.lastCheckedD));
+        this.lastCheckedD = now;
         this.previousError = error;
         return result;
     }

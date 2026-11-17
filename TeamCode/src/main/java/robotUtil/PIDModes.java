@@ -4,11 +4,11 @@ public enum PIDModes {
     TURNING(Constants.turningConstants) {
         @Override
         public double getError(double[] input, double[] goal) {
-            return calc.wrapAngle(goal[0], input[0]);
+            return calc.wrapAngle(input[0], goal[0]);
         }
         @Override
         public double getD(double error, double previousError, double dt){
-            return (calc.wrapAngle(error, previousError))*this.KD/dt;
+            return (calc.wrapAngle(previousError, error))*this.KD/dt;
         }
     },
     DRIVING(Constants.driverConstants){

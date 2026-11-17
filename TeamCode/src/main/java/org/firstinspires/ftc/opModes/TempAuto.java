@@ -15,12 +15,10 @@ public class TempAuto extends LinearOpMode {
     @Override
     public void runOpMode() {
         Robot robot = Robot.startAuto(Team.RED,this);
-        //Driving_Systems ds = robot.getDSInstance();
+        Driving_Systems ds = robot.getDSInstance();
         GoBildaPinpointDriver pinpoint = robot.getPinpoint();
-        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, -63, AngleUnit.DEGREES,90));
         waitForStart();
-        //ds.headTo(pinpoint, this, DistanceUnit.INCH, AngleUnit.DEGREES, 0, -50, 90, PIDModes.DRIVING);
-        //ds.headTo(pinpoint, this, DistanceUnit.INCH, AngleUnit.DEGREES, -55, -50, 180, PIDModes.TURNING);
-        //ds.headTo(pinpoint, this, DistanceUnit.INCH, AngleUnit.DEGREES, -55, -63, 90, PIDModes.TURNING);
+        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES,0));
+        ds.headTo(pinpoint, this, DistanceUnit.INCH, AngleUnit.DEGREES, 48, 0, 180, PIDModes.TURNING);
     }
 }

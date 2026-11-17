@@ -16,13 +16,13 @@ import java.util.Map;
 //Removed LED's
 public class RobotUtil {
     private final Robot robot;
-    private static RobotUtil instance;
+    //private static RobotUtil instance;
     private RobotUtil(Robot robot){
         this.robot = robot;
     }
 
     protected static RobotUtil initialize(Robot robot){
-        return instance==null? instance = new RobotUtil(robot): instance;
+        return new RobotUtil(robot);
     }
 
     /**
@@ -52,7 +52,7 @@ public class RobotUtil {
         //The motors in the list should always be placed in order
         //FLMotor, BLMotor, FRMotor, BRMotor
         //So we can set their power directly
-        for(int i = 0; i < 4; i++){
+        for(int i = 0; i < Constants.DIVE_MOTOR_COUNT; i++){
             robot.drivingMotors.get(i).setPower(powers[i]);
         }
     }
@@ -96,7 +96,7 @@ public class RobotUtil {
      * @param a1 The First Angle
      * @param a2 The Second Angle
      * @throws MonkeyBusiness On the off chance theirs an error in the math somehow will throw a super error
-     * @return The difference between the 2 angles wrapped into a [-179,180]
+     * @return The difference between the 2 (a1-a2) angles wrapped into a [-179,180]
      */
     public double wrapAngle(double a1, double a2)throws MonkeyBusiness{
         double normalizedA1 = a1 % 360;

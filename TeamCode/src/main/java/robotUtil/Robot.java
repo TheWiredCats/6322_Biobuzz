@@ -10,8 +10,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,20 +37,21 @@ public class Robot {
 
         List<DcMotor> setupMotors(){
             List<DcMotor> motors = new ArrayList<>();
-            for(int i = 4; i < 7; i++){
+            int DMC = Constants.DIVE_MOTOR_COUNT;
+            for(int i = DMC; i < Constants.MOTOR_CONFIG.length; i++){
                 Constants.MOTOR_CONFIGS motorData = Constants.MOTOR_CONFIG[i];
-                if(motors.size()<=i-4)motors.add(i-4, this.op.hardwareMap.dcMotor.get(motorData.NAME));
-                else motors.set(i-4, this.op.hardwareMap.dcMotor.get(motorData.NAME));
-                motors.get(i-4).setMode(motorData.RUN_MODE);
-                motors.get(i-4).setZeroPowerBehavior(motorData.BRAKE_MODE);
-                motors.get(i-4).setDirection(motorData.DIRECTION);
+                if(motors.size()<=i-DMC)motors.add(i-DMC, this.op.hardwareMap.dcMotor.get(motorData.NAME));
+                else motors.set(i-DMC, this.op.hardwareMap.dcMotor.get(motorData.NAME));
+                motors.get(i-DMC).setMode(motorData.RUN_MODE);
+                motors.get(i-DMC).setZeroPowerBehavior(motorData.BRAKE_MODE);
+                motors.get(i-DMC).setDirection(motorData.DIRECTION);
             }
             return motors;
         }
 
         List<DcMotor> setupDrivingMotors() {
             List<DcMotor> motors = new ArrayList<>();
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < Constants.DIVE_MOTOR_COUNT; i++) {
                 Constants.MOTOR_CONFIGS motorData = Constants.MOTOR_CONFIG[i];
                 if (motors.size() <= i) motors.add(i, this.op.hardwareMap.dcMotor.get(motorData.NAME));
                 else motors.set(i, this.op.hardwareMap.dcMotor.get(motorData.NAME));
@@ -65,7 +64,7 @@ public class Robot {
         Servo setupServo(){
             Servo servo = this.op.hardwareMap.servo.get(Constants.SERVO_NAME);
             servo.setDirection(Servo.Direction.FORWARD);
-            servo.scaleRange(0,Constants.SERVO_MAX);
+            servo.scaleRange(Constants.SERVO_MIN,Constants.SERVO_MAX);
             return servo;
         }
     }
@@ -114,6 +113,7 @@ public class Robot {
          */
         GoBildaPinpointDriver setUpPinpoint(){
             GoBildaPinpointDriver pinpoint = this.op.hardwareMap.get(GoBildaPinpointDriver.class, Constants.PINPOINT);
+            pinpoint.resetPosAndIMU();
             pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD,
                                           GoBildaPinpointDriver.EncoderDirection.REVERSED);
             pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
@@ -186,7 +186,7 @@ public class Robot {
 
         //Set up the calc, Auto Driving Station
         this.calc = RobotUtil.initialize(this);
-        this.ds = Driving_Systems.getInstance(team, this);
+        this.ds = Driving_Systems.getInstance(team, this, this.calc);
 
         //Set up all the Hardware with a simple method
         setUpHardware();
@@ -219,8 +219,6 @@ public class Robot {
 
     //Use At the Start of Auto as a sort of getter that also does some helpful logic
     public static Robot startAuto(Team team, LinearOpMode ll){
-        //if an instance already exists no need to make a new one
-        if(instance!=null)return instance;
         //otherwise you have to make a new one and then return it
         return instance = new Robot(ll, team);
     }
@@ -228,24 +226,7 @@ public class Robot {
     //using the OpMode blackBoard
     public static Robot startTeleOp(OpMode op){
         //if there's no instance and the blackboard is empty make a new Tele Op instance
-        if(instance==null&&OpMode.blackboard.isEmpty()){
-            instance = new Robot(op);
-            return instance;
-            //if it isn't empty then make the instance that and also get the position on the field
-        }else if(!OpMode.blackboard.isEmpty()){
-            instance = ((Robot) OpMode.blackboard.get("robot_instance"));
-            //If the gotten instance is null somehow it will return a Major Error
-            if(instance==null)throw new MonkeyBusiness("OpMode error in startTele");
-            instance.pinpoint.setPosition((Pose2D) OpMode.blackboard.get("position"));
-        }
-        //If there is an instance then change it from auto mode to TeleOp mode
-        instance.op = op;
-        instance.ll = null;
-        instance.team = null;
-        instance.ds = null;
-        instance.currentMode=OPMode.TELEOP;
-        //After it's been updated return it
-        return instance;
+        return instance = new Robot(op);
     }
     //Sets Up all the hardware using their respective subclasses
     private void setUpHardware(){
@@ -254,7 +235,7 @@ public class Robot {
         this.servo = motorSub.setupServo();
         this.pinpoint = pinpointSub.setUpPinpoint();
         this.limelight = cameraSub.setupLimeLight(this.pinpoint);
-        this.huskyLens = cameraSub.setupHuskyLens();
+        //this.huskyLens = cameraSub.setupHuskyLens();
     }
     //At the End of Auto add the current instance to the blackboard as well as the current position
     public void endAuto(){
@@ -286,7 +267,7 @@ public class Robot {
     public List<DcMotor> getUtilMotors(){return this.utilMotors;}
     public GoBildaPinpointDriver getPinpoint(){return this.pinpoint;}
     public Limelight3A getLimelight(){return this.limelight;}
-    public HuskyLens getHuskyLens(){return this.huskyLens;}
+    //public HuskyLens getHuskyLens(){return this.huskyLens;}
     public Team getTeam(){return this.team;}
     public Driving_Systems getDSInstance(){return this.ds;}
     public LinearOpMode getLL(){return this.ll;}

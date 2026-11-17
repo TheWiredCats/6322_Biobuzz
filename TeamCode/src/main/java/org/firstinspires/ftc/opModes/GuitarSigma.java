@@ -25,8 +25,9 @@ public class GuitarSigma extends OpMode {
     private Servo servo;
     private GoBildaPinpointDriver pinpoint;
     //private float frcHeading;
-    private float speedMult;
+    private float speedMult = 0.8f;
     private RobotUtil calc;
+    private float shootMult =1;
     //doin bit flag stuff
     byte servoData = 0;
     @Override
@@ -39,30 +40,17 @@ public class GuitarSigma extends OpMode {
         Transfer = robot.getUtilMotors().get(1);
         Shoot = robot.getUtilMotors().get(2);
         servo = robot.getServo();
-        fl = robot.getDrivingMotors().get(0);
-        bl = robot.getDrivingMotors().get(1);
-        fr = robot.getDrivingMotors().get(2);
-        br = robot.getDrivingMotors().get(3);
-        fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        Intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        Transfer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        Shoot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        fl.setDirection(DcMotorSimple.Direction.REVERSE);
-        bl.setDirection(DcMotorSimple.Direction.FORWARD);
-        fr.setDirection(DcMotorSimple.Direction.FORWARD);
-        br.setDirection(DcMotorSimple.Direction.REVERSE);
-        Intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        pinpoint.setBulkReadScope(GoBildaPinpointDriver.Register.X_VELOCITY, GoBildaPinpointDriver.Register.X_POSITION,
-                                  GoBildaPinpointDriver.Register.Y_VELOCITY, GoBildaPinpointDriver.Register.Y_POSITION,
-                                  GoBildaPinpointDriver.Register.H_VELOCITY, GoBildaPinpointDriver.Register.H_ORIENTATION);
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setErrorDetectionType(GoBildaPinpointDriver.ErrorDetectionType.CRC);
         //frcHeading =(float)pinpoint.getHeading(Constants.unit.AU);
+    }
+    @Override
+    public void start(){
         speedMult = 0.5f + MathUtils.clamp(gamepad1.right_stick_x, -0.4f, 5f);
-        if(servo.getPosition()!=0)servo.setPosition(0);
+        shootMult = getShootMult();
+        try{
+            Thread.sleep(250);
+        }catch (InterruptedException ignored){}
+        servoData=0x01;
+        servo.setPosition(0);
     }
 
     @Override
@@ -71,38 +59,14 @@ public class GuitarSigma extends OpMode {
         pinpoint.update();
         //frcHeading += gamepad1.back?-frcHeading:
         // AngleUnit.normalizeDegrees((float) pinpoint.getHeading(Constants.unit.AU.getUnnormalized())-temp);
-        float shootMult;
-        float maxShootSpeed = 1;
-        float minShootSpeed = 0.2f;
-        switch((Math.round(gamepad2.right_stick_x*100))){
-            case(75):
-                shootMult= maxShootSpeed;
-                break;
-            case(25):
-                shootMult= maxShootSpeed - (minShootSpeed);
-                break;
-            case(0):
-                shootMult= maxShootSpeed - (minShootSpeed*2);
-                break;
-            case(-25):
-                shootMult= maxShootSpeed - (minShootSpeed*3);
-                break;
-            case(-75):
-                shootMult= maxShootSpeed - (minShootSpeed*4);
-                break;
-            default:
-                shootMult=(maxShootSpeed+minShootSpeed)/2.0f;
-                telemetry.addLine("Error in Guitar Sigma switch statements");
-                telemetry.update();
-                break;
-        }
-        Intake.setPower(gamepad2.a?1:gamepad2.left_bumper?-1:0);
-        Transfer.setPower(gamepad2.b?1:gamepad2.x?-1:0);
-        Shoot.setPower(shootMult*(gamepad2.y?1:0));
+        shootMult = getShootMult();
+        Intake.setPower(gamepad2.a?1:gamepad2.x?-1:0);
+        Transfer.setPower(gamepad2.b?1:gamepad2.y?-1:0);
+        Shoot.setPower(shootMult*(gamepad2.dpad_down?1:gamepad2.dpad_up?-1:0));
         if(gamepad1.left_bumper&&((servoData&0x01)==0)){
             servoData|=0x01;
             servoData^=0x10;
-            servo.setPosition((float)(servoData&0x10)/0x10);
+            servo.setPosition(1-((float)(servoData&0x10)/0x10));
         }else if(!gamepad1.left_bumper&&(servoData&0x01)!=0)servoData &= ~0x01;
 
         speedMult = 0.5f + MathUtils.clamp(gamepad1.right_stick_x, -0.4f, 5f);
@@ -124,11 +88,26 @@ public class GuitarSigma extends OpMode {
             FR/=max;
             BR/=max;
         }
-        fl.setPower(FL);
-        bl.setPower(BL);
-        fr.setPower(FR);
-        br.setPower(BR);
+        calc.setPowers(FL, BL, FR, BR);
         telemetry.addData("Position: ", calc.getPosition());
         telemetry.addData("Servo Position: ", servo.getPosition());
+    }
+    private float getShootMult(){
+        float maxShootSpeed = 0.8f;
+        float minShootSpeed = 0.2f;
+        switch((int)(Math.ceil(gamepad2.right_stick_x*10)+7)){
+            case(14):
+                return maxShootSpeed;
+            case(9):
+                return maxShootSpeed - (minShootSpeed);
+            case(7):
+                return maxShootSpeed - (minShootSpeed *2);
+            case(5):
+                return maxShootSpeed - (minShootSpeed *3);
+            case(0):
+                return maxShootSpeed - (minShootSpeed *4);
+            default:
+                return (maxShootSpeed + minShootSpeed)/2.0f;
+        }
     }
 }
