@@ -6,6 +6,7 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -17,7 +18,7 @@ public class GuitarSigma extends OpMode {
 
     private DcMotor Intake;
     private DcMotor Transfer;
-    private DcMotor Shoot;
+    private DcMotorEx Shoot;
     private DcMotor fl;
     private DcMotor bl;
     private DcMotor fr;
@@ -27,7 +28,8 @@ public class GuitarSigma extends OpMode {
     //private float frcHeading;
     private float speedMult = 0.8f;
     private RobotUtil calc;
-    private float shootMult =1;
+    int defaultRPM = 3500;
+    int targetVelocity = (int) getTargetVelocity();
     //doin bit flag stuff
     byte servoData = 0;
     @Override
@@ -38,14 +40,14 @@ public class GuitarSigma extends OpMode {
         //frcHeading = (float)pinpoint.getHeading(Constants.unit.AU);
         Intake = robot.getUtilMotors().get(0);
         Transfer = robot.getUtilMotors().get(1);
-        Shoot = robot.getUtilMotors().get(2);
+        Shoot = (DcMotorEx) robot.getUtilMotors().get(2);
         servo = robot.getServo();
         //frcHeading =(float)pinpoint.getHeading(Constants.unit.AU);
     }
     @Override
     public void start(){
         speedMult = 0.5f + MathUtils.clamp(gamepad1.right_stick_x, -0.4f, 5f);
-        shootMult = getShootMult();
+        targetVelocity = (int) getTargetVelocity();
         try{
             Thread.sleep(250);
         }catch (InterruptedException ignored){}
@@ -59,10 +61,10 @@ public class GuitarSigma extends OpMode {
         pinpoint.update();
         //frcHeading += gamepad1.back?-frcHeading:
         // AngleUnit.normalizeDegrees((float) pinpoint.getHeading(Constants.unit.AU.getUnnormalized())-temp);
-        shootMult = getShootMult();
+        targetVelocity = (int) getTargetVelocity();
         Intake.setPower(gamepad2.a?1:gamepad2.x?-1:0);
         Transfer.setPower(gamepad2.b?1:gamepad2.y?-1:0);
-        Shoot.setPower(shootMult*(gamepad2.dpad_down?1:gamepad2.dpad_up?-1:0));
+        Shoot.setVelocity(targetVelocity*(gamepad2.dpad_down?1:gamepad2.dpad_up?-1:0));
         if(gamepad1.left_bumper&&((servoData&0x01)==0)){
             servoData|=0x01;
             servoData^=0x10;
@@ -92,22 +94,10 @@ public class GuitarSigma extends OpMode {
         telemetry.addData("Position: ", calc.getPosition());
         telemetry.addData("Servo Position: ", servo.getPosition());
     }
-    private float getShootMult(){
-        float maxShootSpeed = 0.8f;
-        float minShootSpeed = 0.2f;
-        switch((int)(Math.ceil(gamepad2.right_stick_x*10)+7)){
-            case(14):
-                return maxShootSpeed;
-            case(9):
-                return maxShootSpeed - (minShootSpeed);
-            case(7):
-                return maxShootSpeed - (minShootSpeed *2);
-            case(5):
-                return maxShootSpeed - (minShootSpeed *3);
-            case(0):
-                return maxShootSpeed - (minShootSpeed *4);
-            default:
-                return (maxShootSpeed + minShootSpeed)/2.0f;
-        }
+    private float getTargetVelocity(){
+        int targetRPM = (int) (defaultRPM + (gamepad2.right_stick_x*100));
+
+        return ((float) targetRPM /60)*28;
+
     }
 }
